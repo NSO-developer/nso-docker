@@ -1,8 +1,8 @@
 FROM bitnami/minideb:buster
 
-ARG NSOVER
+ARG NSO_INSTALL_FILE
 
-COPY nso-$NSOVER.linux.x86_64.installer.bin /tmp/nso
+COPY $NSO_INSTALL_FILE /tmp/nso
 RUN apt-get update \
   && apt-get install -y openssh-client \
   && sh /tmp/nso --system-install \
