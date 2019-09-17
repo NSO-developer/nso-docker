@@ -1,0 +1,47 @@
+
+* Assumptions and use cases
+  - build images for production and development + CI
+  - split between persistent data (docker shared volume) vs what goes into container
+  - SSH host key belongs to persistent data
+  - CDB persistent
+  - logs persistent
+  - NSO itself comes in container image
+  - packages comes in container image
+    - do package reload (force) on docker container startup
+      - we should always use the packages that come in the container image
+  - user creation on startup
+  - monitor NSO liveness and report as container health
+  - cleanly shut down NSO on container stop
+  - make sure ncs-backup script works
+  - describe 
+
+
+* TODO finalize Dockerfiles etc [0/1]
+  - [ ] decide how to do volumes
+    - [ ] one volume vs many volumes?
+      - CDB
+    - [ ] logs go where?
+      - some might want to persist logs
+      - if syslog is used, no point in persisting logs locally
+        - this means it should probably be separated from the persistent volume containing CDB etc
+
+
+* Running NSO in a Docker container
+   This repository contains all you need to build Docker images out of Cisco NSO. It produces two Docker images;
+   - a production image
+     - stripped of documentation and similar to make it small
+     - ... what else?
+   - a development image
+     - contains Java compiler and other useful tools
+     - ... what else?
+
+   To build your own image, you use the minimal production image as a base and add in the NSO packages, like NEDs and your service packages, to produce the final image.
+   The production image
+
+For a production environment we may want to a Docker image so that we can easily ship NSO together with packages into the production environment.
+
+In a development environment we can place all the build tools, like Java compilers etc into a container image so that we don't have to install all the build tools directly on to a machine. This makes it is easier to not /contaminate/
+
+
+** Docker image tags
+It is recommended that the Docker images are tagged with an identifier that is unique per build.
