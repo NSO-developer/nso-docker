@@ -1,4 +1,4 @@
-FROM bitnami/minideb
+FROM bitnami/minideb:buster
 
 ARG NSOVER
 
@@ -37,7 +37,7 @@ RUN apt-get update; \
     rm -rf /opt/ncs/current/netsim/confd/erlang/econfd/doc \
     rm -rf /opt/ncs/current/src/ncs/pyapi/doc
 
-FROM bitnami/minideb
+FROM bitnami/minideb:buster
 
 # The hashed pwd was generated on a Linux (doesn't seem to work on Mac OS)
 # python3 -c 'import crypt; print(crypt.crypt("cisco123", crypt.mksalt(crypt.METHOD_SHA512)))'
