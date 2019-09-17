@@ -5,7 +5,7 @@ ARG NSO_INSTALL_FILE
 COPY $NSO_INSTALL_FILE /tmp/nso
 RUN apt-get update \
   && apt-get install -y openssh-client \
-  && sh /tmp/nso --system-install \
+  && sh /tmp/nso --system-install --non-interactive \
   && # Generate SSH key in PEM format
   && rm -f /etc/ncs/ssh/* \
   && ssh-keygen -m PEM -t rsa -f /etc/ncs/ssh/ssh_host_rsa_key -N '' \
