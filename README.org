@@ -16,7 +16,7 @@
   - describe 
 
 
-* TODO finalize Dockerfiles etc [0/1]
+* TODO finalize Dockerfiles etc [0/4]
   - [ ] decide how to do volumes
     - [ ] one volume vs many volumes?
       - CDB
@@ -24,7 +24,32 @@
       - some might want to persist logs
       - if syslog is used, no point in persisting logs locally
         - this means it should probably be separated from the persistent volume containing CDB etc
+  - [ ] test that status thing works
+    - suspect it doesn't when backup is running, so load lots of data (many gigabytes) into NCS, do backup which should then take considerable time and see what happens to status check meanwhile
+  - [ ] expose what ports?
+    - 80: ??? web?
+    - 830: YES, NETCONF
+    - 2022: ??
+    - 2023: ??
+    - 4334: YES, NETCONF call-home
+    - 4569: CLI?
+  - [ ] use CI_BUILD_ID if available as docker image tag
 
+| folder      | configurable? |                  |
+|-------------+---------------+------------------+
+| backups     |               |                  |
+| cdb         | true          |                  |
+| packages    | true          |                  |
+| rollbacks   | true          |                  |
+| scripts     | true          |                  |
+| state       | true          |                  |
+| storedstate |               | is it even used? |
+| streams     |               | used? ncs.confg per default seems to place notification streams in /state |
+| target      |               |                  |
+
+Working theory:
+- set /ncs as rundir, meaning all of the above will default there
+- configure packages directory in config file to point to /packages
 
 * Running NSO in a Docker container
    This repository contains all you need to build Docker images out of Cisco NSO. It produces two Docker images;
@@ -35,13 +60,16 @@
      - contains Java compiler and other useful tools
      - ... what else?
 
-   To build your own image, you use the minimal production image as a base and add in the NSO packages, like NEDs and your service packages, to produce the final image.
-   The production image
-
-For a production environment we may want to a Docker image so that we can easily ship NSO together with packages into the production environment.
-
-In a development environment we can place all the build tools, like Java compilers etc into a container image so that we don't have to install all the build tools directly on to a machine. This makes it is easier to not /contaminate/
-
+   The development image can be used immediately, for example as the image for a CI docker container runner to use for running CI jobs that involve compilation of NSO packages and similar. The production image is intended to be used as a base image on which you add your own packages, like NEDs and your service packages, to produce a final image for your environment.
+   
+* Usage
+  - Download Cisco NSO
+  - Place downloaded .bin file in ~nso-install-files/~
+  - run ~make build~
 
 ** Docker image tags
 It is recommended that the Docker images are tagged with an identifier that is unique per build.
+
+
+** Mixed
+   - TCP port 4334 for NETCONF call-home

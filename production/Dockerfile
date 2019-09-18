@@ -5,8 +5,8 @@ ARG NSO_INSTALL_FILE
 COPY $NSO_INSTALL_FILE /tmp/nso
 RUN apt-get update \
   && apt-get install -y openssh-client \
-  && sh /tmp/nso --system-install --non-interactive \
-  && # Remove stuff we don't need/want from the NSO installation
+  && sh /tmp/nso --system-install --non-interactive --run-dir /ncs --log-dir /log \
+  # Remove stuff we don't need/want from the NSO installation \
   && rm -rf \
        /opt/ncs/current/doc \
        /opt/ncs/current/erlang \
@@ -44,14 +44,12 @@ RUN install_packages openssh-client default-jre-headless python \
   && rm -rf /usr/share/doc
 
 COPY --from=0 /etc/ncs /etc/ncs/
-COPY --from=0 /var/opt/ncs /var/opt/ncs/
+COPY --from=0 /ncs /ncs
 COPY --from=0 /opt/ncs /opt/ncs/
 COPY --from=0 /etc/init.d/ncs /etc/init.d/.
 
-COPY run-nso.sh /
-COPY java.xml /var/opt/ncs/cdb/
-COPY admin.xml /var/opt/ncs/cdb/
+COPY run-ncs.sh /
 
-EXPOSE 80 830 2022 2023 4569
+EXPOSE 80 830 2022 2023 4334 4569
 
-CMD ["/run-nso.sh"]
+CMD ["/run-ncs.sh"]
