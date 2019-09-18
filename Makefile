@@ -7,7 +7,6 @@ NSO_PROD=$(NSOS:%=production/%)
 .PHONY: build $(NSO_DEV) $(NSO_PROD)
 
 $(NSO_DEV):
-	@echo "Building development NSO image $(@:development/%=%) based on $(@:development/%=nso-install-files/%)"
 	rm -f development/*.bin
 	cp $(@:development/%=nso-install-files/%) development/
 	$(MAKE) -C development FILE=$(@:development/%=%) build
