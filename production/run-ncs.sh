@@ -104,7 +104,7 @@ do
     if [ $counter -ge ${CHECK_TIMER} ]
     then
         counter=0
-        echo "run-ncs.sh: Checking NCS status at $(date +"%Y-%m-%d %H:%M:%S")"
+        echo "run-ncs.sh: Checking NCS status at $(date +'%Y-%m-%d %H:%M:%S')"
         ncs_check || exit $?
         echo "run-ncs.sh: NCS OK"
         touch $OK_FILE
