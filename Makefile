@@ -6,6 +6,9 @@ NSO_PROD=$(NSOS:%=production/%)
 
 .PHONY: build $(NSO_DEV) $(NSO_PROD)
 
+# build all (both development and production images)
+build: $(NSO_DEV) $(NSO_PROD)
+
 $(NSO_DEV):
 	rm -f development/*.bin
 	cp $(@:development/%=nso-install-files/%) development/
@@ -18,6 +21,3 @@ $(NSO_PROD):
 	cp $(@:production/%=nso-install-files/%) production/
 	$(MAKE) -C production FILE=$(@:production/%=%) build
 	rm -f production/*.bin
-
-# build all (both development and production images)
-build: $(NSO_DEV) $(NSO_PROD)
