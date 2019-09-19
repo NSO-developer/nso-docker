@@ -17,8 +17,4 @@ $(NSO_DEV):
 	rm -f development/*.bin
 
 $(NSO_PROD):
-	@echo "Building production NSO image $(@:production/%=%) based on $(@:production/%=nso-install-files/%)"
-	rm -f production/*.bin
-	cp $(@:production/%=nso-install-files/%) production/
 	$(MAKE) -C production FILE=$(@:production/%=%) build
-	rm -f production/*.bin
