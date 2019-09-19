@@ -1,4 +1,5 @@
-NSO_INSTALL_FILES=$(shell ls nso-install-files/*.bin)
+NSO_INSTALL_FILES_DIR?=nso-install-files/
+NSO_INSTALL_FILES=$(shell ls $(NSO_INSTALL_FILES_DIR)/*.bin)
 NSOS=$(NSO_INSTALL_FILES:nso-install-files/%=%)
 NSO_DEV=$(NSOS:%=development/%)
 NSO_DEV=
