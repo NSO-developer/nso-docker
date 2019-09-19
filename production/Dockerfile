@@ -49,6 +49,6 @@ COPY --from=0 /etc/init.d/ncs /etc/init.d/.
 
 COPY run-ncs.sh /
 
-EXPOSE 80 830 2022 2023 4334 4569
+EXPOSE 830 2022 4334 8080
 
 CMD ["/run-ncs.sh"]
