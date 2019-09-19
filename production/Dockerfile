@@ -39,9 +39,8 @@ FROM bitnami/minideb:buster
 
 RUN install_packages openssh-client default-jre-headless python \
   && echo '. /opt/ncs/current/ncsrc' >> /root/.bashrc \
-  && rm -rf /tmp/* /var/tmp/* /var/lib/{apt,dpkg,cache,log}/ \
-  && mkdir /var/log/ncs \
   && rm -rf /usr/share/doc
+# TODO does the above rm of /usr/share/doc have any effect?
 
 COPY --from=0 /etc/ncs /etc/ncs/
 COPY --from=0 /ncs /ncs
