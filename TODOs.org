@@ -1,0 +1,70 @@
+
+* Goals, assumptions & use cases
+  - build images for production and development + CI
+  - split between persistent data (docker shared volume) vs what goes into container
+  - SSH host key belongs to persistent data
+  - CDB persistent
+  - logs persistent
+  - NSO itself comes in container image
+  - packages comes in container image
+    - do package reload (force) on docker container startup
+      - we should always use the packages that come in the container image
+  - user creation on startup
+  - monitor NSO liveness and report as container health
+  - cleanly shut down NSO on container stop
+  - make sure ncs-backup script works
+  - describe 
+
+* TODO finalize Dockerfiles etc [0/5]
+  - [ ] use CI_BUILD_ID if available as docker image tag
+
+| folder      | configurable? |                                                                           |
+|-------------+---------------+---------------------------------------------------------------------------|
+| backups     |               |                                                                           |
+| cdb         | true          |                                                                           |
+| packages    | true          |                                                                           |
+| rollbacks   | true          |                                                                           |
+| scripts     | true          |                                                                           |
+| state       | true          |                                                                           |
+| storedstate |               | is it even used?                                                          |
+| streams     |               | used? ncs.confg per default seems to place notification streams in /state |
+| target      |               |                                                                           |
+
+Working theory:
+- set /ncs as rundir, meaning all of the above will default there
+- configure packages directory in config file to point to /packages
+
+* TODO Decide how to do volumes
+  - [ ] one volume vs many volumes?
+    - CDB
+  - [ ] logs go where?
+    - some might want to persist logs
+    - if syslog is used, no point in persisting logs locally
+      - this means it should probably be separated from the persistent volume containing CDB etc
+* TODO test that status thing works
+  - suspect it doesn't when backup is running, so load lots of data (many gigabytes) into NCS, do backup which should then take considerable time and see what happens to status check meanwhile
+  - or rather, when doing ~request packages reload~
+    - can build fake package that takes long to load, like have CDB upgrade logic with a sleep?
+* TODO expose what ports?
+  - remember, it is always possible to expose and publish any port in docker just using ~-p~ - this is about what is exposed per default
+
+  | port | use          | exp | CHG | comment                              |
+  |------+--------------+-----+-----+--------------------------------------|
+  |  830 | NETCONF      | yes |     |                                      |
+  | 2022 | SSH CLI      | yes |  22 |                                      |
+  | 2023 | telnet CLI   | no  |     | insecure, prefer SSH CLI             |
+  | 4334 | NC call-home | yes |     |                                      |
+  | 4569 | IPC          | no  |     | used by CLI, no need for remote CLI? |
+  | 8080 | Web UI       | yes |  80 |                                      |
+
+** TODO Change default ports
+   - NCS listens per default on high ports (to avoid requiring root probably)
+   - in a container we are root, makes sense to switch to default ports for service, like 22 for SSH or 80 for web (not 8080)
+   - switch ports!
+
+* TODO generate ncs.conf at run time
+  We want to allow various options to be passed in that controls the way NCS is run. This is configured in NCS by editing ncs.conf and so we must generate ncs.conf at run time after collecting the relevant arguments.
+
+  We *could* potentially ship a ncs.conf that is primed as a template, i.e. certain values are replaced with something like ~{{foo}}~ for value substitution but this is dangerous as we want to have one Dockerfile etc recipe but support ncs.conf of many different NCS versions. It is assumed that there are changes made to ncs.conf with new versions and so statically shipping one ncs.conf means it is likely that we repöac
+  
+  Instead, we want to use the ncs.conf that is installed by the NSO install file but modify it such that it can be used as a template.. or well, just modify it really. ncs.conf is an XML file and so it is not trivial to do this with sed. We need XML aware tools.

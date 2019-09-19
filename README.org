@@ -1,75 +1,53 @@
+* NSO in Docker for development and production
+  This repository contains all you need to build Docker images out of Cisco NSO. It produces two Docker images;
+  - a production image
+    - stripped of documentation and similar to make it small
+    - ... what else?
+  - a development image
+    - contains Java compiler and other useful tools
+    - ... what else?
 
-* Assumptions and use cases
-  - build images for production and development + CI
-  - split between persistent data (docker shared volume) vs what goes into container
-  - SSH host key belongs to persistent data
-  - CDB persistent
-  - logs persistent
-  - NSO itself comes in container image
-  - packages comes in container image
-    - do package reload (force) on docker container startup
-      - we should always use the packages that come in the container image
-  - user creation on startup
-  - monitor NSO liveness and report as container health
-  - cleanly shut down NSO on container stop
-  - make sure ncs-backup script works
-  - describe 
-
-
-* TODO finalize Dockerfiles etc [0/4]
-  - [ ] decide how to do volumes
-    - [ ] one volume vs many volumes?
-      - CDB
-    - [ ] logs go where?
-      - some might want to persist logs
-      - if syslog is used, no point in persisting logs locally
-        - this means it should probably be separated from the persistent volume containing CDB etc
-  - [ ] test that status thing works
-    - suspect it doesn't when backup is running, so load lots of data (many gigabytes) into NCS, do backup which should then take considerable time and see what happens to status check meanwhile
-  - [ ] expose what ports?
-    - 80: ??? web?
-    - 830: YES, NETCONF
-    - 2022: ??
-    - 2023: ??
-    - 4334: YES, NETCONF call-home
-    - 4569: CLI?
-  - [ ] use CI_BUILD_ID if available as docker image tag
-
-| folder      | configurable? |                  |
-|-------------+---------------+------------------+
-| backups     |               |                  |
-| cdb         | true          |                  |
-| packages    | true          |                  |
-| rollbacks   | true          |                  |
-| scripts     | true          |                  |
-| state       | true          |                  |
-| storedstate |               | is it even used? |
-| streams     |               | used? ncs.confg per default seems to place notification streams in /state |
-| target      |               |                  |
-
-Working theory:
-- set /ncs as rundir, meaning all of the above will default there
-- configure packages directory in config file to point to /packages
-
-* Running NSO in a Docker container
-   This repository contains all you need to build Docker images out of Cisco NSO. It produces two Docker images;
-   - a production image
-     - stripped of documentation and similar to make it small
-     - ... what else?
-   - a development image
-     - contains Java compiler and other useful tools
-     - ... what else?
-
-   The development image can be used immediately, for example as the image for a CI docker container runner to use for running CI jobs that involve compilation of NSO packages and similar. The production image is intended to be used as a base image on which you add your own packages, like NEDs and your service packages, to produce a final image for your environment.
+  The development image can be used immediately, for example as the image for a CI docker container runner to use for running CI jobs that involve compilation of NSO packages and similar. The production image is intended to be used as a base image on which you add your own packages, like NEDs and your service packages, to produce a final image for your environment.
    
 * Usage
+  
+** Manually building Docker images locally
+  - Clone this repository to your local machine
+    - ~git clone git@github.com/NSO-Developer/cisco-nso.git~
   - Download Cisco NSO
+    - TODO fill in URL
   - Place downloaded .bin file in ~nso-install-files/~
-  - run ~make build~
+  - run ~make build~ in repository root directory
+  - verify your new images are built with ~docker images~ which should look something like:
+
+  #+BEGIN_SRC shell
+    kll@ThinkLite:~/cisco-nso# docker images
+    REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+    cisco-nso           5.2                 c451b581d328        19 hours ago        435MB
+    cisco-nso           4.7.5               3096fe46bee9        19 hours ago        433MB
+    cisco-nso-dev       5.2                 a986314ec390        22 hours ago        435MB
+    <none>              <none>              7e680e680923        22 hours ago        410MB
+    cisco-nso-dev       4.7.5               0565a58c3977        22 hours ago        433MB
+    <none>              <none>              d968a53420ab        22 hours ago        421MB
+    bitnami/minideb     buster              25dfa3b9a987        23 hours ago        67.5MB
+    docker              stable              b40e5afd78f5        2 weeks ago         216MB
+    kll@ThinkLite:~/cisco-nso#
+  #+END_SRC
+
+** Automatically building Docker images using Gitlab CI
+  - Clone this repository to your local machine
+    - ~git clone git@github.com/NSO-Developer/cisco-nso.git~
+  - Download Cisco NSO
+    - TODO fill in URL
+  - Place downloaded .bin file in ~nso-install-files/~
+  - commit file(s) in ~nso-install-files/~ using git LFS and push
+    - ~git add nso-install-files/*~
+    - ~git commit nso-install-files -m "Add NSO install files"~
+      - it is a good practice to add the files one by one and write the version you added in the commit message, like "Add NSO install file for v4.7.5"
+    - ~git push -u origin master~
+    - CI will now build the docker images for you
+      - naturally provided you first setup CI
+  - verify your new images are built by going to the container repository in Gitlab viewing the list of container images
 
 ** Docker image tags
 It is recommended that the Docker images are tagged with an identifier that is unique per build.
-
-
-** Mixed
-   - TCP port 4334 for NETCONF call-home
