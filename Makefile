@@ -11,10 +11,7 @@ NSO_PROD=$(NSOS:%=production/%)
 build: $(NSO_DEV) $(NSO_PROD)
 
 $(NSO_DEV):
-	rm -f development/*.bin
-	cp $(@:development/%=nso-install-files/%) development/
 	$(MAKE) -C development FILE=$(@:development/%=%) build
-	rm -f development/*.bin
 
 $(NSO_PROD):
 	$(MAKE) -C production FILE=$(@:production/%=%) build
