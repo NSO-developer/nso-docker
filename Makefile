@@ -1,9 +1,8 @@
 NSO_INSTALL_FILES_DIR?=nso-install-files/
-NSO_INSTALL_FILES=$(shell ls $(NSO_INSTALL_FILES_DIR)/*.bin)
-NSOS=$(NSO_INSTALL_FILES:nso-install-files/%=%)
-NSO_DEV=$(NSOS:%=development/%)
-NSO_DEV=
-NSO_PROD=$(NSOS:%=production/%)
+NSO_INSTALL_FILES=$(shell ls $(NSO_INSTALL_FILES_DIR)*.bin)
+NSO_DEV=$(NSO_INSTALL_FILES:%=development/%)
+#NSO_DEV=
+NSO_PROD=$(NSO_INSTALL_FILES:%=production/%)
 
 .PHONY: build $(NSO_DEV) $(NSO_PROD)
 
