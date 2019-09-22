@@ -1,0 +1,25 @@
+module testpkg {
+
+  namespace "http://example.com/testpkg";
+  prefix testpkg;
+
+  import tailf-ncs {
+    prefix ncs;
+  }
+
+  description
+    "A test package data model";
+
+  revision 2016-01-01 {
+    description
+      "Initial revision.";
+  }
+
+  container testpkg {
+    description "Simple test package data";
+
+    leaf a-value {
+      type string;
+    }
+  }
+}
