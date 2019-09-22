@@ -84,3 +84,4 @@
     - thus we never commit the NSO install files to git, we just upload them to the CI runner
 * TODO use python3 per default
   Python2 is EOL so no point in even giving a choice.
+* TODO add Docker healthcheck
