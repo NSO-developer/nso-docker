@@ -11,7 +11,7 @@ NSO_PROD=$(NSOS:%=production/%)
 build: $(NSO_DEV) $(NSO_PROD)
 
 $(NSO_DEV):
-	$(MAKE) -C development FILE=$(@:development/%=%) build
+	$(MAKE) -C development FILE=$(shell realpath $(@:development/%=%)) build
 
 $(NSO_PROD):
-	$(MAKE) -C production FILE=$(@:production/%=%) build
+	$(MAKE) -C production FILE=$(shell realpath $(@:production/%=%)) build
