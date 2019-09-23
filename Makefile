@@ -1,8 +1,13 @@
 NSO_INSTALL_FILES_DIR?=nso-install-files/
-NSO_INSTALL_FILES=$(shell ls $(NSO_INSTALL_FILES_DIR)*.bin)
+NSO_INSTALL_FILES=$(wildcard $(NSO_INSTALL_FILES_DIR)*.bin)
 NSO_DEV=$(NSO_INSTALL_FILES:%=development/%)
 #NSO_DEV=
 NSO_PROD=$(NSO_INSTALL_FILES:%=production/%)
+NSO_TEST=$(NSO_INSTALL_FILES:%=test/%)
+
+ifeq ($(NSO_INSTALL_FILES),)
+$(error "ERROR: No NSO install files found in $(NSO_INSTALL_FILES_DIR). Either place the NSO install file(s) in $(NSO_INSTALL_FILES_DIR) or set the environment variable NSO_INSTALL_FILES_DIR to the directory containing the NSO install file(s)")
+endif
 
 .PHONY: build $(NSO_DEV) $(NSO_PROD)
 
