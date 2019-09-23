@@ -1,7 +1,6 @@
 NSO_INSTALL_FILES_DIR?=nso-install-files/
 NSO_INSTALL_FILES=$(wildcard $(NSO_INSTALL_FILES_DIR)*.bin)
 NSO_DEV=$(NSO_INSTALL_FILES:%=development/%)
-#NSO_DEV=
 NSO_PROD=$(NSO_INSTALL_FILES:%=production/%)
 NSO_TEST=$(NSO_INSTALL_FILES:%=test/%)
 
