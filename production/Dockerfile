@@ -40,7 +40,7 @@ RUN apt-get update \
 
 FROM bitnami/minideb:buster
 
-RUN install_packages openssh-client default-jre-headless python \
+RUN install_packages openssh-client default-jre-headless python xmlstarlet \
   && echo '. /opt/ncs/current/ncsrc' >> /root/.bashrc \
   && rm -rf /usr/share/doc
 # TODO does the above rm of /usr/share/doc have any effect?
@@ -51,6 +51,7 @@ COPY --from=0 /opt/ncs /opt/ncs/
 COPY --from=0 /etc/init.d/ncs /etc/init.d/.
 
 COPY run-ncs.sh /
+COPY mangle-config.sh /etc/ncs/pre-ncs-start.d/mangle-config.sh
 
 EXPOSE 830 2022 4334 8080
 

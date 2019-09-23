@@ -69,21 +69,18 @@ ncs_check() {
 mkdir -p /ncs/cdb /ncs/rollbacks /ncs/scripts /ncs/streams \
     /ncs/log/oldlogs /ncs/log/traces /ncs/state /ncs/backups
 
-
-if [ -e /etc/ncs/pre-ncs-start.sh ]; then
-    . /etc/ncs/pre-ncs-start.sh
-fi
-
-#envtpl --allow-missing --keep-template /etc/ncs/ncs.conf.tpl
+for FILE in $(ls /etc/ncs/pre-ncs-start.d/*.sh); do
+    . ${FILE}
+done
 
 OK_FILE=/.ncs-ok
 rm -f $OK_FILE
 
 ncs_start
 
-if [ -e /etc/ncs/post-ncs-start.sh ]; then
-    . /etc/ncs/post-ncs-start.sh
-fi
+for FILE in $(ls /etc/ncs/post-ncs-start.d/*.sh); do
+    . ${FILE}
+done
 
 # wait for NCS to start and write OK file
 echo "run-ncs.sh: Waiting (max 600s) for NCS to start..."
