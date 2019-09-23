@@ -19,3 +19,8 @@ $(NSO_DEV):
 
 $(NSO_PROD):
 	$(MAKE) -C production FILE=$(shell realpath $(@:production/%=%)) build
+
+$(NSO_TEST):
+	$(MAKE) -C test FILE=$(@:test/%=%) test
+
+test: $(NSO_TEST)
