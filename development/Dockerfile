@@ -9,6 +9,7 @@ RUN apt-get update \
      iputils-ping \
      iputils-tracepath \
      less \
+     libexpat1 \
      liblog4cplus-1.1-9 \
      libuv1 \
      libxml2-utils \
