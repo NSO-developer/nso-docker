@@ -44,12 +44,18 @@
 
   Working theory:
   - set /ncs as rundir, meaning all of the above will default there
+  - use /ncs-log for logs
+    - this allows placement of logs in a shared volume for persistence
+    - ... or NOT, in which case they are placed in the container and will be wiped on restart / upgrade
+      - good for when logs are primarily shipped to some remote endpoint anyway
+    - keeping it in separate directory decouples the decision of where to log from how to use the /ncs shared volume (which ~ 100% of production users will want to set)
   - configure packages directory in config file to point to /packages
 
 * TODO test that status thing works
   - suspect it doesn't when backup is running, so load lots of data (many gigabytes) into NCS, do backup which should then take considerable time and see what happens to status check meanwhile
   - or rather, when doing ~request packages reload~
     - can build fake package that takes long to load, like have CDB upgrade logic with a sleep?
+
 * TODO expose what ports?
   - remember, it is always possible to expose and publish any port in docker just using ~-p~ - this is about what is exposed per default
 
