@@ -65,9 +65,9 @@ ncs_check() {
     return $status
 }
 
-# create directories and start NCS
-mkdir -p /ncs/cdb /ncs/rollbacks /ncs/scripts /ncs/streams \
-    /ncs/log/oldlogs /ncs/log/traces /ncs/state /ncs/backups
+# create required directories
+mkdir -p /ncs/cdb /ncs/rollbacks /ncs/scripts /ncs/streams /ncs/state /ncs/backups
+mkdir -p /log/traces
 
 for FILE in $(ls /etc/ncs/pre-ncs-start.d/*.sh); do
     . ${FILE}
