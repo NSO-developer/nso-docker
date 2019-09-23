@@ -13,6 +13,7 @@ RUN apt-get update \
      libuv1 \
      libxml2-utils \
      logrotate \
+     make \
      openssh-client \
      openssl \
      python3.7 \
