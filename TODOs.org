@@ -85,7 +85,9 @@
   We *could* potentially ship a ncs.conf that is primed as a template, i.e. certain values are replaced with something like ~{{foo}}~ for value substitution but this is dangerous as we want to have one Dockerfile etc recipe but support ncs.conf of many different NCS versions. It is assumed that there are changes made to ncs.conf with new versions and so statically shipping one ncs.conf means it is likely that we will somehow break things by replacing it.
   
   Instead, we want to use the ncs.conf that is installed by the NSO install file but modify it such that it can be used as a template.. or well, just modify it really. ncs.conf is an XML file and so it is not trivial to do this with sed. We need XML aware tools.
-* TODO Document use of NSO_INSTALL_FILES_DIR
+* DONE Document use of NSO_INSTALL_FILES_DIR
+  CLOSED: [2019-09-24 Tue 10:12]
+  - State "DONE"       from "TODO"       [2019-09-24 Tue 10:12]
   - the path in which the build process looks for the NSO install file(s) is specified by NSO_INSTALL_FILES_DIR
     - the default value i ~nso-install-files/~
   - this means we can deliver the NSO install files to the build process in two different ways

@@ -2,20 +2,22 @@
   This repository contains all you need to build Docker images out of Cisco NSO. It produces two Docker images;
   - a production image
     - stripped of documentation and similar to make it small
-    - ... what else?
+    - use this as a base image in the Dockerfile for your production container image
+      - add your own packages on top
   - a development image
     - contains Java compiler and other useful tools
-    - ... what else?
+    - can be used directly to compile packages and similar
 
   The development image can be used immediately, for example as the image for a CI docker container runner to use for running CI jobs that involve compilation of NSO packages and similar. The production image is intended to be used as a base image on which you add your own packages, like NEDs and your service packages, to produce a final image for your environment.
    
 * Usage
+  The ideal scenario would be to ship prebuilt Docker images containing NSO but as legal requirements prevent that, this is the second best option. This repository contains recipes that you can use to produce Docker images yourself. Just add +water+ Cisco NSO ;)
   
-** Manually building Docker images locally
+** Manually building Docker images on your local machine
   - Clone this repository to your local machine
     - ~git clone git@github.com/NSO-Developer/cisco-nso.git~
   - Download Cisco NSO
-    - TODO fill in URL
+    - go to https://developer.cisco.com/docs/nso/ and click the "Download NSO for evaluation (Linux)" in the side bar
   - Place downloaded .bin file in ~nso-install-files/~
   - run ~make build~ in repository root directory
   - verify your new images are built with ~docker images~ which should look something like:
@@ -38,7 +40,7 @@
   - Clone this repository to your local machine
     - ~git clone git@github.com/NSO-Developer/cisco-nso.git~
   - Download Cisco NSO
-    - TODO fill in URL
+    - go to https://developer.cisco.com/docs/nso/ and click the "Download NSO for evaluation (Linux)" in the side bar
   - Place downloaded .bin file in ~nso-install-files/~
   - commit file(s) in ~nso-install-files/~ using git LFS and push
     - ~git add nso-install-files/*~
@@ -48,6 +50,33 @@
     - CI will now build the docker images for you
       - naturally provided you first setup CI
   - verify your new images are built by going to the container repository in Gitlab viewing the list of container images
+
+** Alternative for providing NSO install files into CI runner
+   The above method involves committing the NSO install files to this git repository (your clone of it). This means the repository must be private so that you don't leak the NSO install files nor the produced Docker images. There are a number of reasons for why this setup might not be ideal;
+   - you have an open source public and wish to run CI publicly
+   - LFS doesn't work with your choice of code hosting
+   - NSO install files are too big or you just don't like LFS
+
+   There is an alternative. The path in which the build process looks for the NSO install file(s) is specified by NSO_INSTALL_FILES_DIR. The default value is ~nso-install-files/~, i.e. a directory relative to the root of the repository. The standard way of delivering the NSO install files, as outlined in the process above, is to place the NSO files in that directory. The alternative is to change the NSO_INSTALL_FILES_DIR variable. Note how you can set this environment variable through the GitLab CI settings page under variables. You do *not* need to commit anything. In case you are running Gitlab CI with the ~docker~ runner, add the path to the list of ~volumes~, for example:
+
+   #+BEGIN_SRC text
+     [[runners]]
+       name = "my-runner"
+       url = "https://gitlab.com/"
+       token = "s3cr3t"
+       executor = "docker"
+       [runners.docker]
+         tls_verify = false
+         image = "debian:buster"
+         privileged = false
+         disable_entrypoint_overwrite = false
+         oom_kill_disable = false
+         disable_cache = false
+         volumes = ["/cache", "/var/run/docker.sock:/var/run/docker.sock", "/data/vrnetlab-images:/images"]
+         shm_size = 0
+   #+END_SRC
+
+   The path ~/data/vrnetlab-images~ on the host machine becomes available as ~/images/~ in the CI build docker containers and by specifying that path (~/images~) using the CI variable settings, the job will now pick up the NSO images from there. This is how the public repo at https://gitlab.com/plajjan/cisco-nso works. It allows us to host all code in public, run CI tests in public yet not reveal the NSO install file as required by its EULA.
 
 ** Docker image tags
 It is recommended that the Docker images are tagged with an identifier that is unique per build.
