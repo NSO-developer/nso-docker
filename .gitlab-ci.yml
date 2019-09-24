@@ -12,4 +12,4 @@ build:
     - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
     - apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
-    - make build
+    - make all

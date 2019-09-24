@@ -10,6 +10,8 @@ endif
 
 .PHONY: build $(NSO_DEV) $(NSO_PROD)
 
+all: build test
+
 # build all (both development and production images)
 build: $(NSO_DEV) $(NSO_PROD)
 
