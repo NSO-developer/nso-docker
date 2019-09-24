@@ -77,7 +77,9 @@
    - in a container we are root, makes sense to switch to default ports for service, like 22 for SSH or 80 for web (not 8080)
    - switch ports!
 
-* TODO generate ncs.conf at run time
+* DONE generate ncs.conf at run time
+  CLOSED: [2019-09-24 Tue 08:43]
+  - State "DONE"       from "TODO"       [2019-09-24 Tue 08:43]
   We want to allow various options to be passed in that controls the way NCS is run. This is configured in NCS by editing ncs.conf and so we must generate ncs.conf at run time after collecting the relevant arguments.
 
   We *could* potentially ship a ncs.conf that is primed as a template, i.e. certain values are replaced with something like ~{{foo}}~ for value substitution but this is dangerous as we want to have one Dockerfile etc recipe but support ncs.conf of many different NCS versions. It is assumed that there are changes made to ncs.conf with new versions and so statically shipping one ncs.conf means it is likely that we will somehow break things by replacing it.
