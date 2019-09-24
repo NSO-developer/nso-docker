@@ -40,7 +40,7 @@ RUN apt-get update \
 
 FROM bitnami/minideb:buster
 
-RUN install_packages libexpat1 openssh-client default-jre-headless python xmlstarlet \
+RUN install_packages libexpat1 openssh-client default-jre-headless python3 xmlstarlet \
   && echo '. /opt/ncs/current/ncsrc' >> /root/.bashrc \
   && rm -rf /usr/share/doc
 # TODO does the above rm of /usr/share/doc have any effect?
