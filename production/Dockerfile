@@ -4,7 +4,7 @@ ARG NSO_INSTALL_FILE
 
 COPY $NSO_INSTALL_FILE /tmp/nso
 RUN apt-get update \
-  && apt-get install -y openssh-client \
+  && apt-get install -qy openssh-client \
   && sh /tmp/nso --system-install --non-interactive --run-dir /ncs --log-dir /log \
   # Remove stuff we don't need/want from the NSO installation \
   && rm -rf \
