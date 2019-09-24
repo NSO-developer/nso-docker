@@ -56,7 +56,9 @@
   - or rather, when doing ~request packages reload~
     - can build fake package that takes long to load, like have CDB upgrade logic with a sleep?
 
-* TODO expose what ports?
+* DONE expose what ports?
+  CLOSED: [2019-09-24 Tue 08:40]
+  - State "DONE"       from "TODO"       [2019-09-24 Tue 08:40]
   - remember, it is always possible to expose and publish any port in docker just using ~-p~ - this is about what is exposed per default
 
   | port | use          | exp | CHG | comment                              |
@@ -68,7 +70,9 @@
   | 4569 | IPC          | no  |     | used by CLI, no need for remote CLI? |
   | 8080 | Web UI       | yes |  80 |                                      |
 
-** TODO Change default ports
+** DONE Change default ports
+   CLOSED: [2019-09-24 Tue 08:40]
+   - State "DONE"       from "TODO"       [2019-09-24 Tue 08:40]
    - NCS listens per default on high ports (to avoid requiring root probably)
    - in a container we are root, makes sense to switch to default ports for service, like 22 for SSH or 80 for web (not 8080)
    - switch ports!

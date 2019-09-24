@@ -53,6 +53,6 @@ COPY --from=0 /etc/init.d/ncs /etc/init.d/.
 COPY run-ncs.sh /
 COPY mangle-config.sh /etc/ncs/pre-ncs-start.d/mangle-config.sh
 
-EXPOSE 830 2022 4334 8080
+EXPOSE 22 80 443 830 4334
 
 CMD ["/run-ncs.sh"]
