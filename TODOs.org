@@ -3,6 +3,7 @@
   - build images for production and development + CI
   - split between persistent data (docker shared volume) vs what goes into container
   - SSH host key belongs to persistent data
+    - and SSL certs?
   - CDB persistent
   - logs persistent
   - NSO itself comes in container image
@@ -13,6 +14,8 @@
   - monitor NSO liveness and report as container health
   - cleanly shut down NSO on container stop
   - make sure ncs-backup script works
+  - sane defaults
+  - things should work out of the box
   - describe 
 
 * TODO figure out docker image tag
@@ -50,6 +53,9 @@
       - good for when logs are primarily shipped to some remote endpoint anyway
     - keeping it in separate directory decouples the decision of where to log from how to use the /ncs shared volume (which ~ 100% of production users will want to set)
   - configure packages directory in config file to point to /packages
+* TODO figure out SSL story for HTTPS webUI
+  Should we generate random certs on startup? It sure helps for dev / CI environment. Maybe option through environment variable?
+  Should webUI be enabled per default (I think no) - enable by env var.
 
 * TODO test that status thing works
   - suspect it doesn't when backup is running, so load lots of data (many gigabytes) into NCS, do backup which should then take considerable time and see what happens to status check meanwhile
@@ -98,4 +104,10 @@
     - thus we never commit the NSO install files to git, we just upload them to the CI runner
 * TODO use python3 per default
   Python2 is EOL so no point in even giving a choice.
+  How do we switch to python3? Just updated the ncs-start-python-vm script to read python3? Alternative is to symlink (update-alternatives?) on the system to ~python~ actually points to ~python3~ but that feels sort of weird, bending the system distribution a bit much just to please NSO.
 * TODO add Docker healthcheck
+* Decision validation
+  A list of design decisions I've taken that we should validate with another brain.
+  - [ ] rewrite of /opt/ncs/current/bin/ncs-start-python-vm to directly use python3
+  - [ ] web UI HTTP / HTTPS enabled per default? (KLL thinks no)
+  - [ ] SSH CLI, NETCONF, NETCONF call-home enabled per default! (KLL opinion)
