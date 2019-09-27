@@ -100,7 +100,7 @@ test-persistent-ssh-key:
 	docker exec -t $(CNT_PREFIX)-testpsk-$(NCS_VERSION) bash -lc "ncs --wait-started"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-testpsk-$(NCS_VERSION)) | awk '{ print $$3 }' > tmp/testpsk2
 	-@docker rm -f $(CNT_PREFIX)-testpsk-$(NCS_VERSION) >/dev/null 2>&1
-	diff -u tmp/testpsk1 tmp/testpsk2 || echo "ERROR: SSH key different across runs, should be persisted" && exit 1
 	-docker volume rm $(CNT_PREFIX)-testpsk-$(NCS_VERSION)
 	@echo "-- Comparing output ------------------------"
+	diff -u tmp/testpsk1 tmp/testpsk2 || (echo "ERROR: SSH key different across runs, should be persisted" && exit 1)
 	@echo "SSH keys are the same across invocations, I'm happy"
