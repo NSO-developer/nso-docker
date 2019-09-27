@@ -131,10 +131,11 @@
     - possibly use --net=host to share IP address with host machine
       - makes it easier to handle connectivity
 
-    This uses the ~--net=host~ option to let the container live in the hosts networking namespace. This means that it binds to the IP address of the (virtual) machine it is running on.
+    This uses the ~--net=host~ option to let the container live in the hosts networking namespace. This means that it binds to the IP address of the (virtual) machine it is running on. Also note that we use a shared volume for logs. ~/log~ inside the container contains the logs and you can access them outside the container in ~/data/nso-logs~.
     #+BEGIN_SRC shell
-      docker run -itd --name nso -v /data/nso:/ncs --net=host my-prod-image:12345
+      docker run -itd --name nso -v /data/nso:/ncs -v /data/nso-logs:/log --net=host my-prod-image:12345
     #+END_SRC
+
 ** Configuration options
    The ncs.conf configuration file for NSO is written at run time of the container. It is generated (modified to be precise) at startup of the container. It is possible to influence the configuration through a number of variables. These can be fed into the container through environment variables.
 
