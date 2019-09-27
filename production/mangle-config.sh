@@ -10,6 +10,11 @@ if [ "$PAM" != "true" ]; then
                $CONF_FILE
 fi
 
+# change SSH key dir
+xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
+           --update "/x:ncs-config/x:aaa/x:ssh-server-key-dir" --value '${NCS_RUN_DIR}/ssh' \
+           $CONF_FILE
+
 # update ports for various protocols for which the default value in ncs.conf is
 # different from the protocols default port (to allow starting ncs without root)
 # NETCONF call-home is already on its default 4334 since that's above 1024

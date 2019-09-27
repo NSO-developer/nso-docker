@@ -66,8 +66,13 @@ ncs_check() {
 }
 
 # create required directories
-mkdir -p /ncs/cdb /ncs/rollbacks /ncs/scripts /ncs/streams /ncs/state /ncs/backups
+mkdir -p /ncs/cdb /ncs/rollbacks /ncs/scripts /ncs/streams /ncs/state /ncs/backups /ncs/ssh
 mkdir -p /log/traces
+
+# generate SSH key if one doesn't exist
+if [ ! -f /ncs/ssh/ssh_host_rsa_key ]; then
+    ssh-keygen -m PEM -t rsa -f /ncs/ssh/ssh_host_rsa_key -N ''
+fi
 
 for FILE in $(ls /etc/ncs/pre-ncs-start.d/*.sh); do
     . ${FILE}
