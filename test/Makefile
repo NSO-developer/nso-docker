@@ -20,6 +20,8 @@ test:
 	$(MAKE) test-cdb-persistence
 	$(MAKE) test-run-time-ssh-key-gen
 	$(MAKE) test-persistent-ssh-key
+	$(MAKE) test-http-disabled
+	$(MAKE) test-https-disabled
 
 test-cdb-persistence:
 	-@docker rm -f $(CNT_PREFIX)-testbuilder-$(NCS_VERSION) >/dev/null 2>&1
@@ -105,3 +107,20 @@ test-persistent-ssh-key:
 	@echo "-- Comparing output ------------------------"
 	diff -u tmp/testpsk1 tmp/testpsk2 || (echo "ERROR: SSH key different across runs, should be persisted" && exit 1)
 	@echo "SSH keys are the same across invocations, I'm happy"
+
+
+test-http-disabled:
+	@echo "== Test that the HTTP webUI is disabled per default ============================"
+	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ cisco-nso:$(NCS_VERSION)
+	curl $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
+	@echo "Connection to HTTP TCP port 80 was refused, I'm happy"
+	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+test-https-disabled:
+	@echo "== Test that the HTTP webUI is disabled per default ============================"
+	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ cisco-nso:$(NCS_VERSION)
+	curl https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
+	@echo "Connection to HTTPS TCP port 443 was refused, I'm happy"
+	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
