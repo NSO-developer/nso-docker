@@ -16,7 +16,9 @@ endif
 
 # 1. using cisco-nso-dev image, compile our package
 
-test:
+test: test-run-time-ssh-key-gen
+
+test-persistence:
 	-@docker rm -f $(CNT_PREFIX)-testbuilder-$(NCS_VERSION) >/dev/null 2>&1
 	@echo "-- Starting docker container for compiling test package ------------------------"
 	docker run -td --name $(CNT_PREFIX)-testbuilder-$(NCS_VERSION) cisco-nso-dev:$(NCS_VERSION)
@@ -55,3 +57,27 @@ test:
 	-docker rm -f $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION)
 	@echo "-- Removing volume for cisco-nso test container --------------------------------"
 	-docker volume rm $(CNT_PREFIX)-nso-test-volume-$(NCS_VERSION)
+
+
+test-run-time-ssh-key-gen:
+	@echo "== Test that SSH keys are generated at runtime ================================="
+	@echo "Starts the NSO container twice and ensure the SSH keys are different."
+	@echo "SSH keys are written to the /ncs directory which can be shared mounted so"
+	@echo "it is trivial to persist over time."
+	mkdir -p tmp
+	rm -rf tmp/testrtskg*
+	-@docker rm -f $(CNT_PREFIX)-testrtskg-$(NCS_VERSION) >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-testrtskg-$(NCS_VERSION) cisco-nso:$(NCS_VERSION)
+	docker exec -t $(CNT_PREFIX)-testrtskg-$(NCS_VERSION) bash -lc "ncs --wait-started"
+	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-testrtskg-$(NCS_VERSION)) | awk '{ print $$3 }' > tmp/testrtskg1
+	-@docker rm -f $(CNT_PREFIX)-testrtskg-$(NCS_VERSION) >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-testrtskg-$(NCS_VERSION) cisco-nso:$(NCS_VERSION)
+	docker exec -t $(CNT_PREFIX)-testrtskg-$(NCS_VERSION) bash -lc "ncs --wait-started"
+	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-testrtskg-$(NCS_VERSION)) | awk '{ print $$3 }' > tmp/testrtskg2
+	-@docker rm -f $(CNT_PREFIX)-testrtskg-$(NCS_VERSION) >/dev/null 2>&1
+	ret=0; diff -u tmp/testrtskg1 tmp/testrtskg2; \
+	[ $$? -eq 0 ] && echo "ERROR: SSH key identical, should be different per run" && ret=1; exit $$ret
+	@echo "SSH keys are different across invocations, I'm happy"
+
+test-persistent-ssh-key:
+	@echo "== Test that SSH key is persisted on shared volume ============================="
