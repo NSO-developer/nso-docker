@@ -17,10 +17,11 @@ endif
 # 1. using cisco-nso-dev image, compile our package
 
 test:
+	$(MAKE) test-cdb-persistence
 	$(MAKE) test-run-time-ssh-key-gen
 	$(MAKE) test-persistent-ssh-key
 
-test-persistence:
+test-cdb-persistence:
 	-@docker rm -f $(CNT_PREFIX)-testbuilder-$(NCS_VERSION) >/dev/null 2>&1
 	@echo "-- Starting docker container for compiling test package ------------------------"
 	docker run -td --name $(CNT_PREFIX)-testbuilder-$(NCS_VERSION) cisco-nso-dev:$(NCS_VERSION)
