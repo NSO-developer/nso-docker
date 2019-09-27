@@ -16,7 +16,7 @@ endif
 
 # 1. using cisco-nso-dev image, compile our package
 
-test: test-run-time-ssh-key-gen
+test: test-run-time-ssh-key-gen test-persistent-ssh-key
 
 test-persistence:
 	-@docker rm -f $(CNT_PREFIX)-testbuilder-$(NCS_VERSION) >/dev/null 2>&1
@@ -81,3 +81,19 @@ test-run-time-ssh-key-gen:
 
 test-persistent-ssh-key:
 	@echo "== Test that SSH key is persisted on shared volume ============================="
+	mkdir -p tmp
+	rm -rf tmp/testpsk*
+	-docker volume rm $(CNT_PREFIX)-testpsk-$(NCS_VERSION)
+	docker volume create $(CNT_PREFIX)-testpsk-$(NCS_VERSION)
+	-@docker rm -f $(CNT_PREFIX)-testpsk-$(NCS_VERSION) >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-testpsk-$(NCS_VERSION) -v $(CNT_PREFIX)-testpsk-$(NCS_VERSION) cisco-nso:$(NCS_VERSION)
+	docker exec -t $(CNT_PREFIX)-testpsk-$(NCS_VERSION) bash -lc "ncs --wait-started"
+	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-testpsk-$(NCS_VERSION)) | awk '{ print $$3 }' > tmp/testpsk1
+	-@docker rm -f $(CNT_PREFIX)-testpsk-$(NCS_VERSION) >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-testpsk-$(NCS_VERSION) -v $(CNT_PREFIX)-testpsk-$(NCS_VERSION) cisco-nso:$(NCS_VERSION)
+	docker exec -t $(CNT_PREFIX)-testpsk-$(NCS_VERSION) bash -lc "ncs --wait-started"
+	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-testpsk-$(NCS_VERSION)) | awk '{ print $$3 }' > tmp/testpsk2
+	-@docker rm -f $(CNT_PREFIX)-testpsk-$(NCS_VERSION) >/dev/null 2>&1
+	diff -u tmp/testpsk1 tmp/testpsk2 || echo "ERROR: SSH key different across runs, should be persisted" && exit 1
+	-docker volume rm $(CNT_PREFIX)-testpsk-$(NCS_VERSION)
+	@echo "SSH keys are the same across invocations, I'm happy"
