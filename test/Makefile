@@ -16,7 +16,9 @@ endif
 
 # 1. using cisco-nso-dev image, compile our package
 
-test: test-run-time-ssh-key-gen test-persistent-ssh-key
+test:
+	$(MAKE) test-run-time-ssh-key-gen
+	$(MAKE) test-persistent-ssh-key
 
 test-persistence:
 	-@docker rm -f $(CNT_PREFIX)-testbuilder-$(NCS_VERSION) >/dev/null 2>&1
