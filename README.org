@@ -9,7 +9,27 @@
     - can be used directly to compile packages and similar
 
   The development image can be used immediately, for example as the image for a CI docker container runner to use for running CI jobs that involve compilation of NSO packages and similar. The production image is intended to be used as a base image on which you add your own packages, like NEDs and your service packages, to produce a final image for your environment.
-   
+
+* How and why?
+  There are many reasons for why Docker and containers in general might be good for you. The main drivers for using Docker with NSO lies around packaging, ensuring consistency in testing and production as well as making it simple and convenient to create test environments.
+
+  - build a docker image out of a specific version of NSO and your packages
+    - distributed as one unit!
+    - you test the combination of NSO version X and version Y of your packages
+      - think of it as a "version set"
+    - the same version set that is tested in CI is deployed in production
+      - guarantees you tested same thing you deploy
+    - conversely, using other distribution methods, you increase the risk of testing one thing and ending up deploying something else - i.e. you didn't really test what you use in production
+  - having NSO in a container makes it easy to start
+    - simple to test
+    - simple to run in CI
+    - simple to use for development
+  - you do NOT need Kubernetes, Docker swarm or other fancy orchestration
+    - run Docker engine on a single machine
+
+  It's also worth noting that using Docker does not mean you have to replace all of your current infrastructure. If you are currently using OpenStack or some system that primarily deals with virtual machines you don't have to rip this out. On the particular VM that runs NSO you can simply install Docker and have a single machine Docker environment that runs NSO. You are using Docker for the packaging features!
+
+
 * Usage
   The ideal scenario would be to ship prebuilt Docker images containing NSO but as legal requirements prevent that, this is the second best option. This repository contains recipes that you can use to produce Docker images yourself. Just add +water+ Cisco NSO ;)
   
