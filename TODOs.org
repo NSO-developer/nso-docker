@@ -25,7 +25,10 @@
   - if not available, we use something else.. what?
 
 
-* TODO Decide how to do volumes
+* DONE Decide how to do volumes
+  CLOSED: [2019-09-27 Fri 17:07]
+  - State "DONE"       from "TODO"       [2019-09-27 Fri 17:07] \\
+    Big questions done. Splitting out smaller TODO entries for finer stuff..
   - [ ] one volume vs many volumes?
     - CDB
   - [ ] logs go where?
@@ -53,6 +56,10 @@
       - good for when logs are primarily shipped to some remote endpoint anyway
     - keeping it in separate directory decouples the decision of where to log from how to use the /ncs shared volume (which ~ 100% of production users will want to set)
   - configure packages directory in config file to point to /packages
+* TODO flip packages directory
+  Currently using /packages since that is cute as long as we are in a container but to play with other things I think it is better to stick to the default system install directory of /var/opt/ncs/packages... like if someone is building their NEDs into Debian packages, then they will be installed to that path so it's better we stick to it.
+* TODO rename to /nso?
+  So the current main directory is currently called /ncs while the container itself is called cisco-nso. Should we try to align? I feel it is sort of futile because the product is called NSO but the binary and a lot of things are called ncs and will continue to bear that name for a long time (forever?). The binary itself is called ncs so somehow I feel it is okay to call it /ncs...
 * TODO figure out SSL story for HTTPS webUI
   Should we generate random certs on startup? It sure helps for dev / CI environment. Maybe option through environment variable?
   Should webUI be enabled per default (I think no) - enable by env var.
@@ -107,10 +114,21 @@
   How do we switch to python3? Just updated the ncs-start-python-vm script to read python3? Alternative is to symlink (update-alternatives?) on the system to ~python~ actually points to ~python3~ but that feels sort of weird, bending the system distribution a bit much just to please NSO.
 * TODO add Docker healthcheck
 * TODO add test cases
-** TODO test SSH key is generated at run time
+** DONE test SSH key is generated at run time
+   CLOSED: [2019-09-27 Fri 16:56]
+   - State "DONE"       from "TODO"       [2019-09-27 Fri 16:56]
    Start container multiple times and ensure we see different SSH keys
-** TODO test SSH key is persisted on persistent volume
+** DONE test SSH key is persisted on persistent volume
+   CLOSED: [2019-09-27 Fri 16:56]
+   - State "DONE"       from "TODO"       [2019-09-27 Fri 16:56]
    Start container multiple times with a persistent volume on /ncs and ensure the SSH key stays the same.
+** TODO test logs are not persisted with persistent /ncs
+** TODO ensure HTTP is disabled per default
+** TODO ensure HTTPS is disabled per default
+** TODO ensure HTTP config variable enables HTTP
+** TODO ensure HTTPS config variable enables HTTPS interface
+** TODO ensure SSL certificates are generated on startup
+** TODO ensure SSL certificates are persisted on persistent volume
 * Decision validation
   A list of design decisions I've taken that we should validate with another brain.
   - [ ] rewrite of /opt/ncs/current/bin/ncs-start-python-vm to directly use python3
