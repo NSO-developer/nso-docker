@@ -135,6 +135,13 @@
     #+BEGIN_SRC shell
       docker run -itd --name nso -v /data/nso:/ncs --net=host my-prod-image:12345
     #+END_SRC
+** Configuration options
+   The ncs.conf configuration file for NSO is written at run time of the container. It is generated (modified to be precise) at startup of the container. It is possible to influence the configuration through a number of variables. These can be fed into the container through environment variables.
+
+   | Environment variable | Type    | Default | Description                                   |
+   |----------------------+---------+---------+-----------------------------------------------|
+   | PAM                  | boolean | false   | Enable PAM instead of local auth in NCS (AAA) |
+   | HTTP_ENABLE          | boolean | false   | Enable HTTP web UI                            |
 
 * Docker image tags
 It is recommended that the Docker images are tagged with an identifier that is unique per build.
