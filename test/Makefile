@@ -113,6 +113,7 @@ test-http-disabled:
 	@echo "== Test that the HTTP webUI is disabled per default ============================"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ cisco-nso:$(NCS_VERSION)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	curl $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
 	@echo "Connection to HTTP TCP port 80 was refused, I'm happy"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -121,6 +122,7 @@ test-https-disabled:
 	@echo "== Test that the HTTP webUI is disabled per default ============================"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ cisco-nso:$(NCS_VERSION)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	curl https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
 	@echo "Connection to HTTPS TCP port 443 was refused, I'm happy"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
