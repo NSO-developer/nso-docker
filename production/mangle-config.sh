@@ -3,9 +3,8 @@
 CONF_FILE=/etc/ncs/ncs.conf
 
 # switch to local auth per default, allow to override through environment variable PAM
-if [ "$PAM" == "true" ]; then
-else
-    xmlstarlet --inplace edit -N x=http://tail-f.com/yang/tailf-ncs-config \
+if [ "$PAM" != "true" ]; then
+    xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
                --update "/x:ncs-config/x:aaa/x:pam/x:enabled" --value "false" \
                --update "/x:ncs-config/x:aaa/x:local-authentication/x:enabled" --value "true" \
                $CONF_FILE
