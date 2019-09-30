@@ -24,6 +24,7 @@ test:
 	$(MAKE) test-https-disabled
 	$(MAKE) test-http-enabled
 	$(MAKE) test-https-enabled
+	$(MAKE) test-run-time-ssl-cert-gen
 
 test-cdb-persistence:
 	-@docker rm -f $(CNT_PREFIX)-testbuilder-$(NCS_VERSION) >/dev/null 2>&1
@@ -146,3 +147,24 @@ test-https-enabled:
 	curl --insecure https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) >/dev/null
 	@echo "Connection to HTTPS (TLS/TCP port 443) was accepted, I'm happy"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+test-run-time-ssl-cert-gen:
+	@echo "== Test that SSL certs are generated at runtime ================================"
+	@echo "Starts the NSO container twice and ensure the SSL certs are different."
+	@echo "SSL certs are written to the /nso directory which can be shared mounted so"
+	@echo "it is trivial to persist over time."
+	mkdir -p tmp
+	rm -rf tmp/testrtscg*
+	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true cisco-nso:$(NCS_VERSION)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/testrtscg1
+
+	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true cisco-nso:$(NCS_VERSION)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/testrtscg2
+	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	ret=0; diff -u tmp/testrtscg1 tmp/testrtscg2; \
+	[ $$? -eq 0 ] && echo "ERROR: SSL cert identical, should be different per run" && ret=1; exit $$ret
+	@echo "SSL cert are different across invocations, I'm happy"
