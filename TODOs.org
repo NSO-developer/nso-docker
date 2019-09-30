@@ -132,7 +132,9 @@
 ** DONE ensure HTTP config variable enables HTTP
    CLOSED: [2019-09-30 Mon 07:36]
    - State "DONE"       from "TODO"       [2019-09-30 Mon 07:36]
-** TODO ensure HTTPS config variable enables HTTPS interface
+** DONE ensure HTTPS config variable enables HTTPS interface
+   CLOSED: [2019-09-30 Mon 09:25]
+   - State "DONE"       from "TODO"       [2019-09-30 Mon 09:25]
 ** TODO ensure SSL certificates are generated on startup
 ** TODO ensure SSL certificates are persisted on persistent volume
 * Decision validation
