@@ -5,7 +5,7 @@ ARG NSO_INSTALL_FILE
 COPY $NSO_INSTALL_FILE /tmp/nso
 RUN apt-get update \
   && apt-get install -qy openssh-client \
-  && sh /tmp/nso --system-install --non-interactive --run-dir /ncs --log-dir /log \
+  && sh /tmp/nso --system-install --non-interactive --run-dir /nso --log-dir /log \
   # wipe SSH keys
   && rm -f /etc/ncs/ssh/* \
   # Remove stuff we don't need/want from the NSO installation \
@@ -48,7 +48,7 @@ RUN install_packages libexpat1 openssh-client default-jre-headless python3 xmlst
   && rm -rf /usr/share/doc
 
 COPY --from=0 /etc/ncs /etc/ncs/
-COPY --from=0 /ncs /ncs
+COPY --from=0 /nso /nso
 COPY --from=0 /opt/ncs /opt/ncs/
 COPY --from=0 /etc/init.d/ncs /etc/init.d/.
 

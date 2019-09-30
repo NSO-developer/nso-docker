@@ -125,7 +125,7 @@
       - NETCONF notification replay
       - rollbacks
       - backups
-      - optionally NCS logs
+      - optionally NSO logs
         - if remote (syslog) logging is used there is little need to persist logs
         - if local logging, then persisting logs is a good idea
     - possibly use --net=host to share IP address with host machine
@@ -133,7 +133,7 @@
 
     This uses the ~--net=host~ option to let the container live in the hosts networking namespace. This means that it binds to the IP address of the (virtual) machine it is running on. Also note that we use a shared volume for logs. ~/log~ inside the container contains the logs and you can access them outside the container in ~/data/nso-logs~.
     #+BEGIN_SRC shell
-      docker run -itd --name nso -v /data/nso:/ncs -v /data/nso-logs:/log --net=host my-prod-image:12345
+      docker run -itd --name nso -v /data/nso:/nso -v /data/nso-logs:/log --net=host my-prod-image:12345
     #+END_SRC
 
 ** Configuration options
@@ -141,7 +141,7 @@
 
    | Environment variable | Type    | Default | Description                                   |
    |----------------------+---------+---------+-----------------------------------------------|
-   | PAM                  | boolean | false   | Enable PAM instead of local auth in NCS (AAA) |
+   | PAM                  | boolean | false   | Enable PAM instead of local auth in NSO (AAA) |
    | HTTP_ENABLE          | boolean | false   | Enable HTTP web UI                            |
    | HTTPS_ENABLE         | boolean | false   | Enable HTTPS (TLS) web UI                     |
 

@@ -44,12 +44,12 @@ test-cdb-persistence:
 	@echo "-- Building cisco-nso test Docker image ----------------------------------------"
 	docker build -t $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION) --build-arg BASE_IMAGE=cisco-nso:$(NCS_VERSION) .
 
+	-@docker rm -f $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION)
 	@echo "-- Creating volume for cisco-nso test container --------------------------------"
-	-docker volume rm $(CNT_PREFIX)-nso-test-volume-$(NCS_VERSION)
+	-docker volume rm -f $(CNT_PREFIX)-nso-test-volume-$(NCS_VERSION)
 	docker volume create $(CNT_PREFIX)-nso-test-volume-$(NCS_VERSION)
 	@echo "-- Starting cisco-nso test container -------------------------------------------"
-	-@docker rm -f $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION)
-	docker run -td --name $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION) -v $(CNT_PREFIX)-nso-test-volume-$(NCS_VERSION):/ncs $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION)
+	docker run -td --name $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION) -v $(CNT_PREFIX)-nso-test-volume-$(NCS_VERSION):/nso $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION) bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION) bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
 	docker exec -t $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION) bash -lc 'echo -e "configure\nset testpkg a-value 1337\ncommit\nexit" | ncs_cli -u admin -g ncsadmin'
@@ -57,19 +57,19 @@ test-cdb-persistence:
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION)
 	@echo "-- Starting cisco-nso test container (second time) -----------------------------"
-	docker run -td --name $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION) -v $(CNT_PREFIX)-nso-test-volume-$(NCS_VERSION):/ncs $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION)
+	docker run -td --name $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION) -v $(CNT_PREFIX)-nso-test-volume-$(NCS_VERSION):/nso $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION) bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION) bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin -g ncsadmin' | grep "a-value 1337;"
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION)
 	@echo "-- Removing volume for cisco-nso test container --------------------------------"
-	-docker volume rm $(CNT_PREFIX)-nso-test-volume-$(NCS_VERSION)
+	-docker volume rm -f $(CNT_PREFIX)-nso-test-volume-$(NCS_VERSION)
 
 
 test-run-time-ssh-key-gen:
 	@echo "== Test that SSH keys are generated at runtime ================================="
 	@echo "Starts the NSO container twice and ensure the SSH keys are different."
-	@echo "SSH keys are written to the /ncs directory which can be shared mounted so"
+	@echo "SSH keys are written to the /nso directory which can be shared mounted so"
 	@echo "it is trivial to persist over time."
 	mkdir -p tmp
 	rm -rf tmp/testrtskg*
@@ -91,21 +91,21 @@ test-persistent-ssh-key:
 	mkdir -p tmp
 	rm -rf tmp/testpsk*
 	@echo "-- Creating volume for cisco-nso test container --------------------------------"
-	-docker volume rm $(CNT_PREFIX)-testpsk-$(NCS_VERSION)
+	-docker volume rm -f $(CNT_PREFIX)-testpsk-$(NCS_VERSION)
 	docker volume create $(CNT_PREFIX)-testpsk-$(NCS_VERSION)
 	@echo "-- Starting cisco-nso test container, first invocation -------------------------"
 	-@docker rm -f $(CNT_PREFIX)-testpsk-$(NCS_VERSION) >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-testpsk-$(NCS_VERSION) -v $(CNT_PREFIX)-testpsk-$(NCS_VERSION):/ncs cisco-nso:$(NCS_VERSION)
+	docker run -td --name $(CNT_PREFIX)-testpsk-$(NCS_VERSION) -v $(CNT_PREFIX)-testpsk-$(NCS_VERSION):/nso cisco-nso:$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-testpsk-$(NCS_VERSION) bash -lc "ncs --wait-started"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-testpsk-$(NCS_VERSION)) | awk '{ print $$3 }' > tmp/testpsk1
 	-@docker rm -f $(CNT_PREFIX)-testpsk-$(NCS_VERSION) >/dev/null 2>&1
 	@echo "-- Starting cisco-nso test container, second invocation ------------------------"
 	-@docker rm -f $(CNT_PREFIX)-testpsk-$(NCS_VERSION) >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-testpsk-$(NCS_VERSION) -v $(CNT_PREFIX)-testpsk-$(NCS_VERSION):/ncs cisco-nso:$(NCS_VERSION)
+	docker run -td --name $(CNT_PREFIX)-testpsk-$(NCS_VERSION) -v $(CNT_PREFIX)-testpsk-$(NCS_VERSION):/nso cisco-nso:$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-testpsk-$(NCS_VERSION) bash -lc "ncs --wait-started"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-testpsk-$(NCS_VERSION)) | awk '{ print $$3 }' > tmp/testpsk2
 	-@docker rm -f $(CNT_PREFIX)-testpsk-$(NCS_VERSION) >/dev/null 2>&1
-	-docker volume rm $(CNT_PREFIX)-testpsk-$(NCS_VERSION)
+	-docker volume rm -f $(CNT_PREFIX)-testpsk-$(NCS_VERSION)
 	@echo "-- Comparing output ------------------------"
 	diff -u tmp/testpsk1 tmp/testpsk2 || (echo "ERROR: SSH key different across runs, should be persisted" && exit 1)
 	@echo "SSH keys are the same across invocations, I'm happy"

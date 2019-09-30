@@ -58,7 +58,10 @@
   - configure packages directory in config file to point to /packages
 * TODO flip packages directory
   Currently using /packages since that is cute as long as we are in a container but to play with other things I think it is better to stick to the default system install directory of /var/opt/ncs/packages... like if someone is building their NEDs into Debian packages, then they will be installed to that path so it's better we stick to it.
-* TODO rename to /nso?
+* DONE rename /ncs to /nso?
+  CLOSED: [2019-09-30 Mon 10:49]
+  - State "DONE"       from "TODO"       [2019-09-30 Mon 10:49] \\
+    Fredrik Jansson supports rename. I have no strong feelings so might as well rename.
   So the current main directory is currently called /ncs while the container itself is called cisco-nso. Should we try to align? I feel it is sort of futile because the product is called NSO but the binary and a lot of things are called ncs and will continue to bear that name for a long time (forever?). The binary itself is called ncs so somehow I feel it is okay to call it /ncs...
 * TODO figure out SSL story for HTTPS webUI
   Should we generate random certs on startup? It sure helps for dev / CI environment. Maybe option through environment variable?
@@ -132,7 +135,9 @@
 ** DONE ensure HTTP config variable enables HTTP
    CLOSED: [2019-09-30 Mon 07:36]
    - State "DONE"       from "TODO"       [2019-09-30 Mon 07:36]
-** TODO ensure HTTPS config variable enables HTTPS interface
+** DONE ensure HTTPS config variable enables HTTPS interface
+   CLOSED: [2019-09-30 Mon 09:25]
+   - State "DONE"       from "TODO"       [2019-09-30 Mon 09:25]
 ** TODO ensure SSL certificates are generated on startup
 ** TODO ensure SSL certificates are persisted on persistent volume
 * Decision validation

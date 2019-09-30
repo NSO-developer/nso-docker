@@ -21,8 +21,8 @@ trap ncs_exit INT TERM
 # Increase JAVA VM MAX Heap size to 4GB, also enable the new G1 GC in Java 8
 export NCS_JAVA_VM_OPTIONS="-Xmx4G -XX:+UseG1GC -XX:+UseStringDeduplication"
 
-mkdir -p /log /ncs/coredumps
-echo '/ncs/coredumps/core.%e.%t' > /proc/sys/kernel/core_pattern
+mkdir -p /log /nso/coredumps
+echo '/nso/coredumps/core.%e.%t' > /proc/sys/kernel/core_pattern
 
 ncs_start() {
     # we disable SNMP northbound by not loading the $NCS_DIR/etc/ncs/snmp,
@@ -66,18 +66,18 @@ ncs_check() {
 }
 
 # create required directories
-mkdir -p /ncs/cdb /ncs/rollbacks /ncs/scripts /ncs/streams /ncs/state /ncs/backups /ncs/ssh
+mkdir -p /nso/cdb /nso/rollbacks /nso/scripts /nso/streams /nso/state /nso/backups /nso/ssh
 mkdir -p /log/traces
 
 # generate SSH key if one doesn't exist
-if [ ! -f /ncs/ssh/ssh_host_rsa_key ]; then
-    ssh-keygen -m PEM -t rsa -f /ncs/ssh/ssh_host_rsa_key -N ''
+if [ ! -f /nso/ssh/ssh_host_rsa_key ]; then
+    ssh-keygen -m PEM -t rsa -f /nso/ssh/ssh_host_rsa_key -N ''
 fi
 
 # generate SSL cert if one doesn't exist
-if [ ! -f /ncs/ssl/cert/host.cert ]; then
-    mkdir -p /ncs/ssl/cert
-    openssl req -new -newkey rsa:4096 -x509 -sha256 -days 30 -nodes -out /ncs/ssl/cert/host.cert -keyout /ncs/ssl/cert/host.key \
+if [ ! -f /nso/ssl/cert/host.cert ]; then
+    mkdir -p /nso/ssl/cert
+    openssl req -new -newkey rsa:4096 -x509 -sha256 -days 30 -nodes -out /nso/ssl/cert/host.cert -keyout /nso/ssl/cert/host.key \
             -subj "/C=SE/ST=NA/L=/O=NSO/OU=WebUI/CN=Mr. Self-Signed"
 fi
 
