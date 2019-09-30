@@ -129,7 +129,9 @@
 ** DONE ensure HTTPS is disabled per default
    CLOSED: [2019-09-27 Fri 17:40]
    - State "DONE"       from "TODO"       [2019-09-27 Fri 17:40]
-** TODO ensure HTTP config variable enables HTTP
+** DONE ensure HTTP config variable enables HTTP
+   CLOSED: [2019-09-30 Mon 07:36]
+   - State "DONE"       from "TODO"       [2019-09-30 Mon 07:36]
 ** TODO ensure HTTPS config variable enables HTTPS interface
 ** TODO ensure SSL certificates are generated on startup
 ** TODO ensure SSL certificates are persisted on persistent volume
