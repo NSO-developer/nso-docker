@@ -25,6 +25,7 @@ test:
 	$(MAKE) test-http-enabled
 	$(MAKE) test-https-enabled
 	$(MAKE) test-run-time-ssl-cert-gen
+	$(MAKE) test-persistent-ssl-cert
 
 test-cdb-persistence:
 	-@docker rm -f $(CNT_PREFIX)-testbuilder-$(NCS_VERSION) >/dev/null 2>&1
@@ -168,3 +169,28 @@ test-run-time-ssl-cert-gen:
 	ret=0; diff -u tmp/testrtscg1 tmp/testrtscg2; \
 	[ $$? -eq 0 ] && echo "ERROR: SSL cert identical, should be different per run" && ret=1; exit $$ret
 	@echo "SSL cert are different across invocations, I'm happy"
+
+test-persistent-ssl-cert:
+	@echo "== Test that SSL cert is persisted on shared volume ============================"
+	mkdir -p tmp
+	rm -rf tmp/$@*
+	@echo "-- Clean up (from potential previous run) --------------------------------------"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker volume rm -f $(CNT_PREFIX)-$@
+	@echo "-- Creating volume for cisco-nso test container --------------------------------"
+	docker volume create $(CNT_PREFIX)-$@
+	@echo "-- Starting cisco-nso test container, first invocation -------------------------"
+	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env HTTPS_ENABLE=true cisco-nso:$(NCS_VERSION)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/$@-1
+	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Starting cisco-nso test container, second invocation ------------------------"
+	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env HTTPS_ENABLE=true cisco-nso:$(NCS_VERSION)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/$@-2
+	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker volume rm -f $(CNT_PREFIX)-$@
+	@echo "-- Comparing output ------------------------"
+	diff -u tmp/$@-1 tmp/$@-2 || (echo "ERROR: SSL cert different across runs, should be persisted" && exit 1)
+	@echo "SSL cert are the same across invocations, I'm happy"
