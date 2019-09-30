@@ -114,7 +114,10 @@
   - OR set NSO_INSTALL_FILES_DIR environment variable to another path
     - like ~/nso-install-files~ and make this path available on the CI runner
     - thus we never commit the NSO install files to git, we just upload them to the CI runner
-* TODO use python3 per default
+* DONE use python3 per default
+  CLOSED: [2019-09-30 Mon 14:38]
+  - State "DONE"       from "TODO"       [2019-09-30 Mon 14:38] \\
+    Done - we're modifying the python-vm startup script to run python3 instead of python2. NSO 5.3 deprecates python2 and only supports python3. I looked at the internal ticket for how this will be handled and it appears to introduce a search so that it prioritizes "python3" if it exists, then falls back to "python2" and finally uses "python". Given this, I think our current approach here in the meantime is fine.
   Python2 is EOL so no point in even giving a choice.
   How do we switch to python3? Just updated the ncs-start-python-vm script to read python3? Alternative is to symlink (update-alternatives?) on the system to ~python~ actually points to ~python3~ but that feels sort of weird, bending the system distribution a bit much just to please NSO.
 * TODO add Docker healthcheck
