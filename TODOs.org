@@ -130,7 +130,10 @@
    CLOSED: [2019-09-27 Fri 16:56]
    - State "DONE"       from "TODO"       [2019-09-27 Fri 16:56]
    Start container multiple times with a persistent volume on /ncs and ensure the SSH key stays the same.
-** TODO test logs are not persisted with persistent /ncs
+** CANCELED test logs are not persisted with persistent /ncs
+   CLOSED: [2019-09-30 Mon 14:41]
+   - State "CANCELED"   from "TODO"       [2019-09-30 Mon 14:41] \\
+     Actually seems quite silly to test - this is such a low level functionality in Docker so not sure what is gained by adding a test case for this.
 ** DONE ensure HTTP is disabled per default
    CLOSED: [2019-09-27 Fri 17:40]
    - State "DONE"       from "TODO"       [2019-09-27 Fri 17:40]
