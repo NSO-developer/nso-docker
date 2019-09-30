@@ -23,7 +23,7 @@ RUN apt-get update \
      telnet \
      vim-tiny \
   && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 3 \
-  && sh /tmp/nso --system-install --non-interactive --run-dir /ncs --log-dir /log \
+  && sh /tmp/nso --system-install --non-interactive --run-dir /nso --log-dir /log \
   && apt-get -qy autoremove \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /root/.cache \
