@@ -143,6 +143,7 @@
    |----------------------+---------+---------+-----------------------------------------------|
    | PAM                  | boolean | false   | Enable PAM instead of local auth in NCS (AAA) |
    | HTTP_ENABLE          | boolean | false   | Enable HTTP web UI                            |
+   | HTTPS_ENABLE         | boolean | false   | Enable HTTPS (TLS) web UI                     |
 
 * Docker image tags
 It is recommended that the Docker images are tagged with an identifier that is unique per build.

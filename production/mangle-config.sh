@@ -32,10 +32,18 @@ xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
            --update "/x:ncs-config/x:netconf-call-home/x:enabled" --value "true" \
            $CONF_FILE
 
-# conditionally enable webUI with no SSL on port 80
+# conditionally enable webUI with no TLS on port 80
 if [ "$HTTP_ENABLE" == "true" ]; then
     xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
                --update "/x:ncs-config/x:webui/x:transport/x:tcp/x:enabled" --value "true" \
                $CONF_FILE
 fi
-#         --update "/x:ncs-config/x:webui/x:transport/x:ssl/x:enabled" --value "true" \
+
+# conditionally enable webUI with TLS on port 443
+if [ "$HTTPS_ENABLE" == "true" ]; then
+    xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
+               --update "/x:ncs-config/x:webui/x:transport/x:ssl/x:enabled" --value "true" \
+               --update "/x:ncs-config/x:webui/x:transport/x:ssl/x:key-file" --value "${NCS_RUN_DIR}/ssl/cert/host.key" \
+               --update "/x:ncs-config/x:webui/x:transport/x:ssl/x:cert-file" --value "${NCS_RUN_DIR}/ssl/cert/host.cert" \
+               $CONF_FILE
+fi
