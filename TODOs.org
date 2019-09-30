@@ -66,7 +66,9 @@
 * TODO figure out SSL story for HTTPS webUI
   Should we generate random certs on startup? It sure helps for dev / CI environment. Maybe option through environment variable?
   Should webUI be enabled per default (I think no) - enable by env var.
-
+* TODO add run example for how to provide custom ncs.conf
+* TODO add run example for how to provide SSH keys for production
+* TODO add run example for how to provide SSL certs for production
 * TODO test that status thing works
   - suspect it doesn't when backup is running, so load lots of data (many gigabytes) into NCS, do backup which should then take considerable time and see what happens to status check meanwhile
   - or rather, when doing ~request packages reload~
