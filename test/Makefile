@@ -23,7 +23,7 @@ test:
 	$(MAKE) test-http-disabled
 	$(MAKE) test-https-disabled
 	$(MAKE) test-http-enabled
-#	$(MAKE) test-https-enabled
+	$(MAKE) test-https-enabled
 
 test-cdb-persistence:
 	-@docker rm -f $(CNT_PREFIX)-testbuilder-$(NCS_VERSION) >/dev/null 2>&1
@@ -143,6 +143,6 @@ test-https-enabled:
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true cisco-nso:$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
-	curl https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) >/dev/null
+	curl --insecure https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) >/dev/null
 	@echo "Connection to HTTP TCP port 80 was accepted, I'm happy"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1

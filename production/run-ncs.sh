@@ -74,6 +74,13 @@ if [ ! -f /ncs/ssh/ssh_host_rsa_key ]; then
     ssh-keygen -m PEM -t rsa -f /ncs/ssh/ssh_host_rsa_key -N ''
 fi
 
+# generate SSL cert if one doesn't exist
+if [ ! -f /ncs/ssl/cert/host.cert ]; then
+    mkdir -p /ncs/ssl/cert
+    openssl req -new -newkey rsa:4096 -x509 -sha256 -days 30 -nodes -out /ncs/ssl/cert/host.cert -keyout /ncs/ssl/cert/host.key \
+            -subj "/C=SE/ST=NA/L=/O=NSO/OU=WebUI/CN=Mr. Self-Signed"
+fi
+
 for FILE in $(ls /etc/ncs/pre-ncs-start.d/*.sh); do
     . ${FILE}
 done
