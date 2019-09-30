@@ -135,7 +135,7 @@ test-http-enabled:
 	docker run -td --name $(CNT_PREFIX)-$@ --env HTTP_ENABLE=true cisco-nso:$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	curl $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) >/dev/null
-	@echo "Connection to HTTP TCP port 80 was accepted, I'm happy"
+	@echo "Connection to HTTP (TCP port 80) was accepted, I'm happy"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 test-https-enabled:
@@ -144,5 +144,5 @@ test-https-enabled:
 	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true cisco-nso:$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	curl --insecure https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) >/dev/null
-	@echo "Connection to HTTP TCP port 80 was accepted, I'm happy"
+	@echo "Connection to HTTPS (TLS/TCP port 443) was accepted, I'm happy"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
