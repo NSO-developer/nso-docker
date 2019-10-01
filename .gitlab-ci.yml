@@ -3,7 +3,7 @@ image: debian:buster
 stages:
   - build
 
-build:
+.build:
   stage: build
   script:
     - apt-get update && apt-get install -qy apt-transport-https ca-certificates curl gnupg2 software-properties-common 
@@ -13,3 +13,8 @@ build:
     - apt-get update && apt-get install -qy docker-ce docker-ce-cli containerd.io
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
     - make all
+
+build-4.7.5:
+  extends: build
+  variables:
+    NSO_VERSION: "4.7.5"
