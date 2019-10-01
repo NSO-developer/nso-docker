@@ -1,5 +1,5 @@
 FILENAME:=$(shell basename $(FILE))
-NCS_VERSION:=$(shell echo $(FILENAME) | sed -r -e 's/(ncs|nso)-([0-9.]*).linux.x86_64.installer.bin/\2/')
+NCS_VERSION:=$(shell echo $(FILENAME) | sed -E -e 's/(ncs|nso)-([0-9.]*).linux.x86_64.installer.bin/\2/')
 
 .PHONY: build
 
