@@ -15,6 +15,6 @@ stages:
     - make all
 
 build-4.7.5:
-  extends: build
+  extends: .build
   variables:
     NSO_VERSION: "4.7.5"
