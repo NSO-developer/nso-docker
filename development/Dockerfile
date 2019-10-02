@@ -26,4 +26,5 @@ RUN apt-get update \
   && sh /tmp/nso --system-install --non-interactive --run-dir /nso --log-dir /log \
   && apt-get -qy autoremove \
   && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* /root/.cache \
+  && rm -rf /var/lib/apt/lists/* /root/.cache
+
