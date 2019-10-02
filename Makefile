@@ -12,8 +12,14 @@ endif
 
 all: build test
 
+build: export FILE=$(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin
+build:
+	$(MAKE) -C development build
+	$(MAKE) -C production build
+#	$(MAKE) -C test FILE=$(@:test/%=%) test
+
 # build all (both development and production images)
-build: $(NSO_DEV) $(NSO_PROD)
+build-all: $(NSO_DEV) $(NSO_PROD)
 
 $(NSO_DEV):
 	$(MAKE) -C development FILE=$(shell realpath $(@:development/%=%)) build
