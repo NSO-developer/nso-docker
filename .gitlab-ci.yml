@@ -12,6 +12,6 @@ stages:
     - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
     - apt-get update && apt-get install -qy docker-ce docker-ce-cli containerd.io
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
-    - make all
+    - make build-version
 
 include: nso-versions.yaml
