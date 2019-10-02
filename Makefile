@@ -6,7 +6,7 @@ NSO_TEST=$(NSO_INSTALL_FILES:%=test/%)
 
 .PHONY: build $(NSO_DEV) $(NSO_PROD)
 
-all: build test
+all: build-all test
 
 build: export FILE=$(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin
 build:
