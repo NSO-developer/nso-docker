@@ -4,7 +4,9 @@ ARG NSO_INSTALL_FILE
 
 COPY $NSO_INSTALL_FILE /tmp/nso
 RUN apt-get update \
-  && apt-get install -qy openssh-client \
+  && apt-get install -qy \
+     openssh-client \
+     libexpat1 \
   && sh /tmp/nso --system-install --non-interactive --run-dir /nso --log-dir /log \
   # wipe SSH keys
   && rm -f /etc/ncs/ssh/* \
