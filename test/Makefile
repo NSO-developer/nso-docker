@@ -8,7 +8,7 @@ CNT_PREFIX:=$(shell whoami)
 endif
 
 # what to do?
-# provided a base image, like cisco-nso:4.7.5
+# provided a base image, like cisco-nso-base:4.7.5
 # we want to build our own image based on the base image
 # adding on our own test package
 # start up the finalized image as a new container
@@ -44,7 +44,7 @@ test-cdb-persistence:
 	-@docker rm -f $(CNT_PREFIX)-testbuilder-$(NCS_VERSION) >/dev/null 2>&1
 
 	@echo "-- Building cisco-nso test Docker image ----------------------------------------"
-	docker build -t $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION) --build-arg BASE_IMAGE=cisco-nso:$(NCS_VERSION) .
+	docker build -t $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION) --build-arg BASE_IMAGE=cisco-nso-base:$(NCS_VERSION) .
 
 	-@docker rm -f $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION)
 	@echo "-- Creating volume for cisco-nso test container --------------------------------"
@@ -76,11 +76,11 @@ test-run-time-ssh-key-gen:
 	mkdir -p tmp
 	rm -rf tmp/testrtskg*
 	-@docker rm -f $(CNT_PREFIX)-testrtskg-$(NCS_VERSION) >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-testrtskg-$(NCS_VERSION) cisco-nso:$(NCS_VERSION)
+	docker run -td --name $(CNT_PREFIX)-testrtskg-$(NCS_VERSION) cisco-nso-base:$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-testrtskg-$(NCS_VERSION) bash -lc "ncs --wait-started"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-testrtskg-$(NCS_VERSION)) | awk '{ print $$3 }' > tmp/testrtskg1
 	-@docker rm -f $(CNT_PREFIX)-testrtskg-$(NCS_VERSION) >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-testrtskg-$(NCS_VERSION) cisco-nso:$(NCS_VERSION)
+	docker run -td --name $(CNT_PREFIX)-testrtskg-$(NCS_VERSION) cisco-nso-base:$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-testrtskg-$(NCS_VERSION) bash -lc "ncs --wait-started"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-testrtskg-$(NCS_VERSION)) | awk '{ print $$3 }' > tmp/testrtskg2
 	-@docker rm -f $(CNT_PREFIX)-testrtskg-$(NCS_VERSION) >/dev/null 2>&1
@@ -97,13 +97,13 @@ test-persistent-ssh-key:
 	docker volume create $(CNT_PREFIX)-testpsk-$(NCS_VERSION)
 	@echo "-- Starting cisco-nso test container, first invocation -------------------------"
 	-@docker rm -f $(CNT_PREFIX)-testpsk-$(NCS_VERSION) >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-testpsk-$(NCS_VERSION) -v $(CNT_PREFIX)-testpsk-$(NCS_VERSION):/nso cisco-nso:$(NCS_VERSION)
+	docker run -td --name $(CNT_PREFIX)-testpsk-$(NCS_VERSION) -v $(CNT_PREFIX)-testpsk-$(NCS_VERSION):/nso cisco-nso-base:$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-testpsk-$(NCS_VERSION) bash -lc "ncs --wait-started"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-testpsk-$(NCS_VERSION)) | awk '{ print $$3 }' > tmp/testpsk1
 	-@docker rm -f $(CNT_PREFIX)-testpsk-$(NCS_VERSION) >/dev/null 2>&1
 	@echo "-- Starting cisco-nso test container, second invocation ------------------------"
 	-@docker rm -f $(CNT_PREFIX)-testpsk-$(NCS_VERSION) >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-testpsk-$(NCS_VERSION) -v $(CNT_PREFIX)-testpsk-$(NCS_VERSION):/nso cisco-nso:$(NCS_VERSION)
+	docker run -td --name $(CNT_PREFIX)-testpsk-$(NCS_VERSION) -v $(CNT_PREFIX)-testpsk-$(NCS_VERSION):/nso cisco-nso-base:$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-testpsk-$(NCS_VERSION) bash -lc "ncs --wait-started"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-testpsk-$(NCS_VERSION)) | awk '{ print $$3 }' > tmp/testpsk2
 	-@docker rm -f $(CNT_PREFIX)-testpsk-$(NCS_VERSION) >/dev/null 2>&1
@@ -116,7 +116,7 @@ test-persistent-ssh-key:
 test-http-disabled:
 	@echo "== Test that the HTTP webUI is disabled per default ============================"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-$@ cisco-nso:$(NCS_VERSION)
+	docker run -td --name $(CNT_PREFIX)-$@ cisco-nso-base:$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	curl $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
 	@echo "Connection to HTTP TCP port 80 was refused, I'm happy"
@@ -125,7 +125,7 @@ test-http-disabled:
 test-https-disabled:
 	@echo "== Test that the HTTP webUI is disabled per default ============================"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-$@ cisco-nso:$(NCS_VERSION)
+	docker run -td --name $(CNT_PREFIX)-$@ cisco-nso-base:$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	curl https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
 	@echo "Connection to HTTPS TCP port 443 was refused, I'm happy"
@@ -134,7 +134,7 @@ test-https-disabled:
 test-http-enabled:
 	@echo "== Test that the HTTP webUI works when enabled ================================="
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-$@ --env HTTP_ENABLE=true cisco-nso:$(NCS_VERSION)
+	docker run -td --name $(CNT_PREFIX)-$@ --env HTTP_ENABLE=true cisco-nso-base:$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	curl $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) >/dev/null
 	@echo "Connection to HTTP (TCP port 80) was accepted, I'm happy"
@@ -143,7 +143,7 @@ test-http-enabled:
 test-https-enabled:
 	@echo "== Test that the HTTP webUI works when enabled ================================="
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true cisco-nso:$(NCS_VERSION)
+	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true cisco-nso-base:$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	curl --insecure https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) >/dev/null
 	@echo "Connection to HTTPS (TLS/TCP port 443) was accepted, I'm happy"
@@ -157,12 +157,12 @@ test-run-time-ssl-cert-gen:
 	mkdir -p tmp
 	rm -rf tmp/testrtscg*
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true cisco-nso:$(NCS_VERSION)
+	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true cisco-nso-base:$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/testrtscg1
 
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true cisco-nso:$(NCS_VERSION)
+	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true cisco-nso-base:$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/testrtscg2
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -180,13 +180,13 @@ test-persistent-ssl-cert:
 	@echo "-- Creating volume for cisco-nso test container --------------------------------"
 	docker volume create $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container, first invocation -------------------------"
-	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env HTTPS_ENABLE=true cisco-nso:$(NCS_VERSION)
+	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env HTTPS_ENABLE=true cisco-nso-base:$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/$@-1
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Starting cisco-nso test container, second invocation ------------------------"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env HTTPS_ENABLE=true cisco-nso:$(NCS_VERSION)
+	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env HTTPS_ENABLE=true cisco-nso-base:$(NCS_VERSION)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/$@-2
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
