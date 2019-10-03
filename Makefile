@@ -2,10 +2,10 @@ NSO_INSTALL_FILES_DIR?=nso-install-files/
 NSO_INSTALL_FILES=$(wildcard $(NSO_INSTALL_FILES_DIR)*.bin)
 NSOS=$(NSO_INSTALL_FILES:%=build/%)
 NSO_DEV=$(NSO_INSTALL_FILES:%=development/%)
-NSO_PROD=$(NSO_INSTALL_FILES:%=production/%)
+NSO_BASE=$(NSO_INSTALL_FILES:%=base/%)
 NSO_TEST=$(NSO_INSTALL_FILES:%=test/%)
 
-.PHONY: build $(NSO_DEV) $(NSO_PROD)
+.PHONY: all build build-all build-version $(NSO_DEV) $(NSO_BASE)
 
 all: build-all
 
@@ -22,7 +22,7 @@ build-version:
 # file.
 build:
 	$(MAKE) -C development build
-	$(MAKE) -C production build
+	$(MAKE) -C production-base build
 	$(MAKE) -C test test
 
 # individual make targets for building where the NSO install file is embedded as
@@ -36,8 +36,8 @@ build-all: $(NSOS)
 $(NSO_DEV):
 	$(MAKE) -C development FILE=$(shell realpath $(@:development/%=%)) build
 
-$(NSO_PROD):
-	$(MAKE) -C production FILE=$(shell realpath $(@:production/%=%)) build
+$(NSO_BASE):
+	$(MAKE) -C production-base FILE=$(shell realpath $(@:base/%=%)) build
 
 $(NSO_TEST):
 	$(MAKE) -C test FILE=$(@:test/%=%) test
