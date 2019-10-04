@@ -28,23 +28,8 @@ test:
 	$(MAKE) test-persistent-ssl-cert
 
 test-cdb-persistence:
-	-@docker rm -f $(CNT_PREFIX)-testbuilder-$(NCS_VERSION) >/dev/null 2>&1
-	@echo "-- Starting docker container for compiling test package ------------------------"
-	docker run -td --name $(CNT_PREFIX)-testbuilder-$(NCS_VERSION) cisco-nso-dev:$(NCS_VERSION)
-	@echo "-- Copying testpkg into compilation container ----------------------------------"
-	docker cp testpkg $(CNT_PREFIX)-testbuilder-$(NCS_VERSION):/testpkg
-	@echo "-- Compiling testpkg in compilation container ----------------------------------"
-	docker exec -t $(CNT_PREFIX)-testbuilder-$(NCS_VERSION) bash -lc 'make -C /testpkg/src clean'
-	docker exec -t $(CNT_PREFIX)-testbuilder-$(NCS_VERSION) bash -lc 'make -C /testpkg/src'
-	@echo "-- Preserving user (outside of container) ownership ----------------------------"
-	docker exec -t $(CNT_PREFIX)-testbuilder-$(NCS_VERSION) bash -lc "chown -Rv $(shell id -u):$(shell id -g) /testpkg/"
-	@echo "-- Copying results back from compilation container -----------------------------"
-	docker cp $(CNT_PREFIX)-testbuilder-$(NCS_VERSION):/testpkg/load-dir/ testpkg/
-	@echo "-- Terminating compilation container -------------------------------------------"
-	-@docker rm -f $(CNT_PREFIX)-testbuilder-$(NCS_VERSION) >/dev/null 2>&1
-
-	@echo "-- Building cisco-nso test Docker image ----------------------------------------"
-	docker build -t $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION) --build-arg BASE_IMAGE=cisco-nso-base:$(NCS_VERSION) .
+	@echo "-- Building test Docker image ----------------------------------------"
+	docker build -t $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION) --build-arg BASE_IMAGE=cisco-nso-base:$(NCS_VERSION) --build-arg BUILD_IMAGE=cisco-nso-dev:$(NCS_VERSION) .
 
 	-@docker rm -f $(CNT_PREFIX)-test-cisco-nso-$(NCS_VERSION)
 	@echo "-- Creating volume for cisco-nso test container --------------------------------"
