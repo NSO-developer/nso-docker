@@ -5,6 +5,12 @@ NSO_DEV=$(NSO_INSTALL_FILES:%=development/%)
 NSO_BASE=$(NSO_INSTALL_FILES:%=base/%)
 NSO_TEST=$(NSO_INSTALL_FILES:%=test/%)
 
+# if DOCKER_REGISTRY is set, use that
+# if DOCKER_REGISTRY is not set and CI_REGISTRY_IMAGE is set, use that
+ifneq ($(CI_REGISTRY_IMAGE),)
+DOCKER_REGISTRY?=$(CI_REGISTRY_IMAGE)/
+endif
+
 .PHONY: all build build-all build-version $(NSO_DEV) $(NSO_BASE)
 
 all: build-all
