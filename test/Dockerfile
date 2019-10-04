@@ -12,4 +12,4 @@ RUN make -C /testpkg/src
 
 FROM $BASE_IMAGE
 
-COPY --from=0 /testpkg /packages/testpkg
+COPY --from=0 /testpkg /var/opt/ncs/packages/testpkg

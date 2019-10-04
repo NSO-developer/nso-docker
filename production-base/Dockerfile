@@ -39,7 +39,7 @@ RUN apt-get update \
        /opt/ncs/current/support \
        /opt/ncs/current/var/ncs/webui \
   && sed -i \
-     -e 's,<dir>${NCS_RUN_DIR}/packages</dir>,<dir>/packages</dir>,' \
+     -e 's,<dir>${NCS_RUN_DIR}/packages</dir>,<dir>/var/opt/ncs/packages</dir>,' \
      /etc/ncs/ncs.conf \
   && sed -i -e 's/exec python -u/exec python3 -u/' /opt/ncs/current/bin/ncs-start-python-vm
 
