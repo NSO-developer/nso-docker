@@ -1,10 +1,10 @@
 FILENAME:=$(shell basename $(FILE))
-NCS_VERSION:=$(shell echo $(FILENAME) | sed -E -e 's/(ncs|nso)-([0-9.]*).linux.x86_64.installer.bin/\2/')
+NSO_VERSION:=$(shell echo $(FILENAME) | sed -E -e 's/(ncs|nso)-([0-9.]*).linux.x86_64.installer.bin/\2/')
 
 .PHONY: build
 
 build:
-	@echo "Building NSO development Docker image cisco-nso-dev:$(NCS_VERSION) based on $(FILE)"
+	@echo "Building NSO development Docker image cisco-nso-dev:$(NSO_VERSION) based on $(FILE)"
 	rm -f *.bin
 	cp $(FILE) $(FILENAME)
 	docker build --build-arg NSO_INSTALL_FILE=$(FILENAME) -t $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) .
