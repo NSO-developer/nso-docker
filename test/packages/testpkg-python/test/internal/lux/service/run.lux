@@ -1,0 +1,52 @@
+#
+# The 'lux' test tool can be obtained from:
+#
+#   https://github.com/hawk/lux.git
+#
+[global target_dir=../../../../../..]
+
+[shell top]
+    !make stop build
+    !echo ==$$?==
+    ?==0==
+    ?SH-PROMPT:
+
+    !rm ${target_dir}/ncs-cdb/*
+    ?SH-PROMPT:
+    !cp pyvm.xml ${target_dir}/ncs-cdb/.
+    ?SH-PROMPT:
+
+    !make start
+    !echo ==$$?==
+    ?==0==
+    ?SH-PROMPT:
+
+    [progress \nCreate a dummy device...\n]
+    !ncs_load -lm dummy-device.xml
+    ?SH-PROMPT:
+    [progress \nCreate a dummy device...ok\n]
+
+    [sleep 3]
+
+    [progress \nCreate the dummy service...\n]
+    !ncs_load -lm dummy-service.xml
+    ?SH-PROMPT:
+    [progress \nCreate the dummy service...ok\n]
+
+
+[shell log]
+    !cd ${target_dir}
+    ?SH-PROMPT:
+
+    [progress \nVerify that the service code has been invoked...\n]
+    !tail -f ./logs/ncs-python-vm-testpkg-python.log
+    ?.*Worker RUNNING.*
+    ?.*Service create.*
+    [progress \nVerify that the service code has been invoked...ok\n]
+
+
+[cleanup]
+    !make stop
+    !echo ==$$?==
+    ?==0==
+    ?SH-PROMPT:
