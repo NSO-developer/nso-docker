@@ -7,7 +7,7 @@ RUN apt-get update \
   && apt-get install -qy \
      openssh-client \
      libexpat1 \
-  && sh /tmp/nso --system-install --non-interactive --run-dir /nso --log-dir /log \
+  && sh /tmp/nso --system-install --non-interactive --run-dir /nso/run --log-dir /log \
   # wipe SSH keys
   && rm -f /etc/ncs/ssh/* \
   # Remove stuff we don't need/want from the NSO installation \

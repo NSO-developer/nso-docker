@@ -66,11 +66,12 @@ ncs_check() {
 }
 
 # create required directories
-mkdir -p /nso/cdb /nso/rollbacks /nso/scripts /nso/streams /nso/state /nso/backups /nso/ssh
+mkdir -p /nso/run/cdb /nso/run/rollbacks /nso/run/scripts /nso/run/streams /nso/run/state /nso/run/backups
 mkdir -p /log/traces
 
 # generate SSH key if one doesn't exist
 if [ ! -f /nso/ssh/ssh_host_rsa_key ]; then
+    mkdir /nso/ssh
     ssh-keygen -m PEM -t rsa -f /nso/ssh/ssh_host_rsa_key -N ''
 fi
 
