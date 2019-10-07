@@ -1,0 +1,38 @@
+module testpkg-java {
+  yang-version 1.1;
+
+  namespace "http://com/example/testpkgjava";
+  prefix testpkg-java;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import tailf-common {
+    prefix tailf;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+
+  description
+    "Bla bla...";
+
+  revision 2016-01-01 {
+    description
+      "Initial revision.";
+  }
+
+  container testpkg-java {
+    description "Java test package";
+
+    action java-test {
+      tailf:actionpoint "test-java-actionpoint";
+      description "A Java action";
+      output {
+        leaf message {
+          type string;
+        }
+      }
+    }
+  }
+}
