@@ -5,6 +5,7 @@ ARG NSO_INSTALL_FILE
 COPY $NSO_INSTALL_FILE /tmp/nso
 RUN apt-get update \
   && apt-get install -qy \
+     ant \
      default-jre-headless \
      iputils-ping \
      iputils-tracepath \
@@ -23,7 +24,6 @@ RUN apt-get update \
      telnet \
      vim-tiny \
      xsltproc \
-     ant \
   && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 3 \
   && sh /tmp/nso --system-install --non-interactive --run-dir /nso/run --log-dir /log \
   && apt-get -qy autoremove \
