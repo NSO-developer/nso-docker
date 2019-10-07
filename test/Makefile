@@ -26,6 +26,7 @@ test:
 	$(MAKE) test-https-enabled
 	$(MAKE) test-run-time-ssl-cert-gen
 	$(MAKE) test-persistent-ssl-cert
+	$(MAKE) test-backup-restore
 
 test-cdb-persistence:
 	@echo "-- Building test Docker image ----------------------------------------"
@@ -51,6 +52,44 @@ test-cdb-persistence:
 	-docker rm -f $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	@echo "-- Removing volume for cisco-nso test container --------------------------------"
 	-docker volume rm -f $(CNT_PREFIX)-nso-test-volume-$(DOCKER_TAG)
+
+
+test-backup-restore:
+	rm -rf tmp
+	mkdir -p tmp
+	@echo "-- Building test Docker image ----------------------------------------"
+	docker build -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) --build-arg BASE_IMAGE=$(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) --build-arg BUILD_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) .
+
+	-docker rm -f $(CNT_PREFIX)-$@
+	-docker rm -f $(CNT_PREFIX)-$@-helper
+	@echo "-- Creating volume for cisco-nso test container --------------------------------"
+	-docker volume rm -f $(CNT_PREFIX)-nso-test-volume-$(DOCKER_TAG)
+	docker volume create $(CNT_PREFIX)-nso-test-volume-$(DOCKER_TAG)
+	@echo "-- Starting cisco-nso test container -------------------------------------------"
+	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-nso-test-volume-$(DOCKER_TAG):/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg a-value 1337\ncommit\nexit" | ncs_cli -u admin -g ncsadmin'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin -g ncsadmin'
+	@echo "-- Taking backup ---------------------------------------------------------------"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs-backup'
+	docker cp $(CNT_PREFIX)-$@:/nso/run/backups ./tmp/backups
+	@echo "-- Do 'bad' change -------------------------------------------------------------"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg a-value 1338\ncommit\nexit" | ncs_cli -u admin -g ncsadmin'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin -g ncsadmin'
+	@echo "-- Stopping cisco-nso test container -------------------------------------------"
+	-docker rm -f $(CNT_PREFIX)-$@
+	@echo "-- Restore from backup ---------------------------------------------------------"
+	docker run -td --name $(CNT_PREFIX)-$@-helper -v $(CNT_PREFIX)-nso-test-volume-$(DOCKER_TAG):/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) bash -lc 'read DUMMY'
+	docker cp tmp/backups $(CNT_PREFIX)-$@-helper:/nso/run/backups
+	docker exec -t $(CNT_PREFIX)-$@-helper bash -lc "ncs-backup --restore /nso/run/backups/*.gz --non-interactive"
+	docker rm -f $(CNT_PREFIX)-$@-helper
+	@echo "-- Starting cisco-nso test container (second time) -----------------------------"
+	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-nso-test-volume-$(DOCKER_TAG):/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin -g ncsadmin' | grep "a-value 1337;"
+	@echo "-- Stopping cisco-nso test container -------------------------------------------"
+	-docker rm -f $(CNT_PREFIX)-$@
 
 
 test-run-time-ssh-key-gen:

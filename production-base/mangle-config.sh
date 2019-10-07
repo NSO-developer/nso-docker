@@ -12,7 +12,7 @@ fi
 
 # change SSH key dir
 xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
-           --update '/x:ncs-config/x:aaa/x:ssh-server-key-dir' --value '${NCS_RUN_DIR}/ssh' \
+           --update '/x:ncs-config/x:aaa/x:ssh-server-key-dir' --value '/nso/ssh' \
            $CONF_FILE
 
 # update ports for various protocols for which the default value in ncs.conf is
@@ -43,7 +43,7 @@ fi
 if [ "$HTTPS_ENABLE" == "true" ]; then
     xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
                --update '/x:ncs-config/x:webui/x:transport/x:ssl/x:enabled' --value 'true' \
-               --update '/x:ncs-config/x:webui/x:transport/x:ssl/x:key-file' --value '${NCS_RUN_DIR}/ssl/cert/host.key' \
-               --update '/x:ncs-config/x:webui/x:transport/x:ssl/x:cert-file' --value '${NCS_RUN_DIR}/ssl/cert/host.cert' \
+               --update '/x:ncs-config/x:webui/x:transport/x:ssl/x:key-file' --value '/nso/ssl/cert/host.key' \
+               --update '/x:ncs-config/x:webui/x:transport/x:ssl/x:cert-file' --value '/nso/ssl/cert/host.cert' \
                $CONF_FILE
 fi

@@ -156,3 +156,8 @@ It is recommended that the Docker images are tagged with an identifier that is u
   These docker images default to using python3.
 
   In NSO v5.3 and later, the python VM to use is probed by first looking for ~python3~, if not found ~python2~ will be tried and finally it will fall back to running ~python~. In earlier versions of NSO, ~python~ is executed, which on most systems means python2. As python2 is soon end of life, these docker images default to using ~python3~.
+
+* Backup
+  *NOTE*: SSH keys and SSL certificates are not included in backups produced by ~ncs-backup~.
+
+  Normally, the ncs-backup script includes the NCS_CONFIG_DIR (defaults to /etc/ncs). SSH keys and SSL certificates are normally placed in /etc/ncs/ssh and /etc/ncs/ssl respectively. This means that the SSH keys and SSL certificates are part of the produced backup file. This is NOT the case for when NSO is run in a container as SSH keys and SSL certificates are not in the default configuration path.
