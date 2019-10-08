@@ -1,0 +1,39 @@
+module testpkg-python {
+  yang-version 1.1;
+
+  namespace "http://example.com/testpkg-python";
+  prefix testpkg-python;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import tailf-common {
+    prefix tailf;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+
+  description
+    "Bla bla...";
+
+  revision 2016-01-01 {
+    description
+      "Initial revision.";
+  }
+
+  container testpkg-python {
+    description "Python test package";
+
+    // replace with your own stuff here
+    action python-test {
+      tailf:actionpoint "test-python-actionpoint";
+      description "A Python action";
+      output {
+        leaf message {
+          type string;
+        }
+      }
+    }
+  }
+}

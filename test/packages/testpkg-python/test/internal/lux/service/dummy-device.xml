@@ -1,0 +1,11 @@
+<config xmlns="http://tail-f.com/ns/config/1.0">
+  <devices xmlns="http://tail-f.com/ns/ncs">
+  <device>
+    <name>eth</name>
+    <address>192.168.110.1</address>
+    <state>
+      <admin-state>southbound-locked</admin-state>
+    </state>
+  </device>
+  </devices>
+</config>
