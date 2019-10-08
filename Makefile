@@ -17,6 +17,14 @@ else
 DOCKER_TAG?=$(shell whoami)-dev
 endif
 
+# If we are running in CI, disable the build cache for docker builds.
+# We do this with ?= operator in make so we only set DOCKER_BUILD_CACHE_ARG if
+# it is not already set, this makes it possible to still use the cache if
+# explicitly set through environment variables in CI.
+ifneq ($(CI),)
+DOCKER_BUILD_CACHE_ARG?=--no-cache
+endif
+
 .PHONY: all build build-all build-version $(NSO_DEV) $(NSO_BASE)
 
 all: build-all
