@@ -1,0 +1,16 @@
+<ncs-package xmlns="http://tail-f.com/ns/ncs-packages">
+  <name>testpkg-java</name>
+  <package-version>1.0</package-version>
+  <description>Java-based testpkg-java resource facing service</description>
+  <ncs-min-version>4.7</ncs-min-version>
+
+  <!-- It's possible to add more components to the -->
+  <!-- same package, multiple services, data providers etc -->
+
+  <component>
+    <name>testpkg-javaRFS</name>
+    <callback>
+      <java-class-name>com.example.testpkgjava.testpkgjavaRFS</java-class-name>
+    </callback>
+  </component>
+</ncs-package>

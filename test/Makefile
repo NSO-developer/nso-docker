@@ -27,6 +27,7 @@ test:
 	$(MAKE) test-run-time-ssl-cert-gen
 	$(MAKE) test-persistent-ssl-cert
 	$(MAKE) test-backup-restore
+	$(MAKE) test-java
 	$(MAKE) test-python
 
 test-cdb-persistence:
@@ -219,6 +220,17 @@ test-persistent-ssl-cert:
 	@echo "-- Comparing output ------------------------"
 	diff -u tmp/$@-1 tmp/$@-2 || (echo "ERROR: SSL cert different across runs, should be persisted" && exit 1)
 	@echo "SSL cert are the same across invocations, I'm happy"
+
+
+test-java:
+	docker build -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) --build-arg BASE_IMAGE=$(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) --build-arg BUILD_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) .
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-java java-test" | ncs_cli -u admin -g ncsadmin' | grep "Hello world from Java"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
 
 test-python:
 	docker build -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) --build-arg BASE_IMAGE=$(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) --build-arg BUILD_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) .

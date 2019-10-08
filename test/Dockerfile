@@ -9,6 +9,7 @@ COPY packages /packages
 # access ncsc and other NSO related tools.
 SHELL ["/bin/sh", "-lc"]
 RUN make -C /packages/testpkg/src
+RUN make -C /packages/testpkg-java/src
 RUN make -C /packages/testpkg-python/src
 
 FROM $BASE_IMAGE
