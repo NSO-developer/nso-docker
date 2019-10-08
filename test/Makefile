@@ -17,6 +17,9 @@ endif
 # 1. using cisco-nso-dev image, compile our package
 
 test:
+	@echo "-- Building test Docker image ----------------------------------------"
+	docker build -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) --build-arg BASE_IMAGE=$(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) --build-arg BUILD_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) .
+
 	$(MAKE) test-cdb-persistence
 	$(MAKE) test-run-time-ssh-key-gen
 	$(MAKE) test-persistent-ssh-key
@@ -31,8 +34,6 @@ test:
 	$(MAKE) test-python
 
 test-cdb-persistence:
-	@echo "-- Building test Docker image ----------------------------------------"
-	docker build -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) --build-arg BASE_IMAGE=$(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) --build-arg BUILD_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) .
 
 	-@docker rm -f $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	@echo "-- Creating volume for cisco-nso test container --------------------------------"
@@ -59,9 +60,6 @@ test-cdb-persistence:
 test-backup-restore:
 	rm -rf tmp
 	mkdir -p tmp
-	@echo "-- Building test Docker image ----------------------------------------"
-	docker build -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) --build-arg BASE_IMAGE=$(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) --build-arg BUILD_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) .
-
 	-docker rm -f $(CNT_PREFIX)-$@
 	-docker rm -f $(CNT_PREFIX)-$@-helper
 	@echo "-- Creating volume for cisco-nso test container --------------------------------"
@@ -223,7 +221,6 @@ test-persistent-ssl-cert:
 
 
 test-java:
-	docker build -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) --build-arg BASE_IMAGE=$(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) --build-arg BUILD_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) .
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
@@ -233,7 +230,6 @@ test-java:
 
 
 test-python:
-	docker build -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) --build-arg BASE_IMAGE=$(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) --build-arg BUILD_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) .
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
