@@ -159,5 +159,38 @@ It is recommended that the Docker images are tagged with an identifier that is u
 
 * Backup
   *NOTE*: SSH keys and SSL certificates are not included in backups produced by ~ncs-backup~.
+  Backup and restore largely behaves as it normally does with ~ncs-backup~ as run outside of Docker, with some exceptions.
 
   Normally, the ncs-backup script includes the NCS_CONFIG_DIR (defaults to /etc/ncs). SSH keys and SSL certificates are normally placed in /etc/ncs/ssh and /etc/ncs/ssl respectively. This means that the SSH keys and SSL certificates are part of the produced backup file. This is NOT the case for when NSO is run in a container as SSH keys and SSL certificates are not in the default configuration path.
+
+** Taking a backup
+   To take a backup, simply run ~ncs-backup~. The backup file will be written to ~/nso/run/backups~.
+
+** Restoring from a backup
+   To restore a backup, NSO must not be running. As you likely only have access to the ~ncs-backup~ tool and the volume containing CDB and other run time state from inside of the NSO container, this poses a slight challenge. Additionally, shutting down NSO will terminate the NSO container.
+
+   What you need to do is shut down the NSO container and start a new one with the same persistent shared volume mounted but with a different command. Instead of running the ~/run-ncs.sh~ which is the normal command of the NSO container, you should run something that keeps the container alive but doesn't start NSO, for example ~read DUMMY~ (it's a bash builtin command so still have to run bash). A full docker command could look like:
+
+   #+BEGIN_SRC shell
+     docker run -itd --name nso -v /data/nso:/nso -v /data/nso-logs:/log --net=host my-prod-image:12345 bash -lc 'read DUMMY'
+   #+END_SRC
+
+   You now have the NSO container running but without NSO itself. Get a shell in the container with
+
+   #+BEGIN_SRC shell
+     docker exec -it nso bash -l
+   #+END_SRC
+
+   Then run the ncs-backup restore command, for example:
+
+   #+BEGIN_SRC shell
+     ncs-backup restore /nso/run/backups/ncs-4.7.5@2019-10-07T14:41:02.backup.gz
+   #+END_SRC
+
+   Or if you want to automate the whole process slightly you could do it all using docker exec and non-interactively:
+
+   #+BEGIN_SRC shell
+     docker exec -it nso bash -lc 'ncs-backup restore /nso/run/backups/ncs-4.7.5@2019-10-07T14:41:02.backup.gz --non-interactively'
+   #+END_SRC
+
+   Restoring a NSO backup should move the current run directory (~/nso/run~ to ~/nso/run.old~) and restore the run directory from the backup to the main run directory (~/nso/run~). After this is done, shut down your temporary container and start the normal NSO container again as usual.
