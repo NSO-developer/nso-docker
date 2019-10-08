@@ -23,6 +23,7 @@ endif
 # explicitly set through environment variables in CI.
 ifneq ($(CI),)
 DOCKER_BUILD_CACHE_ARG?=--no-cache
+export DOCKER_BUILD_CACHE_ARG
 endif
 
 .PHONY: all build build-all build-version $(NSO_DEV) $(NSO_BASE)
