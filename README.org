@@ -194,3 +194,36 @@ It is recommended that the Docker images are tagged with an identifier that is u
    #+END_SRC
 
    Restoring a NSO backup should move the current run directory (~/nso/run~ to ~/nso/run.old~) and restore the run directory from the backup to the main run directory (~/nso/run~). After this is done, shut down your temporary container and start the normal NSO container again as usual.
+
+* GitLab CI runner
+  *NOTE*: Using a Gitlab CI runner as described in this section has different security implications than what is normally associated with using containers for CI. See the Security sub-heading.
+
+  In order to build the CI pipeline as defined for this repository you need GitLab and a GitLab CI runner. It is possible to use the free and public gitlab.com in order to host the code but you have to provide your own Gitlab CI runner. While you have access to CI runners simply by using gitlab.com to host your code, their capabilities don't match what is needed in order to build this project. Fortunately, Gitlab as a product makes it very simple to connect your own CI runner to any Gitlab instance, including the public gitlab.com one.
+
+  1. Get a VM or a physical machine to run your CI runner.
+  2. Install Debian on said machine.
+  3. Follow the guide on https://docs.gitlab.com/runner/install/linux-repository.html to install the Gitlab CI runner on your machine
+  4. Follow the guide at https://docs.gitlab.com/runner/register/ on how to register your runner with Gitlab
+  5. Expose the docker control socket in the gitlab runner configuration
+
+  Here's a configuration file for gitlab ci runner. Note the ~volumes~ setting which includes ~/var/run/docker.sock~ - this exposes the Docker control socket to the containers run by the CI runner which enables the containers to start /sibling/ containers.
+  #+BEGIN_SRC text
+    [[runners]]
+      name = "my-runner"
+      url = "https://gitlab.com/"
+      token = "s3cr3t"
+      executor = "docker"
+      [runners.docker]
+        tls_verify = false
+        image = "debian:buster"
+        privileged = false
+        disable_entrypoint_overwrite = false
+        oom_kill_disable = false
+        disable_cache = false
+        volumes = ["/cache", "/var/run/docker.sock:/var/run/docker.sock"]
+        shm_size = 0
+  #+END_SRC
+  You naturally need to use your token and not literally ~s3cr3t~. The token is written when you do the runner registration per the guide referenced above.
+
+** Security
+   Note that exposing the Docker control socket has security implications. Containers as run by the CI runner normally provide isolation such that CI jobs are contained within the container and are unable to access anything outside of the container. By exposing the docker control socket, the CI jobs can start new containers, including starting a privileged one, which means it has root access on the host machine and enables escaping the container entirely. Do not grant access to your project or CI runner to anyone you do not trust. For example, someone that is able to create a branch on your repository can write a Gitlab CI configuration file that instructs the CI runner to run a privileged container and then gain access to the CI runner machine itself.
