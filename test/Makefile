@@ -33,8 +33,8 @@ test:
 	$(MAKE) test-java
 	$(MAKE) test-python
 
-test-cdb-persistence:
 
+test-cdb-persistence:
 	-@docker rm -f $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	@echo "-- Creating volume for cisco-nso test container --------------------------------"
 	-docker volume rm -f $(CNT_PREFIX)-nso-test-volume-$(DOCKER_TAG)
@@ -112,6 +112,7 @@ test-run-time-ssh-key-gen:
 	[ $$? -eq 0 ] && echo "ERROR: SSH key identical, should be different per run" && ret=1; exit $$ret
 	@echo "SSH keys are different across invocations, I'm happy"
 
+
 test-persistent-ssh-key:
 	@echo "== Test that SSH key is persisted on shared volume ============================="
 	mkdir -p tmp
@@ -146,6 +147,7 @@ test-http-disabled:
 	@echo "Connection to HTTP TCP port 80 was refused, I'm happy"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
+
 test-https-disabled:
 	@echo "== Test that the HTTP webUI is disabled per default ============================"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -154,6 +156,7 @@ test-https-disabled:
 	curl https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
 	@echo "Connection to HTTPS TCP port 443 was refused, I'm happy"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
 
 test-http-enabled:
 	@echo "== Test that the HTTP webUI works when enabled ================================="
@@ -164,6 +167,7 @@ test-http-enabled:
 	@echo "Connection to HTTP (TCP port 80) was accepted, I'm happy"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
+
 test-https-enabled:
 	@echo "== Test that the HTTP webUI works when enabled ================================="
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -172,6 +176,7 @@ test-https-enabled:
 	curl --insecure https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) >/dev/null
 	@echo "Connection to HTTPS (TLS/TCP port 443) was accepted, I'm happy"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
 
 test-run-time-ssl-cert-gen:
 	@echo "== Test that SSL certs are generated at runtime ================================"
@@ -193,6 +198,7 @@ test-run-time-ssl-cert-gen:
 	ret=0; diff -u tmp/testrtscg1 tmp/testrtscg2; \
 	[ $$? -eq 0 ] && echo "ERROR: SSL cert identical, should be different per run" && ret=1; exit $$ret
 	@echo "SSL cert are different across invocations, I'm happy"
+
 
 test-persistent-ssl-cert:
 	@echo "== Test that SSL cert is persisted on shared volume ============================"
