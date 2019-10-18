@@ -40,7 +40,7 @@
    - Download Cisco NSO
      - go to https://developer.cisco.com/docs/nso/ and click the "Download NSO for evaluation (Linux)" in the side bar
    - Place downloaded .bin file in ~nso-install-files/~
-   - run ~make build~ in repository root directory
+   - run ~make~ in repository root directory
      - *NOTE*: running docker commands, which are invoked by ~make~, typically require root privileges or membership in the ~docker~ group
    - verify your new images are built with ~docker images~ which should look something like:
 
