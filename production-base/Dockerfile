@@ -45,7 +45,16 @@ RUN apt-get update \
 
 FROM bitnami/minideb:buster
 
-RUN install_packages libexpat1 openssh-client default-jre-headless python3 xmlstarlet \
+RUN install_packages \
+  default-jre-headless \
+  iputils-ping \
+  libexpat1 \
+  openssh-client \
+  procps \
+  python3 \
+  tcpdump \
+  telnet \
+  xmlstarlet \
   && echo '. /opt/ncs/current/ncsrc' >> /root/.bashrc \
   && rm -rf /usr/share/doc
 
