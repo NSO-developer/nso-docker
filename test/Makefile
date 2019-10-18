@@ -44,6 +44,7 @@ test-shutdown:
 	docker stop $(CNT_PREFIX)-$@
 	docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	$(MAKE) test-docker-healthcheck
 
 test-ncs-stop:
 	@echo "\n== Verify container stops when ncs exits"
@@ -273,4 +274,20 @@ test-python:
 	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-python python-test" | ncs_cli -u admin -g ncsadmin' | grep "Hello world from Python"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
+test-docker-healthcheck:
+	@echo "\n== Verify that docker healthcheck works"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Starting cisco-nso test container -------------------------------------------"
+	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	@echo "-- Ensuring health is 'starting' -----------------------------------------------"
+	docker inspect --format='{{.State.Health.Status}}' $(CNT_PREFIX)-$@ | grep "starting"
+	@echo "-- Waiting for NCS to start ----------------------------------------------------"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Waiting 5 seconds to allow healthcheck to run -------------------------------"
+	sleep 5
+	@echo "-- Ensuring health is 'healthy' ------------------------------------------------"
+	docker inspect --format='{{.State.Health.Status}}' $(CNT_PREFIX)-$@ | grep "healthy"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
