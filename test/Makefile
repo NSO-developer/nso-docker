@@ -17,7 +17,7 @@ endif
 # 1. using cisco-nso-dev image, compile our package
 
 test:
-	@echo "-- Building test Docker image ----------------------------------------"
+	@echo "\n== Building test Docker image"
 	docker build $(DOCKER_BUILD_CACHE_ARG) -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) --build-arg BASE_IMAGE=$(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) --build-arg BUILD_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) .
 
 	$(MAKE) test-shutdown
@@ -47,12 +47,19 @@ test-shutdown:
 
 test-ncs-stop:
 	@echo "\n== Verify container stops when ncs exits"
+	@echo "-- Clean any already running containers with 'our' name"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Start NSO container"
 	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Stop NSO"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --stop'
+	@echo "-- Wait for container to stop, up to 10 attempts with a 1 second sleep in between"
 	for I in $$(seq 10); do docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false" && break; sleep 1; done
+	@echo "-- Check that container is not running"
 	docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false"
+	@echo "-- Remove the container"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 test-cdb-persistence:
