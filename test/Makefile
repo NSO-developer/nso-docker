@@ -51,7 +51,7 @@ test-ncs-stop:
 	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --stop'
-	sleep 1
+	for I in $$(seq 10); do docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false" && break; sleep 1; done
 	docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
