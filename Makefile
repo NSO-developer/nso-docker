@@ -10,12 +10,14 @@ NSO_TEST=$(NSO_INSTALL_FILES:%=test/%)
 ifneq ($(CI_REGISTRY_IMAGE),)
 DOCKER_REGISTRY?=$(CI_REGISTRY_IMAGE)/
 endif
+export DOCKER_REGISTRY
 
 ifneq ($(CI_JOB_ID),)
 DOCKER_TAG?=$(CI_JOB_ID)
 else
 DOCKER_TAG?=$(shell whoami)-dev
 endif
+export DOCKER_TAG
 
 # If we are running in CI, disable the build cache for docker builds.
 # We do this with ?= operator in make so we only set DOCKER_BUILD_CACHE_ARG if
@@ -36,7 +38,7 @@ all: build-all
 # specified by NSO_INSTALL_FILES_DIR
 build-version: export FILE=$(shell realpath $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin)
 build-version:
-	$(MAKE) DOCKER_REGISTRY=$(DOCKER_REGISTRY) DOCKER_TAG=$(DOCKER_TAG) build
+	$(MAKE) build
 
 # build target that takes FILE env arg (really just passed on through
 # environment) as input. FILE should be an absolute path to the NSO install
