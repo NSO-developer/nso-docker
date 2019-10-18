@@ -56,6 +56,7 @@ test-ncs-stop:
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 test-cdb-persistence:
+	@echo "\n== Verify CDB is properly persisted on a docker volume"
 	-@docker rm -f $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	@echo "-- Creating volume for cisco-nso test container --------------------------------"
 	-docker volume rm -f $(CNT_PREFIX)-nso-test-volume-$(DOCKER_TAG)
@@ -79,6 +80,7 @@ test-cdb-persistence:
 
 
 test-backup-restore:
+	@echo "\n== Verify that ncs-backup and restore works properly"
 	rm -rf tmp
 	mkdir -p tmp
 	-docker rm -f $(CNT_PREFIX)-$@
@@ -114,7 +116,7 @@ test-backup-restore:
 
 
 test-run-time-ssh-key-gen:
-	@echo "== Test that SSH keys are generated at runtime ================================="
+	@echo "\n== Verify that SSH keys are generated at runtime"
 	@echo "Starts the NSO container twice and ensure the SSH keys are different."
 	@echo "SSH keys are written to the /nso directory which can be shared mounted so"
 	@echo "it is trivial to persist over time."
@@ -135,7 +137,7 @@ test-run-time-ssh-key-gen:
 
 
 test-persistent-ssh-key:
-	@echo "== Test that SSH key is persisted on shared volume ============================="
+	@echo "\n== Verify that SSH key is persisted on shared volume"
 	mkdir -p tmp
 	rm -rf tmp/testpsk*
 	@echo "-- Creating volume for cisco-nso test container --------------------------------"
@@ -160,7 +162,7 @@ test-persistent-ssh-key:
 
 
 test-http-disabled:
-	@echo "== Test that the HTTP webUI is disabled per default ============================"
+	@echo "\n== Verify that the HTTP webUI is disabled per default"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
@@ -170,7 +172,7 @@ test-http-disabled:
 
 
 test-https-disabled:
-	@echo "== Test that the HTTP webUI is disabled per default ============================"
+	@echo "\n== Verify that the HTTP webUI is disabled per default"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
@@ -180,7 +182,7 @@ test-https-disabled:
 
 
 test-http-enabled:
-	@echo "== Test that the HTTP webUI works when enabled ================================="
+	@echo "\n== Verify that the HTTP webUI works when enabled"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ --env HTTP_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
@@ -190,7 +192,7 @@ test-http-enabled:
 
 
 test-https-enabled:
-	@echo "== Test that the HTTP webUI works when enabled ================================="
+	@echo "\n== Verify that the HTTP webUI works when enabled"
 	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
@@ -200,7 +202,7 @@ test-https-enabled:
 
 
 test-run-time-ssl-cert-gen:
-	@echo "== Test that SSL certs are generated at runtime ================================"
+	@echo "\n== Verify that SSL certs are generated at runtime"
 	@echo "Starts the NSO container twice and ensure the SSL certs are different."
 	@echo "SSL certs are written to the /nso directory which can be shared mounted so"
 	@echo "it is trivial to persist over time."
@@ -222,7 +224,7 @@ test-run-time-ssl-cert-gen:
 
 
 test-persistent-ssl-cert:
-	@echo "== Test that SSL cert is persisted on shared volume ============================"
+	@echo "\n== Verify that SSL cert is persisted on shared volume"
 	mkdir -p tmp
 	rm -rf tmp/$@*
 	@echo "-- Clean up (from potential previous run) --------------------------------------"
@@ -248,6 +250,7 @@ test-persistent-ssl-cert:
 
 
 test-java:
+	@echo "\n== Verify that a java package works"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
@@ -257,6 +260,7 @@ test-java:
 
 
 test-python:
+	@echo "\n== Verify that a Python package works"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
