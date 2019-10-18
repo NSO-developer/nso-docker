@@ -20,6 +20,8 @@ test:
 	@echo "-- Building test Docker image ----------------------------------------"
 	docker build $(DOCKER_BUILD_CACHE_ARG) -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) --build-arg BASE_IMAGE=$(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) --build-arg BUILD_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) .
 
+	$(MAKE) test-shutdown
+	$(MAKE) test-ncs-stop
 	$(MAKE) test-cdb-persistence
 	$(MAKE) test-run-time-ssh-key-gen
 	$(MAKE) test-persistent-ssh-key
@@ -33,6 +35,25 @@ test:
 	$(MAKE) test-java
 	$(MAKE) test-python
 
+
+test-shutdown:
+	@echo "\n== Verify shutdown (using docker stop) of container works"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker stop $(CNT_PREFIX)-$@
+	docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+test-ncs-stop:
+	@echo "\n== Verify container stops when ncs exits"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --stop'
+	sleep 1
+	docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 test-cdb-persistence:
 	-@docker rm -f $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
