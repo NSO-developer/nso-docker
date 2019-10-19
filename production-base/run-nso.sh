@@ -1,5 +1,7 @@
 #!/bin/bash
 
+shopt -s nullglob
+
 source /opt/ncs/current/ncsrc
 source /opt/ncs/installdirs
 export NCS_CONFIG_DIR NCS_LOG_DIR NCS_RUN_DIR
@@ -40,7 +42,9 @@ if [ ! -f /nso/ssl/cert/host.cert ]; then
 fi
 
 # pre-start scripts
-for FILE in $(ls /etc/ncs/pre-ncs-start.d/*.sh); do
+PRES=(/etc/ncs/pre-ncs-start.d/*.sh)
+for FILE in ${PRES}; do
+    echo "run-nso.sh: running pre start script ${FILE}"
     . ${FILE}
 done
 
@@ -50,7 +54,9 @@ ncs --cd ${NCS_RUN_DIR} -c ${NCS_CONFIG_DIR}/ncs.conf --foreground -v &
 nso_pid="$!"
 
 # post-start scripts
-for FILE in $(ls /etc/ncs/post-ncs-start.d/*.sh); do
+POSTS=(/etc/ncs/post-ncs-start.d/*.sh)
+for FILE in ${POSTS}; do
+    echo "run-nso.sh: running post start script ${FILE}"
     . ${FILE}
 done
 
