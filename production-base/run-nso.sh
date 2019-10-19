@@ -19,9 +19,6 @@ echo '/nso/coredumps/core.%e.%t' > /proc/sys/kernel/core_pattern
 term_handler() {
     echo "run-nso.sh: received signal, stopping NSO"
     ncs --stop
-    wait ${nso_pid}
-
-    exit 143; # 128 + 15 -- SIGTERM
 }
 
 # create required directories
