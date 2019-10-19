@@ -55,8 +55,8 @@ test-ncs-stop:
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Stop NSO"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --stop'
-	@echo "-- Wait for container to stop, up to 10 attempts with a 1 second sleep in between"
-	for I in $$(seq 10); do docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false" && break; sleep 1; done
+	@echo "-- Wait for container to stop"
+	-docker logs -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Check that container is not running"
 	docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false"
 	@echo "-- Remove the container"
