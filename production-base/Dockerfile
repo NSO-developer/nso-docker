@@ -68,4 +68,6 @@ COPY mangle-config.sh /etc/ncs/pre-ncs-start.d/mangle-config.sh
 
 EXPOSE 22 80 443 830 4334
 
+HEALTHCHECK --start-period=60s --interval=5s --retries=3 CMD /opt/ncs/current/bin/ncs_cmd -c get_phase
+
 CMD ["/run-nso.sh"]
