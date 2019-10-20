@@ -1,4 +1,4 @@
-FROM bitnami/minideb:buster
+FROM debian:buster
 
 ARG NSO_INSTALL_FILE
 
@@ -43,9 +43,10 @@ RUN apt-get update \
      /etc/ncs/ncs.conf \
   && sed -i -e 's/exec python -u/exec python3 -u/' /opt/ncs/current/bin/ncs-start-python-vm
 
-FROM bitnami/minideb:buster
+FROM debian:buster
 
-RUN install_packages \
+RUN apt-get update \
+ && apt-get install -qy \
   default-jre-headless \
   iputils-ping \
   libexpat1 \
@@ -55,6 +56,9 @@ RUN install_packages \
   tcpdump \
   telnet \
   xmlstarlet \
+  && apt-get -qy autoremove \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/* /root/.cache \
   && echo '. /opt/ncs/current/ncsrc' >> /root/.bashrc \
   && rm -rf /usr/share/doc
 
