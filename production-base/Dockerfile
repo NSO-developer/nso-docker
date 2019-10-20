@@ -64,7 +64,7 @@ COPY --from=0 /opt/ncs /opt/ncs/
 COPY --from=0 /etc/init.d/ncs /etc/init.d/.
 
 COPY run-nso.sh /
-COPY mangle-config.sh /etc/ncs/pre-ncs-start.d/mangle-config.sh
+COPY mangle-config.sh /etc/ncs/pre-ncs-start.d/50-mangle-config.sh
 
 EXPOSE 22 80 443 830 4334
 
