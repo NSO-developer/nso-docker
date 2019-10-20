@@ -227,3 +227,12 @@ It is recommended that the Docker images are tagged with an identifier that is u
 
 ** Security
    Note that exposing the Docker control socket has security implications. Containers as run by the CI runner normally provide isolation such that CI jobs are contained within the container and are unable to access anything outside of the container. By exposing the docker control socket, the CI jobs can start new containers, including starting a privileged one, which means it has root access on the host machine and enables escaping the container entirely. Do not grant access to your project or CI runner to anyone you do not trust. For example, someone that is able to create a branch on your repository can write a Gitlab CI configuration file that instructs the CI runner to run a privileged container and then gain access to the CI runner machine itself.
+
+* Healthcheck
+  The production-base image comes with a basic Docker healthcheck. It is using ncs_cmd to get the phase that NCS is currently in. Only the result status, i.e. if ncs_cmd was able to communicate with the ~ncs~ process or not, is actually observed. This tells us whether the ~ncs~ process is responding to IPC requests.
+
+  As far as monitoring NSO goes, this is a very basic check. Just a tad above the basic process check, i.e. that the ~ncs~ process is actually alive, which is the most basic premise of production-base image.
+
+  More advanced and deeper looking healthchecks could be conceived, for example by observing locks and measuring the time a certain lock has been held, but it is difficult to find a completely generic set of conditions for flagging NSO as healthy or unhealthy based on that. For example, if a transaction lock has been held for 5 hours, is that healthy or not? In most situations, that would be an abnormally long transaction, but does it constitute an unhealthy state? In certain operational environments it could be normal with that long transactions (for example a batch import of some data). Marking the container as unhealthy and potentially restarting it as a consequence would only make things worse.
+
+  We really want to measure some form of progress, even if that progress is just internal. A five hours transaction is fine as long as we are continuously making progress. However, there are currently no such indicators available and so the healthcheck observes the rather basic operation of the IPC listener.
