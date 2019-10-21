@@ -236,3 +236,10 @@ It is recommended that the Docker images are tagged with an identifier that is u
   More advanced and deeper looking healthchecks could be conceived, for example by observing locks and measuring the time a certain lock has been held, but it is difficult to find a completely generic set of conditions for flagging NSO as healthy or unhealthy based on that. For example, if a transaction lock has been held for 5 hours, is that healthy or not? In most situations, that would be an abnormally long transaction, but does it constitute an unhealthy state? In certain operational environments it could be normal with that long transactions (for example a batch import of some data). Marking the container as unhealthy and potentially restarting it as a consequence would only make things worse.
 
   We really want to measure some form of progress, even if that progress is just internal. A five hours transaction is fine as long as we are continuously making progress. However, there are currently no such indicators available and so the healthcheck observes the rather basic operation of the IPC listener.
+* FAQ / Questions and answers
+** Q: Why are these images not based on alpine or some other minimal container friendly image
+   *A*: The larger the final container image is, the less impact the base image size typically has. Picking a 5MB or 50MB base image is not crucial when the final image is an order of magnitude larger.
+
+   Debian was chosen as it is a well working proven distribution with a long track record. It is supported by a considerably sized community.
+
+   minideb, which is a minimal build of a debian base image, was not only considered but actually used in early phases of this repository. It does provide a smaller image. Measured at the time of the switch from minideb to stock debian, the difference was about 10%. minideb weighed in at 471MB while debian:buster came in at 525MB. The proven track record of Debian ultimately made it the winner.
