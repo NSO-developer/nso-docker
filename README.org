@@ -153,6 +153,21 @@
 * Docker image tags
 It is recommended that the Docker images are tagged with an identifier that is unique per build.
 
+* Admin user
+  An admin user can be created on startup by the run script in the container. There are three environment variables that control the addition of an admin user;
+  - ~ADMIN_USERNAME~: username of the admin user to add, default is ~admin~
+  - ~ADMIN_PASSWORD~: password of the admin user to add
+  - ~ADMIN_SSHKEY~: private SSH key of the admin user to add
+
+  As ~ADMIN_USERNAME~ already has a default value, only ~ADMIN_PASSWORD~ or ~ADMIN_SSHKEY~ need to be set in order to create an admin user. For example:
+  #+BEGIN_SRC shell
+    docker run -itd --name nso -e ADMIN_PASSWORD=foobar my-prod-image:12345
+  #+END_SRC
+
+  This can be very useful when starting up a container in CI for testing or when doing development. It is typically not required in a production environment where there is a permanent CDB that already contains the required user accounts.
+
+  Also note how this only adds a user. If you are using a permanent volume for CDB etc and start the NSO container multiple times with different ~ADMIN_PASSWORD~ then the last run will effectively overwrite the older password. However, if you change ~ADMIN_USERNAME~ between invocations then you will create multiple users! An admin user account created during the last run of NSO will *not* be removed just because ~ADMIN_USERNAME~ is set to a different value.
+
 * Python VM version
   These docker images default to using python3.
 

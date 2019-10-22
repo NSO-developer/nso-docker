@@ -69,6 +69,8 @@ COPY --from=0 /etc/init.d/ncs /etc/init.d/.
 
 COPY run-nso.sh /
 COPY mangle-config.sh /etc/ncs/pre-ncs-start.d/50-mangle-config.sh
+COPY add-user.sh /etc/ncs/pre-ncs-start.d/55-add-user.sh
+COPY add_user_template.xml /add_user_template.xml
 
 EXPOSE 22 80 443 830 4334
 

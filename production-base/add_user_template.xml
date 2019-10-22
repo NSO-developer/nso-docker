@@ -1,0 +1,25 @@
+<config xmlns="http://tail-f.com/ns/config/1.0">
+    <nacm xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-acm">
+        <groups>
+            <group>
+                <name>ncsadmin</name>
+                <user-name>banan</user-name>
+            </group>
+        </groups>
+    </nacm>
+
+    <aaa xmlns="http://tail-f.com/ns/aaa/1.1">
+        <authentication>
+            <users>
+                <user>
+                    <name></name>
+                    <uid>1000</uid>
+                    <gid>1000</gid>
+                    <password></password>
+                    <ssh_keydir></ssh_keydir>
+                    <homedir></homedir>
+                </user>
+            </users>
+        </authentication>
+    </aaa>
+</config>
