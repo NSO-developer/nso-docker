@@ -22,6 +22,9 @@ test:
 
 	$(MAKE) test-shutdown
 	$(MAKE) test-ncs-stop
+	$(MAKE) test-admin-user
+	$(MAKE) test-admin-user-custom
+	$(MAKE) test-admin-user-sshkey
 	$(MAKE) test-cdb-persistence
 	$(MAKE) test-run-time-ssh-key-gen
 	$(MAKE) test-persistent-ssh-key
@@ -46,6 +49,7 @@ test-shutdown:
 	docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
+
 test-ncs-stop:
 	@echo "\n== Verify container stops when ncs exits"
 	@echo "-- Clean any already running containers with 'our' name"
@@ -62,6 +66,49 @@ test-ncs-stop:
 	docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false"
 	@echo "-- Remove the container"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
+test-admin-user:
+	@echo "\n== Verify adding admin user works"
+	@echo "-- Clean any already running containers with 'our' name"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Start NSO container with admin password"
+	docker run -td --name $(CNT_PREFIX)-$@ -e ADMIN_PASSWORD=foobar $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	@echo "-- Wait for NSO in container to start"
+	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Test that SSH login works"
+	sshpass -p foobar ssh -l admin -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) exit
+	@echo "-- Remove the container"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
+test-admin-user-custom:
+	@echo "\n== Verify adding custom admin user works"
+	@echo "-- Clean any already running containers with 'our' name"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Start NSO container with admin password"
+	docker run -td --name $(CNT_PREFIX)-$@ -e ADMIN_USERNAME=kalle -e ADMIN_PASSWORD=foobar $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	@echo "-- Wait for NSO in container to start"
+	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Test that SSH login works"
+	sshpass -p foobar ssh -l kalle -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) exit
+	@echo "-- Remove the container"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
+test-admin-user-sshkey:
+	@echo "\n== Verify adding admin user with SSH key works"
+	@echo "-- Clean any already running containers with 'our' name"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Start NSO container with admin password"
+	docker run -td --name $(CNT_PREFIX)-$@ -e ADMIN_SSHKEY="$(shell cat test_ssh_key.pub)" $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	@echo "-- Wait for NSO in container to start"
+	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Test that SSH login works"
+	ssh -l admin -i test_ssh_key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) exit
+	@echo "-- Remove the container"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
 
 test-cdb-persistence:
 	@echo "\n== Verify CDB is properly persisted on a docker volume"
