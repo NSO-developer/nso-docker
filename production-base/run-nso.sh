@@ -45,7 +45,7 @@ done
 # start NSO in the background
 # output logs to stdout a la container style
 ncs --cd ${NCS_RUN_DIR} -c ${NCS_CONFIG_DIR}/ncs.conf --foreground -v &
-nso_pid="$!"
+NSO_PID="$!"
 
 # post-start scripts
 for FILE in $(ls /etc/ncs/post-ncs-start.d/*.sh 2>/dev/null); do
@@ -56,5 +56,5 @@ done
 # wait forever on the ncs process, we run ncs in background and wait on it like
 # this, with a signal handler for INT & TERM so that we upon receiving those
 # signals can run ncs --stop rather than having those signals sent raw to ncs
-wait ${!}
+wait ${NSO_PID}
 echo "run-nso.sh: NSO exited - exiting container"
