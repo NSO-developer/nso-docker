@@ -34,6 +34,7 @@ test:
 	$(MAKE) test-backup-restore
 	$(MAKE) test-java
 	$(MAKE) test-python
+	$(MAKE) test-docker-healthcheck
 
 
 test-shutdown:
@@ -44,7 +45,6 @@ test-shutdown:
 	docker stop $(CNT_PREFIX)-$@
 	docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	$(MAKE) test-docker-healthcheck
 
 test-ncs-stop:
 	@echo "\n== Verify container stops when ncs exits"
