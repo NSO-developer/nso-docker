@@ -43,6 +43,7 @@
    - run ~make~ in repository root directory
      - *NOTE*: running docker commands, which are invoked by ~make~, typically require root privileges or membership in the ~docker~ group
    - verify your new images are built with ~docker images~ which should look something like:
+     - *NOTE*: docker images are only tagged with the correct NSO version when run in the git master branch
 
    #+BEGIN_SRC shell
      kll@ThinkLite:~/cisco-nso# docker images
