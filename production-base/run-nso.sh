@@ -47,6 +47,12 @@ done
 ncs --cd ${NCS_RUN_DIR} -c ${NCS_CONFIG_DIR}/ncs.conf --foreground -v &
 NSO_PID="$!"
 
+# sleep a bit so ncs has a chance to start its IPC port
+# this doesn't slow down startup since we wait for ncs to start as the next step
+# anyway and that wait is much longer
+sleep 3
+ncs --wait-started
+
 # post-start scripts
 for FILE in $(ls /etc/ncs/post-ncs-start.d/*.sh 2>/dev/null); do
     echo "run-nso.sh: running post start script ${FILE}"

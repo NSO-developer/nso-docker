@@ -16,6 +16,8 @@ endif
 
 # 1. using cisco-nso-dev image, compile our package
 
+.PHONY: test-post-start-script
+
 test:
 	@echo "\n== Building test Docker image"
 	docker build $(DOCKER_BUILD_CACHE_ARG) -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) --build-arg BASE_IMAGE=$(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) --build-arg BUILD_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) .
@@ -25,6 +27,7 @@ test:
 	$(MAKE) test-admin-user
 	$(MAKE) test-admin-user-custom
 	$(MAKE) test-admin-user-sshkey
+	$(MAKE) test-post-start-script
 	$(MAKE) test-cdb-persistence
 	$(MAKE) test-run-time-ssh-key-gen
 	$(MAKE) test-persistent-ssh-key
@@ -109,8 +112,23 @@ test-admin-user-sshkey:
 # prevent SSH from reading the normal SSH config of the user running the test
 # suite through -F /dev/null and prevent ssh-agent use
 	ssh -o IdentitiesOnly=yes -F /dev/null -l admin -i test_ssh_key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) exit
+
+
+test-post-start-script:
+	@echo "\n== Testing post-start script is run after NCS start"
+	docker build $(DOCKER_BUILD_CACHE_ARG) -t $(CNT_PREFIX)-$@ --build-arg BASE_IMAGE=$(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) --build-arg BUILD_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) $@
+	@echo "-- Clean any already running containers with 'our' name"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Start NSO container with admin password"
+	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-$@
+	@echo "-- Wait for NSO in container to start"
+	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	sleep 1
+	docker logs $(CNT_PREFIX)-$@ | grep "post-start-script result: success"
 	@echo "-- Remove the container"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Remove the container image"
+	-docker rmi $(CNT_PREFIX)-$@
 
 
 test-cdb-persistence:
