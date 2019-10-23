@@ -49,6 +49,9 @@ test-shutdown:
 	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker stop $(CNT_PREFIX)-$@
+	sleep 3
+	docker logs $(CNT_PREFIX)-$@ | grep "NCS stopping"
+	docker logs $(CNT_PREFIX)-$@ | grep "Daemon logging terminating"
 	docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
