@@ -74,6 +74,6 @@ COPY add_user_template.xml /add_user_template.xml
 
 EXPOSE 22 80 443 830 4334
 
-HEALTHCHECK --start-period=60s --interval=5s --retries=3 CMD /opt/ncs/current/bin/ncs_cmd -c get_phase
+HEALTHCHECK --start-period=60s --interval=5s --retries=3 --timeout=5s CMD /opt/ncs/current/bin/ncs_cmd -c get_phase
 
 CMD ["/run-nso.sh"]
