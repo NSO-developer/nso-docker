@@ -126,7 +126,7 @@ test-post-start-script:
 	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-$@
 	@echo "-- Wait for NSO in container to start"
 	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
-	sleep 1
+	sleep 3
 	docker logs $(CNT_PREFIX)-$@ | grep "post-start-script result: success"
 	@echo "-- Remove the container"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
