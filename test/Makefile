@@ -115,6 +115,8 @@ test-admin-user-sshkey:
 # prevent SSH from reading the normal SSH config of the user running the test
 # suite through -F /dev/null and prevent ssh-agent use
 	ssh -o IdentitiesOnly=yes -F /dev/null -l admin -i test_ssh_key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) exit
+	@echo "-- Remove the container"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 
 test-post-start-script:
