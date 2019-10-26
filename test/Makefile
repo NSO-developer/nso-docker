@@ -114,6 +114,8 @@ test-admin-user-sshkey:
 # prevent SSH from reading the normal SSH config of the user running the test
 # suite through -F /dev/null and prevent ssh-agent use
 	ssh -o IdentitiesOnly=yes -F /dev/null -l admin -i test_ssh_key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) exit
+	@echo "-- Remove the container"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 
 test-post-start-script:
@@ -125,7 +127,7 @@ test-post-start-script:
 	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-$@
 	@echo "-- Wait for NSO in container to start"
 	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
-	sleep 1
+	docker logs -f $(CNT_PREFIX)-$@ | grep -m 1 "post-start-script result"
 	docker logs $(CNT_PREFIX)-$@ | grep "post-start-script result: success"
 	@echo "-- Remove the container"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
