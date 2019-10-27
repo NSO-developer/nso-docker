@@ -15,7 +15,7 @@ export DOCKER_REGISTRY
 ifneq ($(CI_JOB_ID),)
 DOCKER_TAG?=$(CI_JOB_ID)
 else
-DOCKER_TAG?=$(shell whoami)-dev
+DOCKER_TAG?=$(shell whoami)-dev-$(NSO_VERSION)
 endif
 export DOCKER_TAG
 
