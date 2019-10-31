@@ -137,26 +137,26 @@ test-post-start-script:
 
 test-cdb-persistence:
 	@echo "\n== Verify CDB is properly persisted on a docker volume"
-	-@docker rm -f $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	-@docker rm -f $(CNT_PREFIX)-$@
 	@echo "-- Creating volume for cisco-nso test container --------------------------------"
-	-docker volume rm -f $(CNT_PREFIX)-nso-test-volume-$(DOCKER_TAG)
-	docker volume create $(CNT_PREFIX)-nso-test-volume-$(DOCKER_TAG)
+	-docker volume rm -f $(CNT_PREFIX)-$@
+	docker volume create $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container -------------------------------------------"
-	docker run -td --name $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) -v $(CNT_PREFIX)-nso-test-volume-$(DOCKER_TAG):/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) bash -lc 'ncs --wait-started 600'
-	docker exec -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
-	docker exec -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) bash -lc 'echo -e "configure\nset testpkg a-value 1337\ncommit\nexit" | ncs_cli -u admin -g ncsadmin'
-	docker exec -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin -g ncsadmin'
+	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg a-value 1337\ncommit\nexit" | ncs_cli -u admin -g ncsadmin'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin -g ncsadmin'
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
-	-docker rm -f $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	-docker rm -f $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container (second time) -----------------------------"
-	docker run -td --name $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) -v $(CNT_PREFIX)-nso-test-volume-$(DOCKER_TAG):/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	sleep 3 && docker exec -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin -g ncsadmin' | grep "a-value 1337;"
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
-	-docker rm -f $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	-docker rm -f $(CNT_PREFIX)-$@
 	@echo "-- Removing volume for cisco-nso test container --------------------------------"
-	-docker volume rm -f $(CNT_PREFIX)-nso-test-volume-$(DOCKER_TAG)
+	-docker volume rm -f $(CNT_PREFIX)-$@
 
 
 test-backup-restore:
@@ -166,10 +166,10 @@ test-backup-restore:
 	-docker rm -f $(CNT_PREFIX)-$@
 	-docker rm -f $(CNT_PREFIX)-$@-helper
 	@echo "-- Creating volume for cisco-nso test container --------------------------------"
-	-docker volume rm -f $(CNT_PREFIX)-nso-test-volume-$(DOCKER_TAG)
-	docker volume create $(CNT_PREFIX)-nso-test-volume-$(DOCKER_TAG)
+	-docker volume rm -f $(CNT_PREFIX)-$@
+	docker volume create $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container -------------------------------------------"
-	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-nso-test-volume-$(DOCKER_TAG):/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg a-value 1337\ncommit\nexit" | ncs_cli -u admin -g ncsadmin'
@@ -183,12 +183,12 @@ test-backup-restore:
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@
 	@echo "-- Restore from backup ---------------------------------------------------------"
-	docker run -td --name $(CNT_PREFIX)-$@-helper -v $(CNT_PREFIX)-nso-test-volume-$(DOCKER_TAG):/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) bash -lc 'read DUMMY'
+	docker run -td --name $(CNT_PREFIX)-$@-helper -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) bash -lc 'read DUMMY'
 	docker cp tmp/backups $(CNT_PREFIX)-$@-helper:/nso/run/backups
 	docker exec -t $(CNT_PREFIX)-$@-helper bash -lc "ncs-backup --restore /nso/run/backups/*.gz --non-interactive"
 	docker rm -f $(CNT_PREFIX)-$@-helper
 	@echo "-- Starting cisco-nso test container (second time) -----------------------------"
-	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-nso-test-volume-$(DOCKER_TAG):/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin -g ncsadmin' | grep "a-value 1337;"
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
@@ -202,15 +202,15 @@ test-run-time-ssh-key-gen:
 	@echo "it is trivial to persist over time."
 	mkdir -p tmp
 	rm -rf tmp/testrtskg*
-	-@docker rm -f $(CNT_PREFIX)-testrtskg-$(DOCKER_TAG) >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-testrtskg-$(DOCKER_TAG) $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-testrtskg-$(DOCKER_TAG) bash -lc "ncs --wait-started"
-	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-testrtskg-$(DOCKER_TAG)) | awk '{ print $$3 }' > tmp/testrtskg1
-	-@docker rm -f $(CNT_PREFIX)-testrtskg-$(DOCKER_TAG) >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-testrtskg-$(DOCKER_TAG) $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-testrtskg-$(DOCKER_TAG) bash -lc "ncs --wait-started"
-	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-testrtskg-$(DOCKER_TAG)) | awk '{ print $$3 }' > tmp/testrtskg2
-	-@docker rm -f $(CNT_PREFIX)-testrtskg-$(DOCKER_TAG) >/dev/null 2>&1
+	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | awk '{ print $$3 }' > tmp/testrtskg1
+	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | awk '{ print $$3 }' > tmp/testrtskg2
+	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	ret=0; diff -u tmp/testrtskg1 tmp/testrtskg2; \
 	[ $$? -eq 0 ] && echo "ERROR: SSH key identical, should be different per run" && ret=1; exit $$ret
 	@echo "SSH keys are different across invocations, I'm happy"
@@ -221,21 +221,21 @@ test-persistent-ssh-key:
 	mkdir -p tmp
 	rm -rf tmp/testpsk*
 	@echo "-- Creating volume for cisco-nso test container --------------------------------"
-	-docker volume rm -f $(CNT_PREFIX)-testpsk-$(DOCKER_TAG)
-	docker volume create $(CNT_PREFIX)-testpsk-$(DOCKER_TAG)
+	-docker volume rm -f $(CNT_PREFIX)-$@
+	docker volume create $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container, first invocation -------------------------"
-	-@docker rm -f $(CNT_PREFIX)-testpsk-$(DOCKER_TAG) >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-testpsk-$(DOCKER_TAG) -v $(CNT_PREFIX)-testpsk-$(DOCKER_TAG):/nso $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-testpsk-$(DOCKER_TAG) bash -lc "ncs --wait-started"
-	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-testpsk-$(DOCKER_TAG)) | awk '{ print $$3 }' > tmp/testpsk1
-	-@docker rm -f $(CNT_PREFIX)-testpsk-$(DOCKER_TAG) >/dev/null 2>&1
+	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | awk '{ print $$3 }' > tmp/testpsk1
+	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Starting cisco-nso test container, second invocation ------------------------"
-	-@docker rm -f $(CNT_PREFIX)-testpsk-$(DOCKER_TAG) >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-testpsk-$(DOCKER_TAG) -v $(CNT_PREFIX)-testpsk-$(DOCKER_TAG):/nso $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-testpsk-$(DOCKER_TAG) bash -lc "ncs --wait-started"
-	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-testpsk-$(DOCKER_TAG)) | awk '{ print $$3 }' > tmp/testpsk2
-	-@docker rm -f $(CNT_PREFIX)-testpsk-$(DOCKER_TAG) >/dev/null 2>&1
-	-docker volume rm -f $(CNT_PREFIX)-testpsk-$(DOCKER_TAG)
+	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | awk '{ print $$3 }' > tmp/testpsk2
+	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker volume rm -f $(CNT_PREFIX)-$@
 	@echo "-- Comparing output ------------------------"
 	diff -u tmp/testpsk1 tmp/testpsk2 || (echo "ERROR: SSH key different across runs, should be persisted" && exit 1)
 	@echo "SSH keys are the same across invocations, I'm happy"
