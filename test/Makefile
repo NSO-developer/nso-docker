@@ -137,7 +137,7 @@ test-post-start-script:
 
 test-cdb-persistence:
 	@echo "\n== Verify CDB is properly persisted on a docker volume"
-	-@docker rm -f $(CNT_PREFIX)-$@
+	-docker rm -f $(CNT_PREFIX)-$@
 	@echo "-- Creating volume for cisco-nso test container --------------------------------"
 	-docker volume rm -f $(CNT_PREFIX)-$@
 	docker volume create $(CNT_PREFIX)-$@
@@ -202,15 +202,15 @@ test-run-time-ssh-key-gen:
 	@echo "it is trivial to persist over time."
 	mkdir -p tmp
 	rm -rf tmp/testrtskg*
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | awk '{ print $$3 }' > tmp/testrtskg1
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | awk '{ print $$3 }' > tmp/testrtskg2
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	ret=0; diff -u tmp/testrtskg1 tmp/testrtskg2; \
 	[ $$? -eq 0 ] && echo "ERROR: SSH key identical, should be different per run" && ret=1; exit $$ret
 	@echo "SSH keys are different across invocations, I'm happy"
@@ -224,17 +224,17 @@ test-persistent-ssh-key:
 	-docker volume rm -f $(CNT_PREFIX)-$@
 	docker volume create $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container, first invocation -------------------------"
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | awk '{ print $$3 }' > tmp/testpsk1
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Starting cisco-nso test container, second invocation ------------------------"
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | awk '{ print $$3 }' > tmp/testpsk2
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	-docker volume rm -f $(CNT_PREFIX)-$@
 	@echo "-- Comparing output ------------------------"
 	diff -u tmp/testpsk1 tmp/testpsk2 || (echo "ERROR: SSH key different across runs, should be persisted" && exit 1)
@@ -243,42 +243,42 @@ test-persistent-ssh-key:
 
 test-http-disabled:
 	@echo "\n== Verify that the HTTP webUI is disabled per default"
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	curl $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
 	@echo "Connection to HTTP TCP port 80 was refused, I'm happy"
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 
 test-https-disabled:
 	@echo "\n== Verify that the HTTP webUI is disabled per default"
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	curl https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
 	@echo "Connection to HTTPS TCP port 443 was refused, I'm happy"
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 
 test-http-enabled:
 	@echo "\n== Verify that the HTTP webUI works when enabled"
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ --env HTTP_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	curl $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) >/dev/null
 	@echo "Connection to HTTP (TCP port 80) was accepted, I'm happy"
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 
 test-https-enabled:
 	@echo "\n== Verify that the HTTP webUI works when enabled"
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	curl --insecure https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) >/dev/null
 	@echo "Connection to HTTPS (TLS/TCP port 443) was accepted, I'm happy"
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 
 test-run-time-ssl-cert-gen:
@@ -288,16 +288,16 @@ test-run-time-ssl-cert-gen:
 	@echo "it is trivial to persist over time."
 	mkdir -p tmp
 	rm -rf tmp/testrtscg*
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/testrtscg1
 
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/testrtscg2
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	ret=0; diff -u tmp/testrtscg1 tmp/testrtscg2; \
 	[ $$? -eq 0 ] && echo "ERROR: SSL cert identical, should be different per run" && ret=1; exit $$ret
 	@echo "SSL cert are different across invocations, I'm happy"
@@ -316,13 +316,13 @@ test-persistent-ssl-cert:
 	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/$@-1
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Starting cisco-nso test container, second invocation ------------------------"
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
 	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/$@-2
-	-@docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	-docker volume rm -f $(CNT_PREFIX)-$@
 	@echo "-- Comparing output ------------------------"
 	diff -u tmp/$@-1 tmp/$@-2 || (echo "ERROR: SSL cert different across runs, should be persisted" && exit 1)
