@@ -36,7 +36,7 @@
 ** Building
 *** Manually building Docker images on your local machine
    - Clone this repository to your local machine
-     - ~git clone git@github.com/NSO-Developer/cisco-nso.git~
+     - ~git clone git@gitlab.com/nso-developer/nso-docker.git~
    - Download Cisco NSO
      - go to https://developer.cisco.com/docs/nso/ and click the "Download NSO for evaluation (Linux)" in the side bar
    - Place downloaded .bin file in ~nso-install-files/~
@@ -46,21 +46,21 @@
      - *NOTE*: docker images are only tagged with the correct NSO version when run in the git master branch
 
    #+BEGIN_SRC shell
-     kll@ThinkLite:~/cisco-nso# docker images
+     kll@ThinkLite:~/nso-docker# docker images
      REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
-     cisco-nso           5.2                 c451b581d328        19 hours ago        435MB
-     cisco-nso           4.7.5               3096fe46bee9        19 hours ago        433MB
+     cisco-nso-base      5.2                 c451b581d328        19 hours ago        435MB
+     cisco-nso-base      4.7.5               3096fe46bee9        19 hours ago        433MB
      cisco-nso-dev       5.2                 a986314ec390        22 hours ago        435MB
      <none>              <none>              7e680e680923        22 hours ago        410MB
      cisco-nso-dev       4.7.5               0565a58c3977        22 hours ago        433MB
      <none>              <none>              d968a53420ab        22 hours ago        421MB
      bitnami/minideb     buster              25dfa3b9a987        23 hours ago        67.5MB
      docker              stable              b40e5afd78f5        2 weeks ago         216MB
-     kll@ThinkLite:~/cisco-nso#
+     kll@ThinkLite:~/nso-docker#
    #+END_SRC
 *** Automatically building Docker images using Gitlab CI
    - Clone this repository to your local machine
-     - ~git clone git@github.com/NSO-Developer/cisco-nso.git~
+     - ~git clone git@gitlab.com/nso-developer/nso-docker.git~
    - Download Cisco NSO
      - go to https://developer.cisco.com/docs/nso/ and click the "Download NSO for evaluation (Linux)" in the side bar
    - Place downloaded .bin file in ~nso-install-files/~
@@ -98,7 +98,7 @@
           shm_size = 0
     #+END_SRC
 
-    The path ~/data/vrnetlab-images~ on the host machine becomes available as ~/images/~ in the CI build docker containers and by specifying that path (~/images~) using the CI variable settings, the job will now pick up the NSO images from there. This is how the public repo at https://gitlab.com/plajjan/cisco-nso works. It allows us to host all code in public, run CI tests in public yet not reveal the NSO install file as required by its EULA.
+    The path ~/data/vrnetlab-images~ on the host machine becomes available as ~/images/~ in the CI build docker containers and by specifying that path (~/images~) using the CI variable settings, the job will now pick up the NSO images from there. This is how the public repo at https://gitlab.com/nso-developer/nso-docker works. It allows us to host all code in public, run CI tests in public yet not reveal the NSO install file as required by its EULA.
 ** Running
 *** Run standalone for testing
     - if you built a production image, i.e. using base image from this repo and adding in your own packages
