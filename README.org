@@ -211,6 +211,20 @@ It is recommended that the Docker images are tagged with an identifier that is u
 
    Restoring a NSO backup should move the current run directory (~/nso/run~ to ~/nso/run.old~) and restore the run directory from the backup to the main run directory (~/nso/run~). After this is done, shut down your temporary container and start the normal NSO container again as usual.
 
+* Modifying the NSO configuration file ncs.conf
+  The ~ncs.conf~ used in the docker images produced by this repository is not checked into git but rather originates from the NSO install itself. This means that if we build a Docker image based on NSO 5.2 we will get the default ~ncs.conf~ that comes with ~5.2~. Any updates to the ~ncs.conf~ shipped with NSO will find its way into the Docker image. Since modifications are necessary, partly for NSO to fit into a Docker environment but also to apply instance specific configuration, like the administrator password, the ~ncs.conf~ configuration file is modified on startup. This is achieved by a startup script executed before NSO is started.
+
+  The standard Docker run script (~run-nso.sh~) looks for files that ends with ~.sh~ in ~/etc/ncs/pre-ncs-start.d/~ and ~/etc/ncs/post-ncs-start.d/~ and will run any scripts found before or after starting NSO. This facility is used to modify the ~ncs.conf~ configuration file before NSO is started. ~/etc/ncs/pre-ncs-start.d/50-mangle-config.sh~ performs the necessary modifications. Since ~ncs.conf~ is a structured XML document, it primarily uses ~xmlstarlet~ to perform modification operations on the configuration file.
+
+  You can further modify the ~ncs.conf~ configuration file by adding your own startup script in ~/etc/ncs.pre-ncs-start.d/~. Since the configuration file is an XML document, modification is best done through an XML aware tool. The previously mentioned standard ~mangle-config.sh~ script modifies the ~ncs.conf~ configuration file using ~xmlstarlet~  which understands XML and offers XML aware editing capabilities.
+
+* Extending the Docker image
+  There are multiple approaches to extending the functionality of the NSO docker image.
+
+  The standard Docker run script (~run-nso.sh~) looks for files that ends with ~.sh~ in ~/etc/ncs/pre-ncs-start.d/~ and ~/etc/ncs/post-ncs-start.d/~ and will run any scripts found before or after starting NSO. ~ncs --wait-started~ is used to wait for NSO to start. If you want to modify the configuration file, produce some XML files to be read into CDB on startup or similar, you can write a script for that and place it in the relevant startup directory (typically before NSO is started).
+
+  In other situations you want to run scripts that load or modify some configuration in NSO (CDB) somehow, which might be better suited to be placed in ~/etc/ncs/post-ncs-start.d~ (though don't mistake these capabilities for what CDB upgrade logic and similar offers). For example, it is possible to start another process in the same container and if that process is dependent upon NSO having started, placing the script in ~/etc/ncs/post-ncs-start-d/~ is a convenient approach as those scripts are only started after NSO have started up (as determined by ~ncs --wait-started~).
+
 * GitLab CI runner
   *NOTE*: Using a Gitlab CI runner as described in this section has different security implications than what is normally associated with using containers for CI. See the Security sub-heading.
 
