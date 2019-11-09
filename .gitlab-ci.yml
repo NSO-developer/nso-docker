@@ -13,6 +13,7 @@ stages:
     - apt-get update && apt-get install -qy docker-ce docker-ce-cli containerd.io
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
     - make build-version
+    - make test-version
     - if [ "${DOCKER_PUSH}" != "false" ]; then make push; fi
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ]; then make version-tag; fi
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-latest; fi
