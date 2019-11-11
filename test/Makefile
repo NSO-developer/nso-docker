@@ -47,7 +47,7 @@ test-shutdown:
 	@echo "\n== Verify shutdown (using docker stop) of container works"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker stop $(CNT_PREFIX)-$@
 	docker logs $(CNT_PREFIX)-$@ | grep "NCS stopping"
 	docker logs $(CNT_PREFIX)-$@ | grep "Daemon logging terminating"
@@ -62,7 +62,7 @@ test-ncs-stop:
 	@echo "-- Start NSO container"
 	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Stop NSO"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --stop'
 	@echo "-- Wait for container to stop"
@@ -80,7 +80,7 @@ test-admin-user:
 	@echo "-- Start NSO container with admin password"
 	docker run -td --name $(CNT_PREFIX)-$@ -e ADMIN_PASSWORD=foobar $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Test that SSH login works"
 	sshpass -p foobar ssh -F /dev/null -o IdentityAgent=none -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l admin $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) exit
 	@echo "-- Remove the container"
@@ -94,7 +94,7 @@ test-admin-user-custom:
 	@echo "-- Start NSO container with admin password"
 	docker run -td --name $(CNT_PREFIX)-$@ -e ADMIN_USERNAME=kalle -e ADMIN_PASSWORD=foobar $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Test that SSH login works"
 	sshpass -p foobar ssh -F /dev/null -o IdentityAgent=none -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l kalle $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) exit
 	@echo "-- Remove the container"
@@ -108,7 +108,7 @@ test-admin-user-sshkey:
 	@echo "-- Start NSO container with admin password"
 	docker run -td --name $(CNT_PREFIX)-$@ -e ADMIN_SSHKEY="$(shell cat test_ssh_key.pub)" $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Test that SSH login works"
 	chmod 0600 test_ssh_key
 # prevent SSH from reading the normal SSH config of the user running the test
@@ -126,7 +126,7 @@ test-post-start-script:
 	@echo "-- Start NSO container with admin password"
 	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-$@
 	@echo "-- Wait for NSO in container to start"
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker logs -f $(CNT_PREFIX)-$@ | grep -m 1 "post-start-script result"
 	docker logs $(CNT_PREFIX)-$@ | grep "post-start-script result: success"
 	@echo "-- Remove the container"
@@ -143,7 +143,7 @@ test-cdb-persistence:
 	docker volume create $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container -------------------------------------------"
 	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg a-value 1337\ncommit\nexit" | ncs_cli -u admin -g ncsadmin'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin -g ncsadmin'
@@ -151,7 +151,7 @@ test-cdb-persistence:
 	-docker rm -f $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container (second time) -----------------------------"
 	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin -g ncsadmin' | grep "a-value 1337;"
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@
@@ -170,7 +170,7 @@ test-backup-restore:
 	docker volume create $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container -------------------------------------------"
 	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg a-value 1337\ncommit\nexit" | ncs_cli -u admin -g ncsadmin'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin -g ncsadmin'
@@ -189,7 +189,7 @@ test-backup-restore:
 	docker rm -f $(CNT_PREFIX)-$@-helper
 	@echo "-- Starting cisco-nso test container (second time) -----------------------------"
 	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin -g ncsadmin' | grep "a-value 1337;"
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@
@@ -204,11 +204,11 @@ test-run-time-ssh-key-gen:
 	rm -rf tmp/testrtskg*
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | awk '{ print $$3 }' > tmp/testrtskg1
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | awk '{ print $$3 }' > tmp/testrtskg2
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	ret=0; diff -u tmp/testrtskg1 tmp/testrtskg2; \
@@ -226,13 +226,13 @@ test-persistent-ssh-key:
 	@echo "-- Starting cisco-nso test container, first invocation -------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | awk '{ print $$3 }' > tmp/testpsk1
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Starting cisco-nso test container, second invocation ------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | awk '{ print $$3 }' > tmp/testpsk2
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	-docker volume rm -f $(CNT_PREFIX)-$@
@@ -245,7 +245,7 @@ test-http-disabled:
 	@echo "\n== Verify that the HTTP webUI is disabled per default"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	curl $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
 	@echo "Connection to HTTP TCP port 80 was refused, I'm happy"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -255,7 +255,7 @@ test-https-disabled:
 	@echo "\n== Verify that the HTTP webUI is disabled per default"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	curl https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
 	@echo "Connection to HTTPS TCP port 443 was refused, I'm happy"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -265,7 +265,7 @@ test-http-enabled:
 	@echo "\n== Verify that the HTTP webUI works when enabled"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ --env HTTP_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	curl $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) >/dev/null
 	@echo "Connection to HTTP (TCP port 80) was accepted, I'm happy"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -275,7 +275,7 @@ test-https-enabled:
 	@echo "\n== Verify that the HTTP webUI works when enabled"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	curl --insecure https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) >/dev/null
 	@echo "Connection to HTTPS (TLS/TCP port 443) was accepted, I'm happy"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -290,12 +290,12 @@ test-run-time-ssl-cert-gen:
 	rm -rf tmp/testrtscg*
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/testrtscg1
 
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/testrtscg2
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	ret=0; diff -u tmp/testrtscg1 tmp/testrtscg2; \
@@ -314,13 +314,13 @@ test-persistent-ssl-cert:
 	docker volume create $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container, first invocation -------------------------"
 	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/$@-1
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Starting cisco-nso test container, second invocation ------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/$@-2
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	-docker volume rm -f $(CNT_PREFIX)-$@
@@ -333,7 +333,7 @@ test-java:
 	@echo "\n== Verify that a java package works"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-java java-test" | ncs_cli -u admin -g ncsadmin' | grep "Hello world from Java"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -343,7 +343,7 @@ test-python:
 	@echo "\n== Verify that a Python package works"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
-	sleep 3 && docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-python python-test" | ncs_cli -u admin -g ncsadmin' | grep "Hello world from Python"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
