@@ -233,6 +233,39 @@ It is recommended that the Docker images are tagged with an identifier that is u
 
   We really want to measure some form of progress, even if that progress is just internal. A five hours transaction is fine as long as we are continuously making progress. However, there are currently no such indicators available and so the healthcheck observes the rather basic operation of the IPC listener.
 
+* Make targets
+  There are multiple make targets for building an NSO docker image.
+
+** Based on NSO version
+   Assuming the NSO install file has been placed in the ~NSO_INSTALL_FILES_DIR~ (per default ~nso-install-files/~), you can run:
+
+   #+BEGIN_SRC shell
+     make NSO_VERSION=5.2.1 build-version
+   #+END_SRC
+
+   To produce a docker image based on NSO 5.2.1. It requires that the corresponding installer file is present, i.e. ~nso-install-files/nso-5.2.1.linux.x86_64.installer.bin~.
+
+** Based on complete path to NSO installer file
+   You can use the ~build~ target to build a Docker image out of an NSO installer. It requires that you specify the complete path to the NSO
+   installer file, for example:
+
+   #+BEGIN_SRC shell
+     make FILE=/home/foo/nso-docker/nso-install-files/nso-5.2.1.linux.x86_64.installer.bin build
+   #+END_SRC
+
+** For all NSO installer files in NSO_INSTALL_FILES_DIR
+   To build docker images for all the NSO installer files present in the NSO installer directory, (specified by ~NSO_INSTALL_FILES_DIR~), you can run:
+
+   #+BEGIN_SRC shell
+     make build-all
+   #+END_SRC
+
+   There are targets to run tests that correspond with the above;
+   - test-version
+   - test
+   - test-all
+   They require the same variables to be set as their corresponding build target described above.
+
 * Dependencies
   To build these images, you need:
   - Docker

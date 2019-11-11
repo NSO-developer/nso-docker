@@ -1,29 +1,6 @@
-# there are multiple entry points for building a NSO docker image
-# * Based on NSO version
-#   Assuming the NSO install file has been placed in the NSO_INSTALL_FILES_DIR
-#   (per default 'nso-install-files/'), you can run:
-#     make NSO_VERSION=5.2.1 build-version
-#   To produce a docker image based on NSO 5.2.1. It requires that the
-#   corresponding installer file is present, i.e.
-#   nso-install-files/nso-5.2.1.linux.x86_64.installer.bin
-#
-# * Based on complete path to NSO installer file
-#   You can use the ~build~ target to build a Docker image out of an NSO
-#   installer. It requires that you specify the complete path to the NSO
-#   installer file, for example:
-#     make FILE=/home/foo/nso-docker/nso-install-files/nso-5.2.1.linux.x86_64.installer.bin build
-#
-# * For all NSO installer files in NSO_INSTALL_FILES_DIR
-#   To build docker images for all the NSO installer files present in the NSO
-#   installer directory, (specified by NSO_INSTALL_FILES_DIR), you can run:
-#     make build-all
-#
-# There are targets to run tests that correspond with the above;
-# * test-version
-# * test
-# * test-all
-# They require the same variables to be set as their corresponding build target
-# described above.
+# There are multiple entry points for building a NSO docker image, see
+# README.org for details on how to invoke them.
+
 NSO_INSTALL_FILES_DIR?=nso-install-files/
 NSO_INSTALL_FILES=$(wildcard $(NSO_INSTALL_FILES_DIR)*.bin)
 NSO_BUILD=$(NSO_INSTALL_FILES:%=build/%)
