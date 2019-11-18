@@ -29,6 +29,8 @@
 
   It's also worth noting that using Docker does not mean you have to replace all of your current infrastructure. If you are currently using OpenStack or some system that primarily deals with virtual machines you don't have to rip this out. On the particular VM that runs NSO you can simply install Docker and have a single machine Docker environment that runs NSO. You are using Docker for the packaging features!
 
+  Yet another alternative is to use Docker for development and CI and when it's time to deploy to production you use something entirely different. Docker images are glorified tar files so it is possible to extract the relevant files from them and deploy by other means.
+
 * Usage
   The ideal scenario would be to ship prebuilt Docker images containing NSO but as legal requirements prevent that, this is the second best option. This repository contains recipes that you can use to produce Docker images yourself. Just add +water+ Cisco NSO ;)
 
@@ -38,7 +40,7 @@
      - ~git clone git@gitlab.com/nso-developer/nso-docker.git~
    - Download Cisco NSO
      - go to https://developer.cisco.com/docs/nso/ and click the "Download NSO for evaluation (Linux)" in the side bar
-   - Place downloaded .bin file in ~nso-install-files/~
+   - Place the downloaded .bin file in ~nso-install-files/~ in this repository
    - run ~make~ in repository root directory
      - *NOTE*: running docker commands, which are invoked by ~make~, typically require root privileges or membership in the ~docker~ group
    - verify your new images are built with ~docker images~ which should look something like:
@@ -57,16 +59,17 @@
      docker              stable              b40e5afd78f5        2 weeks ago         216MB
      kll@ThinkLite:~/nso-docker#
    #+END_SRC
+
 *** Automatically building Docker images using Gitlab CI
    - Clone this repository to your local machine
      - ~git clone git@gitlab.com/nso-developer/nso-docker.git~
    - Download Cisco NSO
      - go to https://developer.cisco.com/docs/nso/ and click the "Download NSO for evaluation (Linux)" in the side bar
-   - Place downloaded .bin file in ~nso-install-files/~
+   - Place the downloaded .bin file in ~nso-install-files/~ in this repository
    - commit file(s) in ~nso-install-files/~ using git LFS and push
      - ~git add nso-install-files/*~
      - ~git commit nso-install-files -m "Add NSO install files"~
-       - it is a good practice to add the files one by one and write the version you added in the commit message, like "Add NSO install file for v4.7.5"
+       - it is a good practice to add the files one by one and write the version you added in the commit message, like =Add NSO install file for v4.7.5=
      - ~git push -u origin master~
      - CI will now build the docker images for you
        - naturally provided you first setup CI
@@ -74,7 +77,7 @@
 
 *** Alternative for providing NSO install files into CI runner
     The above method involves committing the NSO install files to this git repository (your clone of it). This means the repository must be private so that you don't leak the NSO install files nor the produced Docker images. There are a number of reasons for why this setup might not be ideal;
-    - you have an open source public and wish to run CI publicly
+    - you have an open source public repo and wish to run CI publicly
     - LFS doesn't work with your choice of code hosting
     - NSO install files are too big or you just don't like LFS
 
@@ -98,6 +101,7 @@
     #+END_SRC
 
     The path ~/data/vrnetlab-images~ on the host machine becomes available as ~/images/~ in the CI build docker containers and by specifying that path (~/images~) using the CI variable settings, the job will now pick up the NSO images from there. This is how the public repo at https://gitlab.com/nso-developer/nso-docker works. It allows us to host all code in public, run CI tests in public yet not reveal the NSO install file as required by its EULA.
+
 ** Running
 *** Run standalone for testing
     - if you built a production image, i.e. using base image from this repo and adding in your own packages
@@ -147,7 +151,7 @@
    | HTTPS_ENABLE         | boolean | false   | Enable HTTPS (TLS) web UI                     |
 
 *** HTTPS TLS certificate
-    When no certificate is present, one will be generated. It is a self-signed certificate valid for 30 days making it possible to use both in development and staging environments. It is not meant for production. You *should* replace it with a proper signed certificate for production and it is encouraged to do so even for test and staging environments.
+    When no certificate is present, one will be generated. It is a self-signed certificate valid for 30 days making it possible to use both in development and staging environments. It is *not* meant for production. You *should* replace it with a proper signed certificate for production and it is encouraged to do so even for test and staging environments.
 
 * Docker image tags
 It is recommended that the Docker images are tagged with an identifier that is unique per build.
@@ -306,6 +310,26 @@ It is recommended that the Docker images are tagged with an identifier that is u
 
 ** Security
    Note that exposing the Docker control socket has security implications. Containers as run by the CI runner normally provide isolation such that CI jobs are contained within the container and are unable to access anything outside of the container. By exposing the docker control socket, the CI jobs can start new containers, including starting a privileged one, which means it has root access on the host machine and enables escaping the container entirely. Do not grant access to your project or CI runner to anyone you do not trust. For example, someone that is able to create a branch on your repository can write a Gitlab CI configuration file that instructs the CI runner to run a privileged container and then gain access to the CI runner machine itself.
+
+* GitLab CI configuration files for inclusion
+  New NSO versions are released periodically and over time the list of NSO versions grows fairly long. For someone writing a NSO package, keeping the list of NSO versions to build and test for in CI up to date can be a time consuming task, in particular if there are many packages to be maintained. GitLab CI allows for inclusion of configuration files such that the project CI configuration can include another file that is external to the repo. By using this feature we can keep a central list of the NSO versions to test with.
+
+  ~version-includes/versions.json~ is the root definition of the currently supported versions. ~version-includes/gen.py~ is a Python script that uses ~versions.json~ as input and produces a number of YAML files that can be included in other repositories.
+
+  For example, we have ~build-all.yaml~, which uses the prototypical CI job definition called =build= and defines jobs for all currently supported versions of NSO.
+
+  ~build-all4.yaml~ is similar but only includes NSO 4.x versions, whereas ~build-all5.yaml~ does the same for NSO 5.x. Since NSO 5 looks quite different with schema-mount, it could be reasonable for some packages to only target NSO 5.
+
+  ~build-tot.yaml~ only includes the "tip" of each train, where a train is the combination of a major and minor version number. Patch releases are not considered for tip-of-train as they are not supposed to be used by the wide masses. For example, if we have 4.7, 4.7.1, 4.7.2 and 4.7.2.1 as well as 5.2.1, the tip-of-train would include 4.7.2 and 5.2.1.
+
+  To include a file, use the ~include~ directory, for example:
+  #+BEGIN_SRC yaml
+    include:
+      - project: 'nso-developer/nso-docker'
+        ref: master
+        file: '/version-includes/build-tot5.yaml'
+  #+END_SRC
+  This will work for any repository hosted on the same GitLab instance as the =nso-developer/nso-docker= repo. Once you clone the =nso-docker= repository to your own environment, as you are encouraged to do, you are likely to place it in another namespace (not =nso-developer=) and so you must update the include statements for the dependent repositories accordingly.
 
 * FAQ / Questions and answers
 ** Q: Why are these images not based on alpine or some other minimal container friendly image
