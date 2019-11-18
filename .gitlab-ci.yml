@@ -6,7 +6,7 @@ stages:
 version-matrix:
   stage: build
   script:
-    - apt-get update && apt-get install -qy python3
+    - apt-get update && apt-get install -qy git python3
     - cd version-includes
     - ./gen.py
     - git diff --exit-code
