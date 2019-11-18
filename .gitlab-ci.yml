@@ -3,6 +3,17 @@ image: debian:buster
 stages:
   - build
 
+version-matrix:
+  stage: build
+  script:
+    - apt-get update && apt-get install -qy git python3
+    - cd version-includes
+    - ./gen.py
+    - git add -N .
+    - git status
+    - git diff
+    - git diff --exit-code
+
 .build:
   stage: build
   script:

@@ -1,0 +1,5 @@
+build-4.7.5
+  extends: .build
+  variables:
+    NSO_VERSION: "4.7.5"
+
