@@ -9,7 +9,7 @@ version-matrix:
     - apt-get update && apt-get install -qy git python3
     - cd version-includes
     - ./gen.py
-    - git add .
+    - git add -N .
     - git status
     - git diff
     - git diff --exit-code
