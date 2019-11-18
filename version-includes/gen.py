@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Silly script to generate a bunch of various YAML files containing Gitlab CI
-configuration that are suitable for including from other CI configs
+"""Script to generate a bunch of YAML files containing Gitlab CI configuration
+that are suitable for including from other CI configurations.
 
 Gitlab CI supports including other files in the configuration file. We use this
 to simplify maintenance of many NSO packages over time. Each package only needs
-to define a prototype CI job and by including one of these prepared version
+to define a archetype CI job and by including one of these prepared version
 include files, the precise versions of NSO to test with doesn't have to be
-specified.
+specified in each repo, instead the centralized nso-docker repo can be used as
+a source for NSO version information.
 
 This script generates a bunch of different version include files. It is up to
 the author of each individual NSO package to include the one suitable for their
