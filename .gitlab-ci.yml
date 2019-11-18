@@ -3,6 +3,13 @@ image: debian:buster
 stages:
   - build
 
+version-matrix:
+  stage: build
+  script:
+    - cd version-includes
+    - ./gen.py
+    - git diff --exit-code
+
 .build:
   stage: build
   script:
