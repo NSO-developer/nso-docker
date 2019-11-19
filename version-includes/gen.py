@@ -31,7 +31,7 @@ the tip-of-train would include 4.7.2 and 5.2.1.
 
 import json
 
-ci_template = """{name}-{version}
+ci_template = """{name}-{version}:
   extends: .build
   variables:
     NSO_VERSION: "{version}"

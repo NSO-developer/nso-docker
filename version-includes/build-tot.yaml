@@ -1,9 +1,9 @@
-build-4.7
+build-4.7:
   extends: .build
   variables:
     NSO_VERSION: "4.7"
 
-build-5.2
+build-5.2:
   extends: .build
   variables:
     NSO_VERSION: "5.2"
