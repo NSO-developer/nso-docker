@@ -149,6 +149,7 @@
    | PAM                  | boolean | false   | Enable PAM instead of local auth in NSO (AAA) |
    | HTTP_ENABLE          | boolean | false   | Enable HTTP web UI                            |
    | HTTPS_ENABLE         | boolean | false   | Enable HTTPS (TLS) web UI                     |
+   | SSH_PORT             | uint16  | 22      | Set port for SSH to listen on                 |
 
 *** HTTPS TLS certificate
     When no certificate is present, one will be generated. It is a self-signed certificate valid for 30 days making it possible to use both in development and staging environments. It is *not* meant for production. You *should* replace it with a proper signed certificate for production and it is encouraged to do so even for test and staging environments.

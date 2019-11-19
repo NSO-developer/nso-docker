@@ -1,5 +1,6 @@
 #!/bin/sh
 
+SSH_PORT=${SSH_PORT:-22}
 CONF_FILE=/etc/ncs/ncs.conf
 
 # switch to local auth per default, allow to override through environment variable PAM
@@ -19,7 +20,7 @@ xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
 # different from the protocols default port (to allow starting ncs without root)
 # NETCONF call-home is already on its default 4334 since that's above 1024
 xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
-           --update '/x:ncs-config/x:cli/x:ssh/x:port' --value '22' \
+           --update '/x:ncs-config/x:cli/x:ssh/x:port' --value "${SSH_PORT}" \
            --update '/x:ncs-config/x:webui/x:transport/x:tcp/x:port' --value '80' \
            --update '/x:ncs-config/x:webui/x:transport/x:ssl/x:port' --value '443' \
            --update '/x:ncs-config/x:netconf-north-bound/x:transport/x:ssh/x:port' --value '830' \
