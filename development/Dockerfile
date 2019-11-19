@@ -31,4 +31,11 @@ RUN apt-get update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /root/.cache
 
+# default shell is ["/bin/sh", "-c"]. We add -l so we get a login shell which
+# means the shell reads /etc/profile on startup. /etc/profile includes the files
+# in /etc/profile.d where we have ncs.sh that sets the right paths so we can
+# access ncsc and other NSO related tools. This makes it possible for
+# Dockerfiles, using this image as a base, to directly invoke make for NSO
+# package compilation.
+SHELL ["/bin/sh", "-lc"]
 CMD ["/bin/bash", "-l"]
