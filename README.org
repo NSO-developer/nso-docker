@@ -157,6 +157,17 @@
 * Docker image tags
 It is recommended that the Docker images are tagged with an identifier that is unique per build.
 
+* Exposed ports
+ | Protocol | Port | Use               | Config var |
+ |----------+------+-------------------+------------|
+ | TCP      |   22 | SSH               | SSH_PORT   |
+ | TCP      |   80 | HTTP              |            |
+ | TCP      |  443 | HTTPS             |            |
+ | TCP      |  830 | NETCONF           |            |
+ | TCP      | 4334 | NETCONF call-home |            |
+
+ It is possible to reconfigure the port that SSH uses by setting the SSH_PORT variable to the wanted value.
+
 * Admin user
   An admin user can be created on startup by the run script in the container. There are three environment variables that control the addition of an admin user;
   - ~ADMIN_USERNAME~: username of the admin user to add, default is ~admin~
