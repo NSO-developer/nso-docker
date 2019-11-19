@@ -64,7 +64,7 @@ def f_tot(versions):
             tot[mm] = version
         if tot[mm] < version:
             tot[mm] = version
-    return tot
+    return tot.values()
 
 
 def formatter(version):
