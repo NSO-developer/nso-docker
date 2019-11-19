@@ -92,7 +92,7 @@ with open("build-tot.yaml", "w") as f:
 
 # all tip-of-train 4 versions
 with open("build-tot4.yaml", "w") as f:
-    f.write("".join(map(lambda x: formatter(x), f_tot(f_major(5, versions)))))
+    f.write("".join(map(lambda x: formatter(x), f_tot(f_major(4, versions)))))
 
 # all tip-of-train 5 versions
 with open("build-tot5.yaml", "w") as f:
