@@ -155,7 +155,13 @@
     When no certificate is present, one will be generated. It is a self-signed certificate valid for 30 days making it possible to use both in development and staging environments. It is *not* meant for production. You *should* replace it with a proper signed certificate for production and it is encouraged to do so even for test and staging environments.
 
 * Docker image tags
-It is recommended that the Docker images are tagged with an identifier that is unique per build.
+  The Docker images produced by this repo per default carry a unique tag based on the CI_JOB_ID variable set by Gitlab CI, for example ~registry.gitlab.com/nso-developer/nso-docker/cisco-nso-dev:31337~ where =31337= is the value from =CI_JOB_ID=.
+
+  In addition, if the job is built on the =master= branch, it will also receive a tag based on the NSO version it contains, for example if the previously mentioned image is based on NSO 5.2.1, if it was built from the =master= branch it would also get the tag ~registry.gitlab.com/nso-developer/nso-docker/cisco-nso-dev:5.2.1~. This makes it possible for other repositories to use the ~5.2.1~ tag to always refer to the latest build of ~5.2.1~.
+
+  It is recommended to use a nightly job to produce new images every night that include the latest security patches and similar to the base images. Do note however that this also means that updates to packages will happen and that could have negative consequences if they are not fully backwards compatible. These images are based on Debian stable but for example, pylint has been known to include additional lints in newer version and so new version of the image could include change like this which lead to unintended results.
+
+  For a truly deterministic environment, downstream repositories that rely on these Docker images should be based on the unique tag and consequently be updated with the same cadence as new images are built.
 
 * Exposed ports
  | Protocol | Port | Use               | Config var |
