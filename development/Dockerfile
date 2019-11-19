@@ -31,4 +31,4 @@ RUN apt-get update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /root/.cache
 
-CMD ["bash", "-l"]
+CMD ["/bin/bash", "-l"]
