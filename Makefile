@@ -51,9 +51,9 @@ build-version:
 # run like: make NSO_VERSION=5.2.1 test-version
 # assumes the corresponding NSO install file is located in the directory
 # specified by NSO_INSTALL_FILES_DIR
-test-version: export FILE=$(shell realpath $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin)
 test-version:
-	$(MAKE) test
+	@if [ -z "$(NSO_VERSION)"]; then echo "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin"; false; fi
+	$(MAKE) -C test NSO_VERSION=$(NSO_VERSION) DOCKER_TAG=$(DOCKER_TAG) test
 
 # build target that takes FILE env arg (really just passed on through
 # environment) as input. FILE should be an absolute path to the NSO install
