@@ -29,4 +29,4 @@ version-matrix:
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ]; then make version-tag; fi
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-latest; fi
 
-include: nso-versions.yaml
+include: version-includes/build-all.yaml
