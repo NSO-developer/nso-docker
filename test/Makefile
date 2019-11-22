@@ -195,6 +195,20 @@ test-backup-restore:
 	-docker rm -f $(CNT_PREFIX)-$@
 
 
+test-ssh-custom-port:
+	@echo "\n== Verify configuring custom SSH port works"
+	@echo "-- Clean any already running containers with 'our' name"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Start NSO container with admin password"
+	docker run -td --name $(CNT_PREFIX)-$@ -e SSH_PORT=2024 $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	@echo "-- Wait for NSO in container to start"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Test that SSH is listening on expected port"
+	ssh-keyscan -p 2024 $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | grep "Connection refused"; test $$? -eq 1
+	@echo "-- Remove the container"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
 test-run-time-ssh-key-gen:
 	@echo "\n== Verify that SSH keys are generated at runtime"
 	@echo "Starts the NSO container twice and ensure the SSH keys are different."
