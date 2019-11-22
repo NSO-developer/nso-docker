@@ -136,9 +136,9 @@
     - possibly use --net=host to share IP address with host machine
       - makes it easier to handle connectivity
 
-    This uses the ~--net=host~ option to let the container live in the hosts networking namespace. This means that it binds to the IP address of the (virtual) machine it is running on. Also note that we use a shared volume for logs. ~/log~ inside the container contains the logs and you can access them outside the container in ~/data/nso-logs~.
+    This uses the ~--net=host~ option to let the container live in the hosts networking namespace. This means that it binds to the IP address of the (virtual) machine it is running on. NSO is configured to expose the CLI over SSH on port 22. If you have SSH running on the VM, there will be a collision when using ~--net=host~. To avoid port collision you can reconfigure NSO to listen on a different port by setting the =SSH_PORT= environment variable. Also note that we use a shared volume for logs. ~/log~ inside the container contains the logs and you can access them outside the container in ~/data/nso-logs~.
     #+BEGIN_SRC shell
-      docker run -itd --name nso -v /data/nso:/nso -v /data/nso-logs:/log --net=host my-prod-image:12345
+      docker run -itd --name nso -v /data/nso:/nso -v /data/nso-logs:/log --net=host -e SSH_PORT=2024 my-prod-image:12345
     #+END_SRC
 
 ** Configuration options
