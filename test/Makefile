@@ -1,10 +1,24 @@
+# We actually only need the NSO_VERSION variable as we don't have any dependency
+# on the information about which FILE or FILENAME which was used to build an NSO
+# image. However, if NSO_VERSION isn't set, we try to dig out the NSO version
+# number from the FILE/FILENAME
+ifeq ($(NSO_VERSION),)
 FILENAME:=$(shell basename $(FILE))
 NSO_VERSION:=$(shell echo $(FILENAME) | sed -E -e 's/(ncs|nso)-([0-9.]*).linux.x86_64.installer.bin/\2/')
+endif
 
 ifneq ($(CI_JOB_ID),)
 CNT_PREFIX:=ci-$(CI_JOB_ID)
 else
 CNT_PREFIX:=$(shell whoami)
+endif
+
+ifneq ($(CI_JOB_ID),)
+DOCKER_TAG?=$(CI_JOB_ID)
+else
+ifneq ($(NSO_VERSION),)
+DOCKER_TAG?=$(shell whoami)-$(NSO_VERSION)
+endif
 endif
 
 # what to do?
