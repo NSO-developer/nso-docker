@@ -2,7 +2,7 @@
   <name>testpkg-java</name>
   <package-version>1.0</package-version>
   <description>Java-based testpkg-java resource facing service</description>
-  <ncs-min-version>4.7</ncs-min-version>
+  <ncs-min-version>4.1</ncs-min-version>
 
   <!-- It's possible to add more components to the -->
   <!-- same package, multiple services, data providers etc -->

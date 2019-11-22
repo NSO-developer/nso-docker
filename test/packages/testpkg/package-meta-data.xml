@@ -2,5 +2,5 @@
   <name>testpkg</name>
   <package-version>1.0</package-version>
   <description>Test package</description>
-  <ncs-min-version>4.7</ncs-min-version>
+  <ncs-min-version>4.1</ncs-min-version>
 </ncs-package>
