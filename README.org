@@ -96,11 +96,11 @@
           disable_entrypoint_overwrite = false
           oom_kill_disable = false
           disable_cache = false
-          volumes = ["/cache", "/var/run/docker.sock:/var/run/docker.sock", "/data/vrnetlab-images:/images"]
+          volumes = ["/cache", "/var/run/docker.sock:/var/run/docker.sock", "/data/nso-install-files:/nso-install-files"]
           shm_size = 0
     #+END_SRC
 
-    The path ~/data/vrnetlab-images~ on the host machine becomes available as ~/images/~ in the CI build docker containers and by specifying that path (~/images~) using the CI variable settings, the job will now pick up the NSO images from there. This is how the public repo at https://gitlab.com/nso-developer/nso-docker works. It allows us to host all code in public, run CI tests in public yet not reveal the NSO install file as required by its EULA.
+    The path ~/data/nso-install-files~ on the host machine becomes available as ~/nso-install-files/~ in the CI build docker containers and by specifying that path (~/nso-install-files~) using the CI variable settings, the job will now pick up the NSO images from there. This is how the public repo at https://gitlab.com/nso-developer/nso-docker works. It allows us to host all code in public, run CI tests in public yet not reveal the NSO install file as required by its EULA.
 
 ** Running
 *** Run standalone for testing
