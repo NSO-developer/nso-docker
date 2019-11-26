@@ -1,7 +1,42 @@
+build-4.4.7:
+  extends: .build
+  variables:
+    NSO_VERSION: "4.4.7"
+
+build-4.5.9:
+  extends: .build
+  variables:
+    NSO_VERSION: "4.5.9"
+
+build-4.5.11:
+  extends: .build
+  variables:
+    NSO_VERSION: "4.5.11"
+
+build-4.6.3:
+  extends: .build
+  variables:
+    NSO_VERSION: "4.6.3"
+
 build-4.7.5:
   extends: .build
   variables:
     NSO_VERSION: "4.7.5"
+
+build-4.7.6:
+  extends: .build
+  variables:
+    NSO_VERSION: "4.7.6"
+
+build-5.1.1:
+  extends: .build
+  variables:
+    NSO_VERSION: "5.1.1"
+
+build-5.1.2:
+  extends: .build
+  variables:
+    NSO_VERSION: "5.1.2"
 
 build-5.2:
   extends: .build
