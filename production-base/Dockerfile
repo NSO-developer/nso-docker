@@ -37,7 +37,6 @@ RUN apt-get update \
        /opt/ncs/current/src/tools \
        /opt/ncs/current/src/yang \
        /opt/ncs/current/support \
-       /opt/ncs/current/var/ncs/webui \
   && sed -i \
      -e 's,<dir>${NCS_RUN_DIR}/packages</dir>,<dir>/var/opt/ncs/packages</dir>,' \
      /etc/ncs/ncs.conf \
