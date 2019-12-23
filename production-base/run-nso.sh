@@ -24,9 +24,16 @@ mkdir -p /nso/run/cdb /nso/run/rollbacks /nso/run/scripts /nso/run/streams /nso/
 mkdir -p /log/traces
 
 # generate SSH key if one doesn't exist
+# we generate both RSA and ED25519 since different versions of NSO have
+# different preference. NSO 5.3 and later uses ed25519 while earlier versions
+# prefer the RSA one. It's easiest to handle simply by generating both.
 if [ ! -f /nso/ssh/ssh_host_rsa_key ]; then
     mkdir /nso/ssh
     ssh-keygen -m PEM -t rsa -f /nso/ssh/ssh_host_rsa_key -N ''
+fi
+if [ ! -f /nso/ssh/ssh_host_ed25519_key ]; then
+    mkdir /nso/ssh
+    ssh-keygen -m PEM -t ed25519 -f /nso/ssh/ssh_host_ed25519_key -N ''
 fi
 
 # generate SSL cert if one doesn't exist
