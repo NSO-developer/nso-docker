@@ -18,3 +18,8 @@ build-5.2.1:
   variables:
     NSO_VERSION: "5.2.1"
 
+build-5.3:
+  extends: .build
+  variables:
+    NSO_VERSION: "5.3"
+
