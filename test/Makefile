@@ -21,6 +21,12 @@ DOCKER_TAG?=$(shell whoami)-$(NSO_VERSION)
 endif
 endif
 
+# Explicitly setting OLD_DOCKER_TAG allows testing of upgrades, i.e. going from
+# one version of NSO to another. It only works for test cases where NSO is
+# invoked at least twice. If not explicitly set, we will use the same value as
+# for DOCKER_TAG, i.e. run the tests with a single version of NSO
+OLD_DOCKER_TAG?=$(DOCKER_TAG)
+
 # what to do?
 # provided a base image, like cisco-nso-base:4.7.5
 # we want to build our own image based on the base image
@@ -156,7 +162,7 @@ test-cdb-persistence:
 	-docker volume rm -f $(CNT_PREFIX)-$@
 	docker volume create $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container -------------------------------------------"
-	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(OLD_DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg a-value 1337\ncommit\nexit" | ncs_cli -u admin -g ncsadmin'
@@ -183,7 +189,7 @@ test-backup-restore:
 	-docker volume rm -f $(CNT_PREFIX)-$@
 	docker volume create $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container -------------------------------------------"
-	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(OLD_DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg a-value 1337\ncommit\nexit" | ncs_cli -u admin -g ncsadmin'
@@ -197,7 +203,7 @@ test-backup-restore:
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@
 	@echo "-- Restore from backup ---------------------------------------------------------"
-	docker run -td --name $(CNT_PREFIX)-$@-helper -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) bash -lc 'read DUMMY'
+	docker run -td --name $(CNT_PREFIX)-$@-helper -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(OLD_DOCKER_TAG) bash -lc 'read DUMMY'
 	docker cp tmp/backups $(CNT_PREFIX)-$@-helper:/nso/run/backups
 	docker exec -t $(CNT_PREFIX)-$@-helper bash -lc "ncs-backup --restore /nso/run/backups/*.gz --non-interactive"
 	docker rm -f $(CNT_PREFIX)-$@-helper
@@ -231,7 +237,7 @@ test-run-time-ssh-key-gen:
 	mkdir -p tmp
 	rm -rf tmp/testrtskg*
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td --name $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(OLD_DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | awk '{ print $$3 }' > tmp/testrtskg1
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -253,7 +259,7 @@ test-persistent-ssh-key:
 	docker volume create $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container, first invocation -------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(OLD_DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | awk '{ print $$3 }' > tmp/testpsk1
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -317,7 +323,7 @@ test-run-time-ssl-cert-gen:
 	mkdir -p tmp
 	rm -rf tmp/testrtscg*
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(OLD_DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/testrtscg1
 
@@ -341,7 +347,7 @@ test-persistent-ssl-cert:
 	@echo "-- Creating volume for cisco-nso test container --------------------------------"
 	docker volume create $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container, first invocation -------------------------"
-	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(OLD_DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/$@-1
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
