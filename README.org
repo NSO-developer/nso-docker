@@ -151,9 +151,6 @@
    | HTTPS_ENABLE         | boolean | false   | Enable HTTPS (TLS) web UI                     |
    | SSH_PORT             | uint16  | 22      | Set port for SSH to listen on                 |
 
-*** HTTPS TLS certificate
-    When no certificate is present, one will be generated. It is a self-signed certificate valid for 30 days making it possible to use both in development and staging environments. It is *not* meant for production. You *should* replace it with a proper signed certificate for production and it is encouraged to do so even for test and staging environments.
-
 * Docker image tags
   The Docker images produced by this repo per default carry a unique tag based on the CI_JOB_ID variable set by Gitlab CI, for example ~registry.gitlab.com/nso-developer/nso-docker/cisco-nso-dev:31337~ where =31337= is the value from =CI_JOB_ID=.
 
@@ -231,6 +228,13 @@
    #+END_SRC
 
    Restoring a NSO backup should move the current run directory (~/nso/run~ to ~/nso/run.old~) and restore the run directory from the backup to the main run directory (~/nso/run~). After this is done, shut down your temporary container and start the normal NSO container again as usual.
+
+* SSH host key
+  NSO looks for the SSH host key in the directory =/nso/ssh=. The filename differs based on the configured host key algorithm. NSO in Docker will use the RSA algorithm for host keys.
+
+  If no SSH host key exists, one will be generated. As it is stored in =/nso= which is typically a persistent shared volume in production setups, it will remain the same across restarts or upgrades of NSO.
+
+  NSO version 5.3 and newer supports ed25519 and will in fact default to using ed25519 as server host key on new installations but this behavior is suppressed for NSO in Docker and instead RSA is used as it is supported by all currently existing versions of NSO.
 
 * Modifying the NSO configuration file ncs.conf
   The ~ncs.conf~ used in the docker images produced by this repository is not checked into git but rather originates from the NSO install itself. This means that if we build a Docker image based on NSO 5.2 we will get the default ~ncs.conf~ that comes with ~5.2~. Any updates to the ~ncs.conf~ shipped with NSO will find its way into the Docker image. Since modifications are necessary, partly for NSO to fit into a Docker environment but also to apply instance specific configuration, like the administrator password, the ~ncs.conf~ configuration file is modified on startup. This is achieved by a startup script executed before NSO is started.
