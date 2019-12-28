@@ -49,19 +49,19 @@ test:
 	$(MAKE) test-admin-user-custom
 	$(MAKE) test-admin-user-sshkey
 	$(MAKE) test-post-start-script
-	$(MAKE) test-cdb-persistence
-	$(MAKE) test-run-time-ssh-key-gen
-	$(MAKE) test-persistent-ssh-key
 	$(MAKE) test-http-disabled
 	$(MAKE) test-https-disabled
 	$(MAKE) test-http-enabled
 	$(MAKE) test-https-enabled
-	$(MAKE) test-run-time-ssl-cert-gen
-	$(MAKE) test-persistent-ssl-cert
-	$(MAKE) test-backup-restore
 	$(MAKE) test-java
 	$(MAKE) test-python
 	$(MAKE) test-docker-healthcheck
+	$(MAKE) test-cdb-persistence
+	$(MAKE) test-backup-restore
+	$(MAKE) test-run-time-ssh-key-gen
+	$(MAKE) test-persistent-ssh-key
+	$(MAKE) test-run-time-ssl-cert-gen
+	$(MAKE) test-persistent-ssl-cert
 
 
 test-shutdown:
