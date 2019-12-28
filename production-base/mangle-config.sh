@@ -11,9 +11,10 @@ if [ "$PAM" != "true" ]; then
                $CONF_FILE
 fi
 
-# change SSH key dir
+# change SSH key dir and set host key algorithm
 xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
            --update '/x:ncs-config/x:aaa/x:ssh-server-key-dir' --value '/nso/ssh' \
+           --update '/x:ncs-config/x:ssh/x:algorithms/x:server-host-key' --value "ssh-rsa" \
            $CONF_FILE
 
 # update ports for various protocols for which the default value in ncs.conf is
