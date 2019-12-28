@@ -44,7 +44,7 @@ done
 
 # start NSO in the background
 # output logs to stdout a la container style
-ncs --cd ${NCS_RUN_DIR} -c ${NCS_CONFIG_DIR}/ncs.conf --foreground -v &
+ncs --cd ${NCS_RUN_DIR} -c ${NCS_CONFIG_DIR}/ncs.conf --foreground -v --with-package-reload-force &
 NSO_PID="$!"
 
 # sleep a bit so ncs has a chance to start its IPC port
