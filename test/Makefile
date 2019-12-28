@@ -155,6 +155,112 @@ test-post-start-script:
 	-docker rmi $(CNT_PREFIX)-$@
 
 
+test-ssh-custom-port:
+	@echo "\n== Verify configuring custom SSH port works"
+	@echo "-- Clean any already running containers with 'our' name"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Start NSO container with admin password"
+	docker run -td --name $(CNT_PREFIX)-$@ -e SSH_PORT=2024 $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	@echo "-- Wait for NSO in container to start"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Test that SSH is listening on expected port"
+	ssh-keyscan -p 2024 $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | grep "Connection refused"; test $$? -eq 1
+	@echo "-- Remove the container"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
+test-http-disabled:
+	@echo "\n== Verify that the HTTP webUI is disabled per default"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
+	curl --noproxy '*' $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
+	@echo "Connection to HTTP TCP port 80 was refused, I'm happy"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
+test-https-disabled:
+	@echo "\n== Verify that the HTTP webUI is disabled per default"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
+	curl --noproxy '*' https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
+	@echo "Connection to HTTPS TCP port 443 was refused, I'm happy"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
+test-http-enabled:
+	@echo "\n== Verify that the HTTP webUI works when enabled"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ --env HTTP_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
+	curl --noproxy '*' $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) >/dev/null
+	@echo "Connection to HTTP (TCP port 80) was accepted, I'm happy"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
+test-https-enabled:
+	@echo "\n== Verify that the HTTP webUI works when enabled"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
+	curl --noproxy '*' --insecure https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) >/dev/null
+	@echo "Connection to HTTPS (TLS/TCP port 443) was accepted, I'm happy"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
+test-java:
+	@echo "\n== Verify that a java package works"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-java java-test" | ncs_cli -u admin -g ncsadmin' | grep "Hello world from Java"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
+test-python:
+	@echo "\n== Verify that a Python package works"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-python python-test" | ncs_cli -u admin -g ncsadmin' | grep "Hello world from Python"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
+test-docker-healthcheck:
+	@echo "\n== Verify that docker healthcheck works"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Starting cisco-nso test container -------------------------------------------"
+	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	@echo "-- Ensuring health is 'starting' -----------------------------------------------"
+	docker inspect --format='{{.State.Health.Status}}' $(CNT_PREFIX)-$@ | grep "starting"
+	@echo "-- Waiting for NCS to start ----------------------------------------------------"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Waiting 5 seconds to allow healthcheck to run -------------------------------"
+	sleep 5
+	@echo "-- Ensuring health is 'healthy' ------------------------------------------------"
+	docker inspect --format='{{.State.Health.Status}}' $(CNT_PREFIX)-$@ | grep "healthy"
+	@echo "-- Fake an unresponsive NSO by STOP signal -------------------------------------"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'killall -STOP ncs.smp'
+	@echo "-- Waiting 30 seconds to allow healthcheck retries and fail"
+# It's 30 seconds because the checks run at the interval after the completion of
+# the previous check. Reaching timeout constitutes completion (failed though).
+# With an interval of 5 seconds, 3 retries and timeout of 5s we get 30 seconds
+# as the spacing is essentially timeout+interval = 10s * 3 = 30s
+	sleep 30
+	@echo "-- Ensuring health is 'unhealthy' ----------------------------------------------"
+	docker inspect --format='{{.State.Health.Status}}' $(CNT_PREFIX)-$@ | grep "unhealthy"
+	@echo "-- Continue NSO execution"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'killall -CONT ncs.smp'
+	@echo "-- Waiting 5 seconds to allow healthcheck to run -------------------------------"
+	sleep 5
+	@echo "-- Ensuring health is 'healthy' ------------------------------------------------"
+	docker inspect --format='{{.State.Health.Status}}' $(CNT_PREFIX)-$@ | grep "healthy"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
 test-cdb-persistence:
 	@echo "\n== Verify CDB is properly persisted on a docker volume"
 	-docker rm -f $(CNT_PREFIX)-$@
@@ -215,20 +321,6 @@ test-backup-restore:
 	-docker rm -f $(CNT_PREFIX)-$@
 
 
-test-ssh-custom-port:
-	@echo "\n== Verify configuring custom SSH port works"
-	@echo "-- Clean any already running containers with 'our' name"
-	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	@echo "-- Start NSO container with admin password"
-	docker run -td --name $(CNT_PREFIX)-$@ -e SSH_PORT=2024 $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	@echo "-- Wait for NSO in container to start"
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
-	@echo "-- Test that SSH is listening on expected port"
-	ssh-keyscan -p 2024 $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | grep "Connection refused"; test $$? -eq 1
-	@echo "-- Remove the container"
-	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-
-
 test-run-time-ssh-key-gen:
 	@echo "\n== Verify that SSH keys are generated at runtime"
 	@echo "Starts the NSO container twice and ensure the SSH keys are different."
@@ -273,46 +365,6 @@ test-persistent-ssh-key:
 	@echo "-- Comparing output ------------------------"
 	diff -u tmp/testpsk1 tmp/testpsk2 || (echo "ERROR: SSH key different across runs, should be persisted" && exit 1)
 	@echo "SSH keys are the same across invocations, I'm happy"
-
-
-test-http-disabled:
-	@echo "\n== Verify that the HTTP webUI is disabled per default"
-	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
-	curl --noproxy '*' $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
-	@echo "Connection to HTTP TCP port 80 was refused, I'm happy"
-	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-
-
-test-https-disabled:
-	@echo "\n== Verify that the HTTP webUI is disabled per default"
-	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
-	curl --noproxy '*' https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
-	@echo "Connection to HTTPS TCP port 443 was refused, I'm happy"
-	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-
-
-test-http-enabled:
-	@echo "\n== Verify that the HTTP webUI works when enabled"
-	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-$@ --env HTTP_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
-	curl --noproxy '*' $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) >/dev/null
-	@echo "Connection to HTTP (TCP port 80) was accepted, I'm happy"
-	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-
-
-test-https-enabled:
-	@echo "\n== Verify that the HTTP webUI works when enabled"
-	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
-	curl --noproxy '*' --insecure https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) >/dev/null
-	@echo "Connection to HTTPS (TLS/TCP port 443) was accepted, I'm happy"
-	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 
 test-run-time-ssl-cert-gen:
@@ -361,55 +413,3 @@ test-persistent-ssl-cert:
 	@echo "-- Comparing output ------------------------"
 	diff -u tmp/$@-1 tmp/$@-2 || (echo "ERROR: SSL cert different across runs, should be persisted" && exit 1)
 	@echo "SSL cert are the same across invocations, I'm happy"
-
-
-test-java:
-	@echo "\n== Verify that a java package works"
-	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-java java-test" | ncs_cli -u admin -g ncsadmin' | grep "Hello world from Java"
-	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-
-
-test-python:
-	@echo "\n== Verify that a Python package works"
-	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-python python-test" | ncs_cli -u admin -g ncsadmin' | grep "Hello world from Python"
-	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-
-
-test-docker-healthcheck:
-	@echo "\n== Verify that docker healthcheck works"
-	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	@echo "-- Starting cisco-nso test container -------------------------------------------"
-	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
-	@echo "-- Ensuring health is 'starting' -----------------------------------------------"
-	docker inspect --format='{{.State.Health.Status}}' $(CNT_PREFIX)-$@ | grep "starting"
-	@echo "-- Waiting for NCS to start ----------------------------------------------------"
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
-	@echo "-- Waiting 5 seconds to allow healthcheck to run -------------------------------"
-	sleep 5
-	@echo "-- Ensuring health is 'healthy' ------------------------------------------------"
-	docker inspect --format='{{.State.Health.Status}}' $(CNT_PREFIX)-$@ | grep "healthy"
-	@echo "-- Fake an unresponsive NSO by STOP signal -------------------------------------"
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'killall -STOP ncs.smp'
-	@echo "-- Waiting 30 seconds to allow healthcheck retries and fail"
-# It's 30 seconds because the checks run at the interval after the completion of
-# the previous check. Reaching timeout constitutes completion (failed though).
-# With an interval of 5 seconds, 3 retries and timeout of 5s we get 30 seconds
-# as the spacing is essentially timeout+interval = 10s * 3 = 30s
-	sleep 30
-	@echo "-- Ensuring health is 'unhealthy' ----------------------------------------------"
-	docker inspect --format='{{.State.Health.Status}}' $(CNT_PREFIX)-$@ | grep "unhealthy"
-	@echo "-- Continue NSO execution"
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'killall -CONT ncs.smp'
-	@echo "-- Waiting 5 seconds to allow healthcheck to run -------------------------------"
-	sleep 5
-	@echo "-- Ensuring health is 'healthy' ------------------------------------------------"
-	docker inspect --format='{{.State.Health.Status}}' $(CNT_PREFIX)-$@ | grep "healthy"
-	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
