@@ -236,6 +236,16 @@
 
   NSO version 5.3 and newer supports ed25519 and will in fact default to using ed25519 as server host key on new installations but this behavior is suppressed for NSO in Docker and instead RSA is used as it is supported by all currently existing versions of NSO.
 
+* HTTPS TLS certificate
+  NSO expects to find a TLS certificate and key at =/nso/ssl/cert/host.cert= and =/nso/ssl/cert/host.key= respectively. Since the =/nso= path is usually on persistent shared volume for production setups, the certificate remains the same across restarts or upgrades.
+
+  When no certificate is present, one will be generated. It is a self-signed certificate valid for 30 days making it possible to use both in development and staging environments. It is *not* meant for production. You *should* replace it with a proper signed certificate for production and it is encouraged to do so even for test and staging environments. Simply generate one and place at the provided path, for example using the following, which is the command used to generate the temporary self-signed certificate:
+  #+BEGIN_SRC shell
+    openssl req -new -newkey rsa:4096 -x509 -sha256 -days 30 -nodes \
+            -out /nso/ssl/cert/host.cert -keyout /nso/ssl/cert/host.key \
+            -subj "/C=SE/ST=NA/L=/O=NSO/OU=WebUI/CN=Mr. Self-Signed"
+  #+END_SRC
+
 * Modifying the NSO configuration file ncs.conf
   The ~ncs.conf~ used in the docker images produced by this repository is not checked into git but rather originates from the NSO install itself. This means that if we build a Docker image based on NSO 5.2 we will get the default ~ncs.conf~ that comes with ~5.2~. Any updates to the ~ncs.conf~ shipped with NSO will find its way into the Docker image. Since modifications are necessary, partly for NSO to fit into a Docker environment but also to apply instance specific configuration, like the administrator password, the ~ncs.conf~ configuration file is modified on startup. This is achieved by a startup script executed before NSO is started.
 
