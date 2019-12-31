@@ -40,14 +40,6 @@ OLD_DOCKER_TAG=$(DOCKER_TAG)
 endif
 endif
 
-# what to do?
-# provided a base image, like cisco-nso-base:4.7.5
-# we want to build our own image based on the base image
-# adding on our own test package
-# start up the finalized image as a new container
-# verify volumes and stuff works by shutting down the container and starting it up again
-
-# 1. using cisco-nso-dev image, compile our package
 
 .PHONY: test-post-start-script
 
