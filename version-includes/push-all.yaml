@@ -1,0 +1,55 @@
+push-4.4.7:
+  extends: .push
+  variables:
+    NSO_VERSION: "4.4.7"
+
+push-4.5.9:
+  extends: .push
+  variables:
+    NSO_VERSION: "4.5.9"
+
+push-4.5.11:
+  extends: .push
+  variables:
+    NSO_VERSION: "4.5.11"
+
+push-4.6.3:
+  extends: .push
+  variables:
+    NSO_VERSION: "4.6.3"
+
+push-4.7.5:
+  extends: .push
+  variables:
+    NSO_VERSION: "4.7.5"
+
+push-4.7.6:
+  extends: .push
+  variables:
+    NSO_VERSION: "4.7.6"
+
+push-5.1.1:
+  extends: .push
+  variables:
+    NSO_VERSION: "5.1.1"
+
+push-5.1.2:
+  extends: .push
+  variables:
+    NSO_VERSION: "5.1.2"
+
+push-5.2:
+  extends: .push
+  variables:
+    NSO_VERSION: "5.2"
+
+push-5.2.1:
+  extends: .push
+  variables:
+    NSO_VERSION: "5.2.1"
+
+push-5.3:
+  extends: .push
+  variables:
+    NSO_VERSION: "5.3"
+

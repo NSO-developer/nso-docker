@@ -25,13 +25,15 @@ DOCKER_TAG?=$(shell whoami)-$(NSO_VERSION)
 endif
 endif
 
-# If we are running in CI, disable the build cache for docker builds.
-# We do this with ?= operator in make so we only set DOCKER_BUILD_CACHE_ARG if
-# it is not already set, this makes it possible to still use the cache if
-# explicitly set through environment variables in CI.
+# If we are running in CI and on the master branch, disable the build cache for
+# docker builds. We do this with ?= operator in make so we only set
+# DOCKER_BUILD_CACHE_ARG if it is not already set, this makes it possible to
+# still use the cache if explicitly set through environment variables in CI.
 ifneq ($(CI),)
+ifeq ($(CI_COMMIT_REF_NAME),master)
 DOCKER_BUILD_CACHE_ARG?=--no-cache
 export DOCKER_BUILD_CACHE_ARG
+endif
 endif
 
 .PHONY: all build build-all build-version test test-version $(NSO_BUILD) $(NSO_TEST)
@@ -67,6 +69,10 @@ build:
 test:
 	@if [ -z "$(FILE)"]; then echo "ERROR: variable FILE must be set to the full path to the NSO installer, e.g. FILE=/data/foo/nso-5.2.1.linux.x86_64.install.bin"; echo "HINT: You probably want to invoke the 'build-version' target instead"; false; fi
 	$(MAKE) -C test DOCKER_TAG=$(DOCKER_TAG) test
+
+pull:
+	docker pull $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG)
+	docker pull $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 
 push:
 	docker push $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG)

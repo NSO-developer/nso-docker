@@ -32,7 +32,7 @@ the tip-of-train would include 4.7.2 and 5.2.1.
 import json
 
 ci_template = """{name}-{version}:
-  extends: .build
+  extends: .{name}
   variables:
     NSO_VERSION: "{version}"
 
@@ -67,33 +67,37 @@ def f_tot(versions):
     return tot.values()
 
 
-def formatter(version):
+def formatter(version, name='build'):
     version_string = ".".join(map(lambda x: str(x), version))
-    return ci_template.format(name='build', version=version_string)
+    return ci_template.format(name=name, version=version_string)
+
+def write_job_set(name, versions):
+    # all versions
+    with open("{}-all.yaml".format(name), "w") as f:
+        f.write("".join(map(lambda x: formatter(x, name), versions)))
+
+    # all 4 versions
+    with open("{}-all4.yaml".format(name), "w") as f:
+        f.write("".join(map(lambda x: formatter(x, name), f_major(4, versions))))
+
+    # all 5 versions
+    with open("{}-all5.yaml".format(name), "w") as f:
+        f.write("".join(map(lambda x: formatter(x, name), f_major(5, versions))))
+
+    # all tip-of-train versions
+    with open("{}-tot.yaml".format(name), "w") as f:
+        f.write("".join(map(lambda x: formatter(x, name), f_tot(versions))))
+
+    # all tip-of-train 4 versions
+    with open("{}-tot4.yaml".format(name), "w") as f:
+        f.write("".join(map(lambda x: formatter(x, name), f_tot(f_major(4, versions)))))
+
+    # all tip-of-train 5 versions
+    with open("{}-tot5.yaml".format(name), "w") as f:
+        f.write("".join(map(lambda x: formatter(x, name), f_tot(f_major(5, versions)))))
 
 with open("versions.json") as f:
     versions = sorted(list(map(lambda x: vsn_split(x), json.load(f))))
 
-# all versions
-with open("build-all.yaml", "w") as f:
-    f.write("".join(map(lambda x: formatter(x), versions)))
-
-# all 4 versions
-with open("build-all4.yaml", "w") as f:
-    f.write("".join(map(lambda x: formatter(x), f_major(4, versions))))
-
-# all 5 versions
-with open("build-all5.yaml", "w") as f:
-    f.write("".join(map(lambda x: formatter(x), f_major(5, versions))))
-
-# all tip-of-train versions
-with open("build-tot.yaml", "w") as f:
-    f.write("".join(map(lambda x: formatter(x), f_tot(versions))))
-
-# all tip-of-train 4 versions
-with open("build-tot4.yaml", "w") as f:
-    f.write("".join(map(lambda x: formatter(x), f_tot(f_major(4, versions)))))
-
-# all tip-of-train 5 versions
-with open("build-tot5.yaml", "w") as f:
-    f.write("".join(map(lambda x: formatter(x), f_tot(f_major(5, versions)))))
+write_job_set('build', versions)
+write_job_set('push', versions)

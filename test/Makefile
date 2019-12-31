@@ -13,28 +13,33 @@ else
 CNT_PREFIX:=$(shell whoami)
 endif
 
+# Set PNS - our pseudo-namespace or pipeline namespace. All containers running
+# within a CI pipeline will have the same namespace, which isn't a namespace
+# like what Linux supports but it's just a prefix used for the docker containers
+# to guarantee uniqueness.
 ifneq ($(CI_PIPELINE_ID),)
-DOCKER_TAG?=$(CI_PIPELINE_ID)-$(NSO_VERSION)
+PNS:=$(CI_PIPELINE_ID)
 else
 ifneq ($(NSO_VERSION),)
-DOCKER_TAG?=$(shell whoami)-$(NSO_VERSION)
+PNS:=$(shell whoami)
+endif
+endif
+# set the docker tag to use, if not already set
+DOCKER_TAG?=$(PNS)-$(NSO_VERSION)
+
+# Part of the test cases support testing across NSO versions, i.e. going from
+# one version of NSO to another. Through the OLD_DOCKER_TAG variable we specify
+# the old image tag. If not explicitly set, we will try to derive it's value
+# from OLD_NSO_VERSION and if that is not set, we will use the same value as for
+# DOCKER_TAG, i.e. run the tests with a single version of NSO
+ifeq ($(OLD_DOCKER_TAG),)
+ifneq ($(OLD_NSO_VERSION),)
+OLD_DOCKER_TAG=$(PNS)-$(OLD_NSO_VERSION)
+else
+OLD_DOCKER_TAG=$(DOCKER_TAG)
 endif
 endif
 
-# Explicitly setting OLD_DOCKER_TAG allows testing of upgrades, i.e. going from
-# one version of NSO to another. It only works for test cases where NSO is
-# invoked at least twice. If not explicitly set, we will use the same value as
-# for DOCKER_TAG, i.e. run the tests with a single version of NSO
-OLD_DOCKER_TAG?=$(DOCKER_TAG)
-
-# what to do?
-# provided a base image, like cisco-nso-base:4.7.5
-# we want to build our own image based on the base image
-# adding on our own test package
-# start up the finalized image as a new container
-# verify volumes and stuff works by shutting down the container and starting it up again
-
-# 1. using cisco-nso-dev image, compile our package
 
 .PHONY: test-post-start-script
 
