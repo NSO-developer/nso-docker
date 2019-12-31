@@ -1,0 +1,20 @@
+push-4.4.7:
+  extends: .push
+  variables:
+    NSO_VERSION: "4.4.7"
+
+push-4.5.11:
+  extends: .push
+  variables:
+    NSO_VERSION: "4.5.11"
+
+push-4.6.3:
+  extends: .push
+  variables:
+    NSO_VERSION: "4.6.3"
+
+push-4.7.6:
+  extends: .push
+  variables:
+    NSO_VERSION: "4.7.6"
+

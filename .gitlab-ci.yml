@@ -3,6 +3,7 @@ image: debian:buster
 stages:
   - build
   - upgrade-test
+  - push
 
 version-matrix:
   stage: build
@@ -43,6 +44,19 @@ version-matrix:
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ]; then make version-tag; fi
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-latest; fi
 
+.push:
+  stage: push
+  before_script:
+    - apt-get update && apt-get install -qy apt-transport-https ca-certificates curl gnupg2 software-properties-common sshpass
+    - curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+    - apt-key fingerprint 0EBFCD88
+    - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+    - apt-get update && apt-get install -qy docker-ce docker-ce-cli containerd.io
+    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
+  script:
+    - if [ "${CI_COMMIT_REF_NAME}" = "master" ]; then make version-tag; fi
+    - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-latest; fi
+
 include: version-includes/build-all.yaml
 
 upgrade-test_5.2.1_5.3:
@@ -50,3 +64,5 @@ upgrade-test_5.2.1_5.3:
   variables:
     OLD_NSO_VERSION: "5.2.1"
     NSO_VERSION: "5.3"
+
+include: version-includes/push-all.yaml
