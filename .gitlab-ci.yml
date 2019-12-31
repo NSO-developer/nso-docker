@@ -57,7 +57,6 @@ version-matrix:
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ]; then make version-tag; fi
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-latest; fi
 
-include: version-includes/build-all.yaml
 
 upgrade-test_5.2.1_5.3:
   extends: .upgrade_test
@@ -65,4 +64,6 @@ upgrade-test_5.2.1_5.3:
     OLD_NSO_VERSION: "5.2.1"
     NSO_VERSION: "5.3"
 
-include: version-includes/push-all.yaml
+include:
+  - 'version-includes/build-all.yaml'
+  - 'version-includes/push-all.yaml'
