@@ -70,6 +70,10 @@ test:
 	@if [ -z "$(FILE)"]; then echo "ERROR: variable FILE must be set to the full path to the NSO installer, e.g. FILE=/data/foo/nso-5.2.1.linux.x86_64.install.bin"; echo "HINT: You probably want to invoke the 'build-version' target instead"; false; fi
 	$(MAKE) -C test DOCKER_TAG=$(DOCKER_TAG) test
 
+pull:
+	docker pull $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG)
+	docker pull $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+
 push:
 	docker push $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG)
 	docker push $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
