@@ -18,10 +18,10 @@ NSO_VERSION:=$(shell basename $(FILE) | sed -E -e 's/(ncs|nso)-([0-9.]*).linux.x
 endif
 
 ifneq ($(CI_PIPELINE_ID),)
-DOCKER_TAG?=$(CI_PIPELINE_ID)-$(NSO_VERSION)
+DOCKER_TAG?=$(NSO_VERSION)-$(CI_PIPELINE_ID)
 else
 ifneq ($(NSO_VERSION),)
-DOCKER_TAG?=$(shell whoami)-$(NSO_VERSION)
+DOCKER_TAG?=$(NSO_VERSION)-$(shell whoami)
 endif
 endif
 

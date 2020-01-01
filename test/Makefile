@@ -25,7 +25,7 @@ PNS:=$(shell whoami)
 endif
 endif
 # set the docker tag to use, if not already set
-DOCKER_TAG?=$(PNS)-$(NSO_VERSION)
+DOCKER_TAG?=$(NSO_VERSION)-$(PNS)
 
 # Part of the test cases support testing across NSO versions, i.e. going from
 # one version of NSO to another. Through the OLD_DOCKER_TAG variable we specify
@@ -34,7 +34,7 @@ DOCKER_TAG?=$(PNS)-$(NSO_VERSION)
 # DOCKER_TAG, i.e. run the tests with a single version of NSO
 ifeq ($(OLD_DOCKER_TAG),)
 ifneq ($(OLD_NSO_VERSION),)
-OLD_DOCKER_TAG=$(PNS)-$(OLD_NSO_VERSION)
+OLD_DOCKER_TAG=$(OLD_NSO_VERSION)-$(PNS)
 else
 OLD_DOCKER_TAG=$(DOCKER_TAG)
 endif
