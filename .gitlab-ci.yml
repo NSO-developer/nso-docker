@@ -2,7 +2,7 @@ image: debian:buster
 
 stages:
   - build
-  - upgrade-test
+  - multiver-test
   - push
 
 version-matrix:
@@ -29,8 +29,8 @@ version-matrix:
     - make test-version
     - if [ "${DOCKER_PUSH}" != "false" ]; then make push; fi
 
-.upgrade_test:
-  stage: upgrade-test
+.multiver_test:
+  stage: multiver-test
   before_script:
     - apt-get update && apt-get install -qy apt-transport-https ca-certificates curl gnupg2 software-properties-common sshpass
     - curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
@@ -60,8 +60,8 @@ version-matrix:
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-latest; fi
 
 
-upgrade-test_5.2.1_5.3:
-  extends: .upgrade_test
+multiver-test_5.2.1_5.3:
+  extends: .multiver_test
   variables:
     OLD_NSO_VERSION: "5.2.1"
     NSO_VERSION: "5.3"
