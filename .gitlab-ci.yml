@@ -5,6 +5,9 @@ stages:
   - multiver-test
   - push
 
+before_script:
+  - if [ "$(which docker)" == "/usr/bin/docker" ]; then echo "Docker already installed"; else echo "Docker is not installed, installing..." && apt-get update && apt-get install -qy apt-transport-https ca-certificates curl gnupg2 software-properties-common sshpass && curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && apt-key fingerprint 0EBFCD88 && add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" && apt-get update && apt-get install -qy docker-ce docker-ce-cli containerd.io; fi
+
 version-matrix:
   stage: build
   script:
@@ -19,11 +22,6 @@ version-matrix:
 .build:
   stage: build
   script:
-    - apt-get update && apt-get install -qy apt-transport-https ca-certificates curl gnupg2 software-properties-common sshpass
-    - curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
-    - apt-key fingerprint 0EBFCD88
-    - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
-    - apt-get update && apt-get install -qy docker-ce docker-ce-cli containerd.io
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
     - make build-version
     - make test-version
@@ -31,14 +29,8 @@ version-matrix:
 
 .multiver_test:
   stage: multiver-test
-  before_script:
-    - apt-get update && apt-get install -qy apt-transport-https ca-certificates curl gnupg2 software-properties-common sshpass
-    - curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
-    - apt-key fingerprint 0EBFCD88
-    - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
-    - apt-get update && apt-get install -qy docker-ce docker-ce-cli containerd.io
-    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
   script:
+    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
     - if [ "${DOCKER_PUSH}" != "false" ]; then make pull; fi
     - make test-version
     - if [ "${DOCKER_PUSH}" != "false" ]; then make push; fi
@@ -47,14 +39,8 @@ version-matrix:
 
 .push:
   stage: push
-  before_script:
-    - apt-get update && apt-get install -qy apt-transport-https ca-certificates curl gnupg2 software-properties-common sshpass
-    - curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
-    - apt-key fingerprint 0EBFCD88
-    - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
-    - apt-get update && apt-get install -qy docker-ce docker-ce-cli containerd.io
-    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
   script:
+    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
     - if [ "${DOCKER_PUSH}" != "false" ]; then make pull; fi
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ]; then make version-tag; fi
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-latest; fi
