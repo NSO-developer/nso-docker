@@ -37,6 +37,8 @@ if [ ! -f /nso/ssl/cert/host.cert ]; then
 fi
 
 # if necessary, i.e. if starting NSO 5 on a CDB written by NSO 4, compact CDB
+# if there is no CDB on disk, ncs --cdb-debug-dump will return "Error..." and we
+# won't match that, thus such an error is handled correctly.
 CDB_MAJVER=$(ncs --cdb-debug-dump /nso/run/cdb | awk '/^Version:.*from.*version/ { printf($2) }')
 NSO_MAJVER=$(ncs --version | head -c 1)
 if [ ${CDB_MAJVER} -eq 4 ] && [ ${NSO_MAJVER} -eq 5 ]; then
