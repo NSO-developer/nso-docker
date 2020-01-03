@@ -36,6 +36,17 @@ if [ ! -f /nso/ssl/cert/host.cert ]; then
             -subj "/C=SE/ST=NA/L=/O=NSO/OU=WebUI/CN=Mr. Self-Signed"
 fi
 
+# if necessary, i.e. if starting NSO 5 on a CDB written by NSO 4, compact CDB
+# if there is no CDB on disk, ncs --cdb-debug-dump will return "Error..." and we
+# won't match that, thus such an error is handled correctly.
+CDB_MAJVER=$(ncs --cdb-debug-dump /nso/run/cdb | awk '/^Version:.*from.*version/ { printf($2) }')
+NSO_MAJVER=$(ncs --version | head -c 1)
+if [ ${CDB_MAJVER} -eq 4 ] && [ ${NSO_MAJVER} -eq 5 ]; then
+    echo "run-nso.sh: CDB written by NSO version 4 but now running version 5. Will attempt to compact CDB"
+    ncs --cdb-compact /nso/run/cdb
+    echo "run-nso.sh: CDB compaction done"
+fi
+
 # pre-start scripts
 for FILE in $(ls /etc/ncs/pre-ncs-start.d/*.sh 2>/dev/null); do
     echo "run-nso.sh: running pre start script ${FILE}"

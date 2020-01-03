@@ -246,6 +246,36 @@
             -subj "/C=SE/ST=NA/L=/O=NSO/OU=WebUI/CN=Mr. Self-Signed"
   #+END_SRC
 
+* NSO upgrades, downgrades, YANG model changes and package modifications
+  As the produced Docker image contains both NSO itself and a given version of all included packages, any changes to said components will result in a new Docker image. Deploying any change, however small, means building and deploying a new Docker image. Upgrading and downgrading of NSO itself, with the packages kept static, is also based on deploying another Docker image.
+
+** (Destructive) YANG model changes
+   The database in NSO, called CDB, is using YANG models as the schema for the database. It is only possible to store data in CDB according to the YANG models that define the schema.
+
+   If the YANG models are changed, in particular if nodes are removed or renamed (rename is basically a removal of one leaf and an addition of another), any data in CDB for those leaves will be removed. NSO normally warns about this when you attempt to load the new packages, for example ~request packages reload~ will refuse to reload the packages if nodes in the YANG model have disappeared. You would have to add the ~force~ argument, e.g. ~request packages reload force~.
+
+   NSO in Docker will automatically reload packages on startup, using the ~--with-packages-reload~ argument to ~ncs~ on startup. It currently does not allow the ~force~ option, but will likely use the ~force~ option per default in the future. This means that destructive model changes will be accepted without warning. It is expected that NSO in Docker is developed in an environment where there are other safe guards, such as CI testing, to catch accidental destructive model changes.
+
+** NSO version 4 to 5 upgrade
+   The major new feature in NSO version 5 is what's known as Common Data Models or CDM, which is based on the YANG schema-mount standard (RFC8528). With it, there are changes to the CDB database files on disk. The migration from a CDB written by NSO version 4 to NSO version 5 happens automatically but first the old CDB written by NSO version 4 must be compacted, which is a manual step. However, with NSO in Docker, the startup script takes care of this for you by automatically determining at startup if NSO version 5 is being started on a CDB written by NSO version 4. If this is the case, the CDB on disk is compacted.
+
+   NSO 5 requires that packages, in particular NEDs, be compiled for CDM. Thus, upgrading to NSO 5 typically also involves upgrading one or more NEDs. In the process of changing NEDs and upgrading NSO there is the risk of inadvertently making model changes that lead to data loss, in which case the upgrade process needs to be reattempted. The overall upgrade process is something along the lines of:
+
+   - take backup of CDB (in NSO 4 format)
+   - compact CDB
+   - take backup of CDB (in NSO 5 format)
+   - start NSO 5
+     - verify data integrity
+     - if model / data inconsistencies have lead to data loss
+       - restore from backup that contains NSO 5 compacted CDB
+       - rectify packages
+       - start NSO 5 with new packages
+       - repeat until done
+
+   Multiple attempts might be necessary to get everything to load and upgrade correctly. CDB compaction can take some time (depending on the size of CDB). By restoring from a backup of a compacted CDB, we avoid having to compact CDB for every retry.
+
+   In a production setting with a structured approach to development and operations, the recommendation would be to take a backup of CDB from production and move to a development machine where the above steps can be executed. Preferably also incorporating not just the NED / package changes into CI but also including testing of the CDB upgrade. The upgrade is thus tested in development & CI before being attempted on the production deployment machines. While we might use a compacted CDB to speed up the development and testing of the upgrade, as outlined above, the actual upgrade of the production system will only happen once inside of an NSO container in an unsupervised fashion, which is why startup script of NSO in Docker will automatically determine the CDB version + NSO version and, if deemed necessary, perform CDB compaction.
+
 * Modifying the NSO configuration file ncs.conf
   The ~ncs.conf~ used in the docker images produced by this repository is not checked into git but rather originates from the NSO install itself. This means that if we build a Docker image based on NSO 5.2 we will get the default ~ncs.conf~ that comes with ~5.2~. Any updates to the ~ncs.conf~ shipped with NSO will find its way into the Docker image. Since modifications are necessary, partly for NSO to fit into a Docker environment but also to apply instance specific configuration, like the administrator password, the ~ncs.conf~ configuration file is modified on startup. This is achieved by a startup script executed before NSO is started.
 
