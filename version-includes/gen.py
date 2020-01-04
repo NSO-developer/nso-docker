@@ -176,8 +176,8 @@ def write_multiver_test(versions):
 #            if len(mm_nexts) >= 1:
 #                olds.append(mm_nexts[0])
 
-            # try upgrade from all tot in same major version
-            for ovsn in f_tot(f_major(vsn[0], versions)):
+            # try upgrade from all previous tot in same major version
+            for ovsn in f_tot(f_lower(vsn, f_major(vsn[0], versions))):
                 olds.append(ovsn)
 
             f.write("".join(map(lambda x: formatter_mv(x, vsn), sorted(list(set(olds) - set([vsn]))))))
