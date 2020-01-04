@@ -46,7 +46,7 @@ all: build-all test-all
 # specified by NSO_INSTALL_FILES_DIR
 build-version: export FILE=$(shell realpath $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin)
 build-version:
-	@if [ -z "$(NSO_VERSION)"]; then echo "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin"; false; fi
+	@if [ -z "$(NSO_VERSION)" ]; then echo "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin"; false; fi
 	$(MAKE) build
 
 # test target based on NSO version as input
@@ -54,27 +54,27 @@ build-version:
 # assumes the corresponding NSO install file is located in the directory
 # specified by NSO_INSTALL_FILES_DIR
 test-version:
-	@if [ -z "$(NSO_VERSION)"]; then echo "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin"; false; fi
+	@if [ -z "$(NSO_VERSION)" ]; then echo "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin"; false; fi
 	$(MAKE) -C test NSO_VERSION=$(NSO_VERSION) DOCKER_TAG=$(DOCKER_TAG) test
 
 # test target based on NSO version as input, just for the multi-version test
 # run like: make OLD_NSO_VERSION=5.2.1 NSO_VERSION=5.3 test-version-multiver
 test-version-multiver:
-	@if [ -z "$(OLD_NSO_VERSION)"]; then echo "ERROR: variable OLD_NSO_VERSION must be set, for example to '5.2.1' to run multi-version tests between OLD_NSO_VERSION and NSO_VERSION"; false; fi
-	@if [ -z "$(NSO_VERSION)"]; then echo "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin"; false; fi
+	@if [ -z "$(OLD_NSO_VERSION)" ]; then echo "ERROR: variable OLD_NSO_VERSION must be set, for example to '5.2.1' to run multi-version tests between OLD_NSO_VERSION and NSO_VERSION"; false; fi
+	@if [ -z "$(NSO_VERSION)" ]; then echo "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin"; false; fi
 	$(MAKE) -C test NSO_VERSION=$(NSO_VERSION) DOCKER_TAG=$(DOCKER_TAG) test-multiver
 
 # build target that takes FILE env arg (really just passed on through
 # environment) as input. FILE should be an absolute path to the NSO install
 # file.
 build:
-	@if [ -z "$(FILE)"]; then echo "ERROR: variable FILE must be set to the full path to the NSO installer, e.g. FILE=/data/foo/nso-5.2.1.linux.x86_64.install.bin"; echo "HINT: You probably want to invoke the 'build-version' target instead"; false; fi
+	@if [ -z "$(FILE)" ]; then echo "ERROR: variable FILE must be set to the full path to the NSO installer, e.g. FILE=/data/foo/nso-5.2.1.linux.x86_64.install.bin"; echo "HINT: You probably want to invoke the 'build-version' target instead"; false; fi
 	$(MAKE) -C development DOCKER_TAG=$(DOCKER_TAG) build
 	$(MAKE) -C production-base DOCKER_TAG=$(DOCKER_TAG) build
 
 # test target also takes FILE env arg as described above
 test test-multiver:
-	@if [ -z "$(FILE)"]; then echo "ERROR: variable FILE must be set to the full path to the NSO installer, e.g. FILE=/data/foo/nso-5.2.1.linux.x86_64.install.bin"; echo "HINT: You probably want to invoke the 'build-version' target instead"; false; fi
+	@if [ -z "$(FILE)" ]; then echo "ERROR: variable FILE must be set to the full path to the NSO installer, e.g. FILE=/data/foo/nso-5.2.1.linux.x86_64.install.bin"; echo "HINT: You probably want to invoke the 'build-version' target instead"; false; fi
 	$(MAKE) -C test DOCKER_TAG=$(DOCKER_TAG) $@
 
 pull:
