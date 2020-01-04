@@ -42,18 +42,7 @@ version-matrix:
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ]; then make version-tag; fi
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-latest; fi
 
-multiver-test_4.7.6_5.3:
-  extends: .multiver_test
-  variables:
-    OLD_NSO_VERSION: "4.7.6"
-    NSO_VERSION: "5.3"
-
-multiver-test_5.2.1_5.3:
-  extends: .multiver_test
-  variables:
-    OLD_NSO_VERSION: "5.2.1"
-    NSO_VERSION: "5.3"
-
 include:
   - 'version-includes/build-all.yaml'
+  - 'version-includes/multiver.yaml'
   - 'version-includes/push-all.yaml'
