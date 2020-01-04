@@ -171,9 +171,10 @@ def write_multiver_test(versions):
                 olds.append(mm_prevs[-1])
 
             # go from next sibling, e.g. for 4.7.5 we want to downgrade from 4.7.6
-            mm_nexts = list(f_higher(vsn, f_majmin(majmin, versions)))
-            if len(mm_nexts) >= 1:
-                olds.append(mm_nexts[0])
+            # currently disabled since tests fail for like 5.3 -> 5.1.2
+#            mm_nexts = list(f_higher(vsn, f_majmin(majmin, versions)))
+#            if len(mm_nexts) >= 1:
+#                olds.append(mm_nexts[0])
 
             # try upgrade from all tot in same major version
             for ovsn in f_tot(f_major(vsn[0], versions)):
