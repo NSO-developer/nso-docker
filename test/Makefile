@@ -49,6 +49,7 @@ test:
 
 	@echo "\n== Running single-version test cases"
 	$(MAKE) test-shutdown
+	$(MAKE) test-error-exit-code
 	$(MAKE) test-ncs-stop
 	$(MAKE) test-admin-user
 	$(MAKE) test-admin-user-custom
@@ -80,7 +81,7 @@ test-multiver:
 
 
 test-shutdown:
-	@echo "\n== Verify shutdown (using docker stop) of container works"
+	@echo "\n== Verify normal shutdown (using docker stop) of container works and exits with code 0"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
@@ -88,11 +89,39 @@ test-shutdown:
 	docker logs $(CNT_PREFIX)-$@ | grep "NCS stopping"
 	docker logs $(CNT_PREFIX)-$@ | grep "Daemon logging terminating"
 	docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false"
+	docker inspect --format '{{.State.ExitCode}}' $(CNT_PREFIX)-$@ | grep -q "^143$$"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 
+test-error-exit-code:
+	@echo "\n== Verify container exits with code 15 on error"
+	@echo "-- Clean any already running containers with 'our' name"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Clean and setup volume"
+	-docker volume rm -f $(CNT_PREFIX)-$@
+	docker volume create $(CNT_PREFIX)-$@
+	@echo "-- Start NSO to write initial CDB"
+	docker run -td --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Stop NSO, wait for it to stop and clean up"
+	docker stop $(CNT_PREFIX)-$@
+	docker logs $(CNT_PREFIX)-$@ | grep "NCS stopping"
+	docker logs $(CNT_PREFIX)-$@ | grep "Daemon logging terminating"
+	docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Break the CDB persisted in the volume"
+	docker run --rm -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) bash -lc "echo 'BROKEN' > /nso/run/cdb/A.cdb"
+	@echo "-- Start NSO in foreground - it should exit on CDB failure"
+	-docker run --name $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false"
+	docker inspect --format '{{.State.ExitCode}}' $(CNT_PREFIX)-$@ | grep -q "^15$$"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker volume rm -f $(CNT_PREFIX)-$@
+
+
+
 test-ncs-stop:
-	@echo "\n== Verify container stops when ncs exits"
+	@echo "\n== Verify container stops and returns correct exit code when ncs exits"
 	@echo "-- Clean any already running containers with 'our' name"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Start NSO container"
@@ -105,6 +134,7 @@ test-ncs-stop:
 	-docker logs -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Check that container is not running"
 	docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false"
+	docker inspect --format '{{.State.ExitCode}}' $(CNT_PREFIX)-$@ | grep -q "^0$$"
 	@echo "-- Remove the container"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
