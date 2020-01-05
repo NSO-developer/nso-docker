@@ -74,4 +74,6 @@ done
 # this, with a signal handler for INT & TERM so that we upon receiving those
 # signals can run ncs --stop rather than having those signals sent raw to ncs
 wait ${NSO_PID}
-echo "run-nso.sh: NSO exited - exiting container"
+EXIT_CODE=$?
+echo "run-nso.sh: NSO exited (exit code ${EXIT_CODE}) - exiting container"
+exit ${EXIT_CODE}
