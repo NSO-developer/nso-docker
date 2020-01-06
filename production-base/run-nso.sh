@@ -4,8 +4,28 @@ source /opt/ncs/current/ncsrc
 source /opt/ncs/installdirs
 export NCS_CONFIG_DIR NCS_LOG_DIR NCS_RUN_DIR
 
-# install signal handler to stop NCS and exit
-trap term_handler INT TERM
+# install signal handlers
+trap sigint_handler INT
+trap sigquit_handler QUIT
+trap sigterm_handler TERM
+
+sigint_handler() {
+    echo "run-nso.sh: received SIGINT, stopping NSO"
+    ncs --stop
+    exit 130 # 128+2
+}
+
+sigquit_handler() {
+    echo "run-nso.sh: received SIGQUIT, stopping NSO"
+    ncs --stop
+    exit 131 # 128+3
+}
+
+sigterm_handler() {
+    echo "run-nso.sh: received SIGTERM, stopping NSO"
+    ncs --stop
+    exit 143 # 128+15
+}
 
 # Increase JAVA VM MAX Heap size to 4GB, also enable the new G1 GC in Java 8
 export NCS_JAVA_VM_OPTIONS="-Xmx4G -XX:+UseG1GC -XX:+UseStringDeduplication"
@@ -13,11 +33,6 @@ export NCS_JAVA_VM_OPTIONS="-Xmx4G -XX:+UseG1GC -XX:+UseStringDeduplication"
 # enable core dump
 mkdir -p /log /nso/coredumps
 echo '/nso/coredumps/core.%e.%t' > /proc/sys/kernel/core_pattern
-
-term_handler() {
-    echo "run-nso.sh: received signal, stopping NSO"
-    ncs --stop
-}
 
 # create required directories
 mkdir -p /nso/run/cdb /nso/run/rollbacks /nso/run/scripts /nso/run/streams /nso/run/state /nso/run/backups
