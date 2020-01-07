@@ -79,6 +79,9 @@ test-multiver:
 	$(MAKE) test-run-time-ssl-cert-gen
 	$(MAKE) test-persistent-ssl-cert
 
+########################
+# Single Version tests #
+########################
 
 test-shutdown:
 	@echo "\n== Verify normal shutdown (using docker stop) of container works and exits with code 0"
@@ -306,6 +309,9 @@ test-docker-healthcheck:
 	docker inspect --format='{{.State.Health.Status}}' $(CNT_PREFIX)-$@ | grep "healthy"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
+#######################
+# Multi Version tests #
+#######################
 
 test-cdb-persistence:
 	@echo "\n== Verify CDB is properly persisted on a docker volume"
