@@ -459,3 +459,7 @@ test-persistent-ssl-cert:
 	@echo "-- Comparing output ------------------------"
 	diff -u tmp/$@-1 tmp/$@-2 || (echo "ERROR: SSL cert different across runs, should be persisted" && exit 1)
 	@echo "SSL cert are the same across invocations, I'm happy"
+
+
+clean:
+	-docker rmi $(CNT_PREFIX)-test-cisco-nso-$(OLD_DOCKER_TAG) $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) $(CNT_PREFIX)-test-post-start-script

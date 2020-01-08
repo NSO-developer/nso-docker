@@ -26,6 +26,8 @@ version-matrix:
     - make build-version
     - make test-version
     - if [ "${DOCKER_PUSH}" != "false" ]; then make push; fi
+  after_script:
+    - make -C test clean
 
 .multiver_test:
   stage: multiver-test
@@ -33,6 +35,8 @@ version-matrix:
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
     - if [ "${DOCKER_PUSH}" != "false" ]; then make pull; fi
     - make test-version-multiver
+  after_script:
+    - make -C test clean
 
 .push:
   stage: push
