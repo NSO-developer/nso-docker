@@ -53,22 +53,48 @@
    - Place the downloaded .bin file in ~nso-install-files/~ in this repository
    - run ~make~ in repository root directory
      - *NOTE*: running docker commands, which are invoked by ~make~, typically require root privileges or membership in the ~docker~ group
-   - verify your new images are built with ~docker images~ which should look something like:
-     - *NOTE*: docker images are only tagged with the correct NSO version when run in the git master branch
+   - verify your new images are built with ~docker images~ which should look something like the following
+     - *NOTE*: the docker images are tagged with a suffix
+       - the suffix will be your username, for example =cisco-nso-base:5.3-kll= if your username is =kll=
+       - the suffix is to avoid overwriting a version tag, like =cisco-nso-base:5.3=, before the image has been tested and determined to be a good build
+       - run ~make version-tag~ to also add a docker tag without the suffix, like =cisco-nso-base:5.3=
 
-   #+BEGIN_SRC shell
-     kll@ThinkLite:~/nso-docker# docker images
-     REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
-     cisco-nso-base      5.2                 c451b581d328        19 hours ago        435MB
-     cisco-nso-base      4.7.5               3096fe46bee9        19 hours ago        433MB
-     cisco-nso-dev       5.2                 a986314ec390        22 hours ago        435MB
-     <none>              <none>              7e680e680923        22 hours ago        410MB
-     cisco-nso-dev       4.7.5               0565a58c3977        22 hours ago        433MB
-     <none>              <none>              d968a53420ab        22 hours ago        421MB
-     bitnami/minideb     buster              25dfa3b9a987        23 hours ago        67.5MB
-     docker              stable              b40e5afd78f5        2 weeks ago         216MB
-     kll@ThinkLite:~/nso-docker#
+   #+BEGIN_SRC shell :results output scalar code replace :cache yes :exports results
+     docker images
    #+END_SRC
+
+   #+RESULTS[3ff05549238600a48eb05c5a59c1d17b6d78738b]:
+   #+begin_src shell
+   REPOSITORY                   TAG                 IMAGE ID            CREATED             SIZE
+   kll-test-cisco-nso-5.3-kll   latest              999b88b099ed        16 hours ago        550MB
+   <none>                       <none>              14806a997e24        16 hours ago        1.15GB
+   cisco-nso-base               5.3-kll             8ed0cb9decad        16 hours ago        550MB
+   <none>                       <none>              1c332a6ffb25        16 hours ago        505MB
+   cisco-nso-dev                5.3-kll             d94c42ccd65f        16 hours ago        1.15GB
+   debian                       buster              b5d2d9b1597b        11 days ago         114MB
+   #+end_src
+
+   Run ~make version-tag~ and provide the version to tag using the variable =NSO_VERSION=:
+
+   #+BEGIN_SRC shell :results output scalar code replace :cache yes :exports results
+     make NSO_VERSION=5.3 version-tag
+     docker images
+   #+END_SRC
+
+   #+RESULTS[e4db0280029c988c9d279cab68425484f77831c0]:
+   #+begin_src shell
+   docker tag cisco-nso-dev:5.3-kll cisco-nso-dev:5.3
+   docker tag cisco-nso-base:5.3-kll cisco-nso-base:5.3
+   REPOSITORY                   TAG                 IMAGE ID            CREATED             SIZE
+   kll-test-cisco-nso-5.3-kll   latest              999b88b099ed        16 hours ago        550MB
+   <none>                       <none>              14806a997e24        16 hours ago        1.15GB
+   cisco-nso-base               5.3                 8ed0cb9decad        16 hours ago        550MB
+   cisco-nso-base               5.3-kll             8ed0cb9decad        16 hours ago        550MB
+   <none>                       <none>              1c332a6ffb25        16 hours ago        505MB
+   cisco-nso-dev                5.3                 d94c42ccd65f        16 hours ago        1.15GB
+   cisco-nso-dev                5.3-kll             d94c42ccd65f        16 hours ago        1.15GB
+   debian                       buster              b5d2d9b1597b        11 days ago         114MB
+   #+end_src
 
 *** Automatically building Docker images using Gitlab CI
    - Clone this repository to your local machine
@@ -84,6 +110,8 @@
      - CI will now build the docker images for you
        - naturally provided you first setup CI
    - verify your new images are built by going to the container repository in Gitlab viewing the list of container images
+     - the docker tag for built images consists of the NSO version number and the CI pipeline id, for example =cisco-nso-base:5.3-7583729= for NSO version =5.3= and pipeline id =7583729=
+     - CI builds on the =master= branch will in addition be tagged with just the NSO version, that is =cisco-nso-base:5.3=, after passing tests
 
 *** Alternative for providing NSO install files into CI runner
     The above method involves committing the NSO install files to this git repository (your clone of it). This means the repository must be private so that you don't leak the NSO install files nor the produced Docker images. There are a number of reasons for why this setup might not be ideal;
