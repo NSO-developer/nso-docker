@@ -469,3 +469,6 @@ test-persistent-ssl-cert:
 
 clean:
 	-docker rmi $(CNT_PREFIX)-test-cisco-nso-$(OLD_DOCKER_TAG) $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) $(CNT_PREFIX)-test-post-start-script
+# errors from previous command are ignored but make will still exit with the
+#	exit code of the last command and since we don't want CI to fail we return
+	true
