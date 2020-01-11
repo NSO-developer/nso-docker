@@ -151,7 +151,7 @@ test-admin-user:
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Test that SSH login works"
-	sshpass -p foobar ssh -F /dev/null -o IdentityAgent=none -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l admin $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) exit
+	sshpass -p foobar ssh -F /dev/null -o PubkeyAuthentication=no -o IdentityAgent=none -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l admin $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) exit
 	@echo "-- Remove the container"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
@@ -165,7 +165,7 @@ test-admin-user-custom:
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Test that SSH login works"
-	sshpass -p foobar ssh -F /dev/null -o IdentityAgent=none -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l kalle $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) exit
+	sshpass -p foobar ssh -F /dev/null -o PubkeyAuthentication=no -o IdentityAgent=none -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l kalle $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) exit
 	@echo "-- Remove the container"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
