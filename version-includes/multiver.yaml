@@ -1,8 +1,8 @@
-multiver-test_4.5.11_4.6.3:
+multiver-test_4.5.11_4.6.5:
   extends: .multiver_test
   variables:
     OLD_NSO_VERSION: "4.5.11"
-    NSO_VERSION: "4.6.3"
+    NSO_VERSION: "4.6.5"
 
 multiver-test_4.5.11_4.7.5:
   extends: .multiver_test
@@ -10,10 +10,10 @@ multiver-test_4.5.11_4.7.5:
     OLD_NSO_VERSION: "4.5.11"
     NSO_VERSION: "4.7.5"
 
-multiver-test_4.6.3_4.7.5:
+multiver-test_4.6.5_4.7.5:
   extends: .multiver_test
   variables:
-    OLD_NSO_VERSION: "4.6.3"
+    OLD_NSO_VERSION: "4.6.5"
     NSO_VERSION: "4.7.5"
 
 multiver-test_4.5.11_4.7.6:
@@ -22,10 +22,10 @@ multiver-test_4.5.11_4.7.6:
     OLD_NSO_VERSION: "4.5.11"
     NSO_VERSION: "4.7.6"
 
-multiver-test_4.6.3_4.7.6:
+multiver-test_4.6.5_4.7.6:
   extends: .multiver_test
   variables:
-    OLD_NSO_VERSION: "4.6.3"
+    OLD_NSO_VERSION: "4.6.5"
     NSO_VERSION: "4.7.6"
 
 multiver-test_4.7.5_4.7.6:
