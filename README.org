@@ -383,6 +383,7 @@
   To build these images, you need:
   - Docker
   - Make
+  - realpath (from coreutils)
 
   If you want to run the test suite you also need:
   - sshpass
@@ -439,6 +440,8 @@
         file: '/version-includes/build-tot5.yaml'
   #+END_SRC
   This will work for any repository hosted on the same GitLab instance as the =nso-developer/nso-docker= repo. Once you clone the =nso-docker= repository to your own environment, as you are encouraged to do, you are likely to place it in another namespace (not =nso-developer=) and so you must update the include statements for the dependent repositories accordingly.
+* Mac OS X support
+  Docker is available on OS X and it does run a Linux VM in order to actually run Docker containers, which means that the base requirements for NSO in Docker are present. However, it doesn't currently work nor is it supported to run NSO in Docker on OS X.
 
 * FAQ / Questions and answers
 ** Q: Why are these images not based on alpine or some other minimal container friendly image
