@@ -440,6 +440,17 @@
         file: '/version-includes/build-tot5.yaml'
   #+END_SRC
   This will work for any repository hosted on the same GitLab instance as the =nso-developer/nso-docker= repo. Once you clone the =nso-docker= repository to your own environment, as you are encouraged to do, you are likely to place it in another namespace (not =nso-developer=) and so you must update the include statements for the dependent repositories accordingly.
+
+* Contribution guidelines
+  Contributions are welcome, however before you start writing code, please open an issue to discuss your idea or bug fix to make sure your ideas or intended solution align with the goals or ideals of the project.
+
+  New functionality should be covered by new test cases that proves the new functionality works.
+
+** Merge requests and CI
+   The typical workflow for submitting code involves forking this git repository, creating a branch and committing some code which will then be tested in CI. However, this project has a specialized CI runner that carries the NSO install files required to successfully build this project and this CI runner is only available for the origin repository, i.e. =gitlab.com/nso-developer/nso-docker=. A branch on your own private fork of this repository will not have access to the CI runner and thus will not be able to successfully execute the CI tests.
+
+   In order to run the tests, a maintainer will need to do a coarse review of the changes to verify there is no hostile code, after which your private branch can be copied to the =nso-developer/nso-docker= repository, which then allows it to be tested with the specialized CI runner. A shadow MR can then be setup to merge the commits to master. The commits still maintain the author, preserving credit for the changes.
+
 * Mac OS X support
   Docker is available on OS X and it does run a Linux VM in order to actually run Docker containers, which means that the base requirements for NSO in Docker are present. However, it doesn't currently work nor is it supported to run NSO in Docker on OS X.
 
