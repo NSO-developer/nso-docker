@@ -452,7 +452,11 @@
    In order to run the tests, a maintainer will need to do a coarse review of the changes to verify there is no hostile code, after which your private branch can be copied to the =nso-developer/nso-docker= repository, which then allows it to be tested with the specialized CI runner. A shadow MR can then be setup to merge the commits to master. The commits still maintain the author, preserving credit for the changes.
 
 * Mac OS X support
-  Docker is available on OS X and it does run a Linux VM in order to actually run Docker containers, which means that the base requirements for NSO in Docker are present. However, it doesn't currently work nor is it supported to run NSO in Docker on OS X.
+  NSO in Docker is currently not supported nor maintained for Mac OS X. It does build however and appears to be working.
+
+  Docker is available on OS X and it does run a Linux VM in order to actually run Docker containers, which means that the base requirements for NSO in Docker to work are there. Building NSO in Docker works and produces a Docker image that appears to be working correctly. However, it isn't possible to run the test suite on OS X as the Docker networking setup is different from that on a Linux machine, preventing the test suite from working correctly.
+
+  To build, make sure you have =realpath= installed, which comes with =coreutils= that you can install for example using =brew install coreutils=, in case you are using [[https://brew.sh/][brew]].
 
 * FAQ / Questions and answers
 ** Q: Why are these images not based on alpine or some other minimal container friendly image
