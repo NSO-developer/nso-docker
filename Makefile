@@ -21,7 +21,7 @@ ifneq ($(CI_PIPELINE_ID),)
 DOCKER_TAG?=$(NSO_VERSION)-$(CI_PIPELINE_ID)
 else
 ifneq ($(NSO_VERSION),)
-DOCKER_TAG?=$(NSO_VERSION)-$(shell whoami)
+DOCKER_TAG?=$(NSO_VERSION)-$(shell whoami | sed 's/[^[:alnum:]._-]\+/_/g')
 endif
 endif
 
