@@ -10,7 +10,7 @@ endif
 ifneq ($(CI_JOB_ID),)
 CNT_PREFIX:=ci-$(CI_JOB_ID)
 else
-CNT_PREFIX:=$(shell whoami)
+CNT_PREFIX:=$(shell whoami | sed 's/[^[:alnum:]._-]\+/_/g')
 endif
 
 # Set PNS - our pseudo-namespace or pipeline namespace. All containers running
@@ -21,7 +21,7 @@ ifneq ($(CI_PIPELINE_ID),)
 PNS:=$(CI_PIPELINE_ID)
 else
 ifneq ($(NSO_VERSION),)
-PNS:=$(shell whoami)
+PNS:=$(shell whoami | sed 's/[^[:alnum:]._-]\+/_/g')
 endif
 endif
 # set the docker tag to use, if not already set
