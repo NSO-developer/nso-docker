@@ -16,8 +16,10 @@ RUN apt-get update \
      libxml2-utils \
      logrotate \
      make \
+     mypy \
      openssh-client \
      openssl \
+     pylint3 \
      python3.7 \
      snmp \
      tcpdump \
