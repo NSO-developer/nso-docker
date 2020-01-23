@@ -28,6 +28,7 @@ RUN apt-get update \
      xsltproc \
   && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 3 \
   && update-alternatives --install /usr/bin/python python /usr/bin/python3.7 3 \
+  && update-alternatives --install /usr/bin/pylint pylint /usr/bin/pylint3 1 \
   && sh /tmp/nso --system-install --non-interactive --run-dir /nso/run --log-dir /log \
   && apt-get -qy autoremove \
   && apt-get clean \
