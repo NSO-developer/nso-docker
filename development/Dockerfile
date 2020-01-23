@@ -40,4 +40,6 @@ RUN apt-get update \
 # Dockerfiles, using this image as a base, to directly invoke make for NSO
 # package compilation.
 SHELL ["/bin/sh", "-lc"]
-CMD ["/bin/bash", "-l"]
+
+COPY /entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
