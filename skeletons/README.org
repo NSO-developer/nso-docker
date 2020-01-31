@@ -1,0 +1,9 @@
+* Skeletons for NSO in Docker git repositories
+  The directories herein are repository skeletons for the standard forms of repositories in the NID (NSO in Docker) ecosystem, specifically:
+
+  - *ned*: a repository skeleton for the standard form of NID NED repos
+  - *package*: generally for repositories containing one or more packages, except for NEDs which are better served by the NID ned standard form
+  - *system*: for working with an NSO system
+  - *lsa-system*: for working with an NSO LSA system
+
+  To get started, create your new project directory and copy the content of the skeleton into the directory. See the skeleton README file for more information.
