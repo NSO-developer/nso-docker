@@ -48,6 +48,7 @@ test:
 	docker build $(DOCKER_BUILD_CACHE_ARG) -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) --build-arg BASE_IMAGE=$(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) --build-arg BUILD_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) .
 
 	@echo "\n== Running single-version test cases"
+	$(MAKE) test-dev-entrypoint
 	$(MAKE) test-shutdown
 	$(MAKE) test-error-exit-code
 	$(MAKE) test-ncs-stop
@@ -82,6 +83,28 @@ test-multiver:
 ########################
 # Single Version tests #
 ########################
+
+test-dev-entrypoint:
+	@echo "\n== Verify magic entrypoint of -dev images works"
+	@echo "-- Clean any already running containers with 'our' name"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Verify that starting the -dev image without args results in an interactive shell"
+	NSO_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) expect expect-dev-entrypoint.script
+	@echo "-- Clean up after us"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Verify docker run correctly passes arguments. In this case we should"
+	@echo "   pass '/proc/self/cgroup' to 'ls' and the output should thus be"
+	@echo "   '/proc/self/cgroup' which we grep on. Note how the '| grep ...' part"
+	@echo "   is run in our normal shell invoked by make, outside of the container."
+	@echo "   It is only the last arguments to docker run that are fed into the"
+	@echo "   container entrypoint."
+	docker run -t --rm $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) ls /proc/self/cgroup | grep /proc/self/cgroup
+	@echo "-- Verify docker run works with nested call to bash -lc. In particular"
+	@echo "   that quoted inner argument works for preserving white space. Test"
+	@echo "   by passing argument with whitespace to 'cat' and verify error"
+	@echo "   message is as expected."
+	docker run -t --rm $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) bash -lc 'cat "foo bar"' | grep "cat: 'foo bar': No such file or directory"
+
 
 test-shutdown:
 	@echo "\n== Verify normal shutdown (using docker stop) of container works and exits with code 0"
