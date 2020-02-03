@@ -5,6 +5,19 @@ ARG NSO_INSTALL_FILE
 COPY $NSO_INSTALL_FILE /tmp/nso
 RUN apt-get update \
   && apt-get install -qy \
+  openssh-client \
+  libexpat1 \
+  && sh /tmp/nso --system-install --non-interactive --run-dir /nso/run --log-dir /log \
+  && sed -i -e 's/exec python -u/exec python3 -u/' /opt/ncs/current/bin/ncs-start-python-vm
+
+FROM debian:buster
+
+COPY --from=0 /etc /etc
+COPY --from=0 /nso /nso
+COPY --from=0 /opt/ncs /opt/ncs/
+
+RUN apt-get update \
+  && apt-get install -qy \
      ant \
      default-jre-headless \
      iputils-ping \
@@ -29,7 +42,6 @@ RUN apt-get update \
   && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 3 \
   && update-alternatives --install /usr/bin/python python /usr/bin/python3.7 3 \
   && update-alternatives --install /usr/bin/pylint pylint /usr/bin/pylint3 1 \
-  && sh /tmp/nso --system-install --non-interactive --run-dir /nso/run --log-dir /log \
   && apt-get -qy autoremove \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /root/.cache
