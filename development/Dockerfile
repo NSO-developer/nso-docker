@@ -12,18 +12,39 @@ RUN apt-get update \
 
 FROM debian:buster
 
-COPY --from=0 /etc /etc
-COPY --from=0 /nso /nso
+# This installation command needs to be kept in sync between the base image and
+# development image as to result in the same Docker image layer and thus achieve
+# layer reuse between the -base and -dev image
+RUN apt-get update \
+  && apt-get install -qy \
+  default-jre-headless \
+  iputils-ping \
+  libexpat1 \
+  openssh-client \
+  procps \
+  python3 \
+  tcpdump \
+  telnet \
+  xmlstarlet \
+  && apt-get -qy autoremove \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/* /root/.cache \
+  && echo '. /opt/ncs/current/ncsrc' >> /root/.bashrc \
+  # Add root to ncsadmin group for easier command-line tools usage
+  && groupadd ncsadmin \
+  && usermod -a -G ncsadmin root
+
+COPY --from=0 /etc/profile.d /etc/profile.d
+COPY --from=0 /etc/init.d/ncs /etc/init.d/.
+COPY --from=0 /etc/ncs /etc/ncs/
 COPY --from=0 /opt/ncs /opt/ncs/
+COPY --from=0 /nso /nso
 
 RUN apt-get update \
   && apt-get install -qy \
      ant \
-     default-jre-headless \
-     iputils-ping \
      iputils-tracepath \
      less \
-     libexpat1 \
      liblog4cplus-1.1-9 \
      libuv1 \
      libxml2-utils \
@@ -31,13 +52,9 @@ RUN apt-get update \
      make \
      man \
      mypy \
-     openssh-client \
      openssl \
      pylint3 \
-     python3.7 \
      snmp \
-     tcpdump \
-     telnet \
      vim-tiny \
      xsltproc \
   && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 3 \
@@ -45,10 +62,7 @@ RUN apt-get update \
   && update-alternatives --install /usr/bin/pylint pylint /usr/bin/pylint3 1 \
   && apt-get -qy autoremove \
   && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* /root/.cache \
-  # Add root to ncsadmin group for easier command-line tools usage
-  && groupadd ncsadmin \
-  && usermod -a -G ncsadmin root
+  && rm -rf /var/lib/apt/lists/* /root/.cache
 
 # default shell is ["/bin/sh", "-c"]. We add -l so we get a login shell which
 # means the shell reads /etc/profile on startup. /etc/profile includes the files
