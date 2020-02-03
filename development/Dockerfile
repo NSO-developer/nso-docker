@@ -12,12 +12,9 @@ RUN apt-get update \
 
 FROM debian:buster
 
-
-COPY --from=0 /etc/ncs /etc/ncs/
+COPY --from=0 /etc /etc
 COPY --from=0 /nso /nso
 COPY --from=0 /opt/ncs /opt/ncs/
-COPY --from=0 /etc/init.d/ncs /etc/init.d/.
-
 
 RUN apt-get update \
   && apt-get install -qy \
