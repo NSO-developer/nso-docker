@@ -465,3 +465,19 @@
    Debian was chosen as it is a well working proven distribution with a long track record. It is supported by a considerably sized community.
 
    minideb, which is a minimal build of a debian base image, was not only considered but actually used in early phases of this repository. It does provide a smaller image. Measured at the time of the switch from minideb to stock debian, the difference was about 10%. minideb weighed in at 471MB while debian:buster came in at 525MB. The proven track record of Debian ultimately made it the winner.
+
+** Q: Why use special entrypoints?
+   *A*: A delightful question with a less than delightful answer! It is a combination of multiple factors:
+   - we want to be able to run
+     - ~docker run -it cisco-nso-dev:5.3~ to get interactive shell
+     - ~docker run -it cisco-nso-dev:5.3 echo foo~ to echo =foo= from within the container
+     - ~docker run -it cisco-nso-dev:5.3 ncs_cli~ to get the NSO CLI
+   - =sh=, the Bourne shell, has a hard coded =PATH=
+   - ncs is not installed in =PATH= of =sh=
+   - we don't want to modify the ncs install
+     - likely error prone, in particular over time
+   - we can modify =PATH= of =sh= by configuring our profile
+   - =sh= only reads profile when started as interactive shell
+   - Docker runs sh as non-interactive shell
+     - thus =sh= does not read profile
+   We solve this by effectively replacing Dockers standard use of =sh= by specifying our own entrypoint. It remains to be seen whether this is a good idea or a wildly bad one. Don't hesitate to open an issue in case you have an issue. It is however tested (see the =test-dev-entrypoint= test case) including some more exotic scenarios.
