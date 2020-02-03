@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # magic entrypoint that runs an interactive bash login shell if no arguments are
 # given, which means that invoking the container with docker run and no
@@ -14,5 +14,5 @@
 if [ $# -eq 0 ]; then
     exec /bin/bash -l
 else
-    exec /bin/bash -lc "$*"
+    exec bash -lc "$(printf ' %q' "$@")"
 fi
