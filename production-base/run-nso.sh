@@ -56,7 +56,7 @@ fi
 # won't match that, thus such an error is handled correctly.
 CDB_MAJVER=$(ncs --cdb-debug-dump /nso/run/cdb | awk '/^Version:.*from.*version/ { printf($2) }')
 NSO_MAJVER=$(ncs --version | head -c 1)
-if [ ${CDB_MAJVER} -eq 4 ] && [ ${NSO_MAJVER} -eq 5 ]; then
+if [ -n "${CDB_MAJVER}" ] && [ "${CDB_MAJVER}" -eq 4 ] && [ "${NSO_MAJVER}" -eq 5 ]; then
     echo "run-nso.sh: CDB written by NSO version 4 but now running version 5. Will attempt to compact CDB"
     ncs --cdb-compact /nso/run/cdb
     echo "run-nso.sh: CDB compaction done"
