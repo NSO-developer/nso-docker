@@ -1,0 +1,16 @@
+#!/usr/bin/expect -f
+#
+# Verify that we are given an interactive shell in a container by looking for
+# /proc/self/cgroup which only exists inside of a container.
+#
+
+set timeout 5
+spawn docker run -it $::env(NSO_IMAGE)
+expect -re "root@.*:/# \r.*Kroot@.*:/# "
+send -- "ls /proc/self/cgroup\r"
+expect -exact "ls /proc/self/cgroup\r"
+expect {
+    -exact "/proc/self/cgroup\r" { send -- "exit\r" }
+    timeout { exit 1 }
+}
+expect eof
