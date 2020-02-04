@@ -31,6 +31,8 @@ the tip-of-train would include 4.7.2 and 5.2.1.
 
 import json
 
+flat_tmpl = "{version}\n"
+
 ci_template = """{name}-{version}:
   extends: .{name}
   variables:
@@ -101,6 +103,14 @@ def f_tot(versions):
             tot[mm] = version
     return tot.values()
 
+def frmt(tmpl, version, data=None):
+    """Generic formatter
+    """
+    if not data:
+        data = {}
+    version_string = ".".join(map(lambda x: str(x), version))
+    data['version'] = version_string
+    return tmpl.format(**data)
 
 def formatter(version, name='build'):
     version_string = ".".join(map(lambda x: str(x), version))
@@ -137,6 +147,10 @@ def write_job_set(name, versions):
     # all tip-of-train 5 versions
     with open("{}-tot5.yaml".format(name), "w") as f:
         f.write("".join(map(lambda x: formatter(x, name), f_tot(f_major(5, versions)))))
+
+def write_flat(versions):
+    with open("versions.txt", "w") as f:
+        f.write("".join(map(lambda x: frmt(flat_tmpl, x), versions)))
 
 with open("versions.json") as f:
     versions = sorted(list(map(lambda x: vsn_split(x), json.load(f))))
@@ -186,3 +200,4 @@ write_multiver_test(versions)
 
 write_job_set('build', versions)
 write_job_set('push', versions)
+write_flat(versions)
