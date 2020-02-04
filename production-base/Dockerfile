@@ -59,7 +59,10 @@ RUN apt-get update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /root/.cache \
   && echo '. /opt/ncs/current/ncsrc' >> /root/.bashrc \
-  && rm -rf /usr/share/doc
+  && rm -rf /usr/share/doc \
+  # Add root to ncsadmin group for easier command-line tools usage
+  && groupadd ncsadmin \
+  && usermod -a -G ncsadmin root
 
 COPY --from=0 /etc/ncs /etc/ncs/
 COPY --from=0 /nso /nso
