@@ -73,8 +73,8 @@ devenv-shell:
 
 devenv-build:
 	docker run -it --rm -v $(PWD):/src -v $(CNT_PREFIX)-packages:/dst $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -lc 'cp -a /src/packages/* /dst/; cp -av /src/test-packages/* /dst/; for PKG in $$(ls /dst); do make -C /dst/$${PKG}/src; done'
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "request packages reload" | ncs_cli -u admin -g ncsadmin'
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
+	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "request packages reload" | ncs_cli -u admin'
+	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "show packages" | ncs_cli -u admin'
 
 devenv-clean:
 	docker run -it --rm -v $(PWD):/src -v $(CNT_PREFIX)-packages:/dst $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -lc 'ls /dst/ | xargs --no-run-if-empty rm -rf'
@@ -89,7 +89,7 @@ devenv-start:
 testenv-start:
 	docker run -td --name $(CNT_PREFIX)-nso --label $(CNT_PREFIX) $${NSO_EXTRA_ARGS} $(IMAGE_PATH)$(PROJECT_NAME)-testnso:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'ncs --wait-started 600'
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
+	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "show packages" | ncs_cli -u admin'
 	$(MAKE) testenv-start-extra
 
 testenv-stop:
@@ -101,10 +101,10 @@ testenv-shell:
 	docker exec -it $(CNT_PREFIX)-nso bash -l
 
 testenv-cli:
-	docker exec -it $(CNT_PREFIX)-nso bash -lc 'ncs_cli -u admin -g ncsadmin'
+	docker exec -it $(CNT_PREFIX)-nso bash -lc 'ncs_cli -u admin'
 
 testenv-runcmd:
 	@if [ -z "$(CMD)" ]; then echo "CMD variable must be set"; false; fi
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo -e "$(CMD)" | ncs_cli -u admin -g ncsadmin'
+	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo -e "$(CMD)" | ncs_cli -u admin'
 
 .PHONY: all test build push tag-release push-release devenv-shell devenv-build devenv-start testenv-start testenv-test testenv-stop
