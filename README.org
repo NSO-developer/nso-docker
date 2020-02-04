@@ -203,6 +203,8 @@
 
   In addition, if the job is built on the =master= branch, it will also receive a tag based on the NSO version it contains, for example if the previously mentioned image is based on NSO 5.2.1, if it was built from the =master= branch it would also get the tag ~registry.gitlab.com/nso-developer/nso-docker/cisco-nso-dev:5.2.1~. This makes it possible for other repositories to use the ~5.2.1~ tag to always refer to the latest build of ~5.2.1~.
 
+Do note that the example image URLs used above would be the result of the default configuration for the official origin repository for the =nso-docker= project. However, as the official repo CI builds happen in a public environment, the resulting images can't be pushed as it would effectively publish this is per the default configuration and although the example URL follows that for the official origin repo for the nso-docker project.
+
   It is recommended to use a nightly job to produce new images every night that include the latest security patches and similar to the base images. Do note however that this also means that updates to packages will happen and that could have negative consequences if they are not fully backwards compatible. These images are based on Debian stable but for example, pylint has been known to include additional lints in newer version and so new version of the image could include change like this which lead to unintended results.
 
   For a truly deterministic environment, downstream repositories that rely on these Docker images should be based on the unique tag and consequently be updated with the same cadence as new images are built.
