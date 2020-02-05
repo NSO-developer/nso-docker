@@ -29,6 +29,7 @@ RUN apt-get update \
      libxml2-utils \
      logrotate \
      make \
+     man \
      mypy \
      openssh-client \
      openssl \
