@@ -310,24 +310,25 @@ test-docker-healthcheck:
 	docker inspect --format='{{.State.Health.Status}}' $(CNT_PREFIX)-$@ | grep "starting"
 	@echo "-- Waiting for NCS to start ----------------------------------------------------"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
-	@echo "-- Waiting 5 seconds to allow healthcheck to run -------------------------------"
-	sleep 5
+	@echo "-- Waiting 5+1 seconds to allow healthcheck to run -------------------------------"
+	sleep 6
 	@echo "-- Ensuring health is 'healthy' ------------------------------------------------"
 	docker inspect --format='{{.State.Health.Status}}' $(CNT_PREFIX)-$@ | grep "healthy"
 	@echo "-- Fake an unresponsive NSO by STOP signal -------------------------------------"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'killall -STOP ncs.smp'
-	@echo "-- Waiting 30 seconds to allow healthcheck retries and fail"
-# It's 30 seconds because the checks run at the interval after the completion of
+	@echo "-- Waiting 30+1 seconds to allow healthcheck retries and fail"
+# It's 31 seconds because the checks run at the interval after the completion of
 # the previous check. Reaching timeout constitutes completion (failed though).
 # With an interval of 5 seconds, 3 retries and timeout of 5s we get 30 seconds
-# as the spacing is essentially timeout+interval = 10s * 3 = 30s
-	sleep 30
+# as the spacing is essentially timeout+interval = 10s * 3 = 30s.. plus a margin
+# of one second.
+	sleep 31
 	@echo "-- Ensuring health is 'unhealthy' ----------------------------------------------"
 	docker inspect --format='{{.State.Health.Status}}' $(CNT_PREFIX)-$@ | grep "unhealthy"
 	@echo "-- Continue NSO execution"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'killall -CONT ncs.smp'
-	@echo "-- Waiting 5 seconds to allow healthcheck to run -------------------------------"
-	sleep 5
+	@echo "-- Waiting 5+1 seconds to allow healthcheck to run -------------------------------"
+	sleep 6
 	@echo "-- Ensuring health is 'healthy' ------------------------------------------------"
 	docker inspect --format='{{.State.Health.Status}}' $(CNT_PREFIX)-$@ | grep "healthy"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
