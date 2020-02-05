@@ -44,7 +44,10 @@ RUN apt-get update \
   && update-alternatives --install /usr/bin/pylint pylint /usr/bin/pylint3 1 \
   && apt-get -qy autoremove \
   && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* /root/.cache
+  && rm -rf /var/lib/apt/lists/* /root/.cache \
+  # Add root to ncsadmin group for easier command-line tools usage
+  && groupadd ncsadmin \
+  && usermod -a -G ncsadmin root
 
 # default shell is ["/bin/sh", "-c"]. We add -l so we get a login shell which
 # means the shell reads /etc/profile on startup. /etc/profile includes the files
