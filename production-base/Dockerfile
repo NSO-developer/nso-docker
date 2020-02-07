@@ -8,8 +8,10 @@ RUN apt-get update \
      openssh-client \
      libexpat1 \
   && sh /tmp/nso --system-install --non-interactive --run-dir /nso/run --log-dir /log \
+  && sed -i -e 's/exec python -u/exec python3 -u/' /opt/ncs/current/bin/ncs-start-python-vm
+
   # wipe SSH keys
-  && rm -f /etc/ncs/ssh/* \
+RUN rm -f /etc/ncs/ssh/* \
   # Remove stuff we don't need/want from the NSO installation \
   && rm -rf \
        /opt/ncs/current/doc \
@@ -39,13 +41,15 @@ RUN apt-get update \
        /opt/ncs/current/support \
   && sed -i \
      -e 's,<dir>${NCS_RUN_DIR}/packages</dir>,<dir>/var/opt/ncs/packages</dir>,' \
-     /etc/ncs/ncs.conf \
-  && sed -i -e 's/exec python -u/exec python3 -u/' /opt/ncs/current/bin/ncs-start-python-vm
+     /etc/ncs/ncs.conf
 
 FROM debian:buster
 
+# This installation command needs to be kept in sync between the base image and
+# development image as to result in the same Docker image layer and thus achieve
+# layer reuse between the -base and -dev image
 RUN apt-get update \
- && apt-get install -qy \
+  && apt-get install -qy \
   default-jre-headless \
   iputils-ping \
   libexpat1 \
@@ -59,15 +63,15 @@ RUN apt-get update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /root/.cache \
   && echo '. /opt/ncs/current/ncsrc' >> /root/.bashrc \
-  && rm -rf /usr/share/doc \
   # Add root to ncsadmin group for easier command-line tools usage
   && groupadd ncsadmin \
   && usermod -a -G ncsadmin root
 
-COPY --from=0 /etc/ncs /etc/ncs/
-COPY --from=0 /nso /nso
-COPY --from=0 /opt/ncs /opt/ncs/
+COPY --from=0 /etc/profile.d /etc/profile.d
 COPY --from=0 /etc/init.d/ncs /etc/init.d/.
+COPY --from=0 /etc/ncs /etc/ncs/
+COPY --from=0 /opt/ncs /opt/ncs/
+COPY --from=0 /nso /nso
 
 COPY run-nso.sh /
 COPY mangle-config.sh /etc/ncs/pre-ncs-start.d/50-mangle-config.sh
