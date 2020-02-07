@@ -66,6 +66,11 @@
 # recommendation is to get across the threshold and use them in the prescribed
 # manner.
 
+# require that NSO_VERSION is set
+ifeq ($(NSO_VERSION),)
+$(error "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on NSO version 5.2.1")
+endif
+
 # Set PNS - our pseudo-namespace or pipeline namespace. All containers running
 # within a CI pipeline will have the same namespace, which isn't a namespace
 # like what Linux supports but it's just a prefix used for the docker containers
