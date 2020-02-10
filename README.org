@@ -58,7 +58,7 @@
    - Clone this repository to your local machine
      - ~git clone git@gitlab.com/nso-developer/nso-docker.git~
    - Download Cisco NSO
-     - go to https://developer.cisco.com/docs/nso/ and click the "Download NSO for evaluation (Linux)" in the side bar
+     - go to [[https://developer.cisco.com/docs/nso/]] and click the "Download NSO for evaluation (Linux)" in the side bar
    - Place the downloaded .bin file in ~nso-install-files/~ in this repository
    - run ~make~ in repository root directory
      - *NOTE*: running docker commands, which are invoked by ~make~, typically require root privileges or membership in the ~docker~ group
@@ -109,7 +109,7 @@
    - Clone this repository to your local machine
      - ~git clone git@gitlab.com/nso-developer/nso-docker.git~
    - Download Cisco NSO
-     - go to https://developer.cisco.com/docs/nso/ and click the "Download NSO for evaluation (Linux)" in the side bar
+     - go to [[https://developer.cisco.com/docs/nso/]] and click the "Download NSO for evaluation (Linux)" in the side bar
    - Place the downloaded .bin file in ~nso-install-files/~ in this repository
    - commit file(s) in ~nso-install-files/~ using git LFS and push
      - ~git add nso-install-files/*~
@@ -147,7 +147,7 @@
           shm_size = 0
     #+END_SRC
 
-    The path ~/data/nso-install-files~ on the host machine becomes available as ~/nso-install-files/~ in the CI build docker containers and by specifying that path (~/nso-install-files~) using the CI variable settings, the job will now pick up the NSO images from there. This is how the public repo at https://gitlab.com/nso-developer/nso-docker works. It allows us to host all code in public, run CI tests in public yet not reveal the NSO install file as required by its EULA.
+    The path ~/data/nso-install-files~ on the host machine becomes available as ~/nso-install-files/~ in the CI build docker containers and by specifying that path (~/nso-install-files~) using the CI variable settings, the job will now pick up the NSO images from there. This is how the public repo at [[https://gitlab.com/nso-developer/nso-docker]] works. It allows us to host all code in public, run CI tests in public yet not reveal the NSO install file as required by its EULA.
 
 ** Running
 *** Run standalone for testing
@@ -398,8 +398,8 @@ Do note that the example image URLs used above would be the result of the defaul
 
   1. Get a VM or a physical machine to run your CI runner.
   2. Install Debian on said machine.
-  3. Follow the guide on https://docs.gitlab.com/runner/install/linux-repository.html to install the Gitlab CI runner on your machine
-  4. Follow the guide at https://docs.gitlab.com/runner/register/ on how to register your runner with Gitlab
+  3. Follow the guide on [[https://docs.gitlab.com/runner/install/linux-repository.html]] to install the Gitlab CI runner on your machine
+  4. Follow the guide at [[https://docs.gitlab.com/runner/register/]] on how to register your runner with Gitlab
   5. Expose the docker control socket in the gitlab runner configuration
 
   Here's a configuration file for gitlab ci runner. Note the ~volumes~ setting which includes ~/var/run/docker.sock~ - this exposes the Docker control socket to the containers run by the CI runner which enables the containers to start /sibling/ containers.
