@@ -1,0 +1,41 @@
+ARG NSO_IMAGE_PATH
+ARG NSO_VERSION
+
+FROM ${NSO_IMAGE_PATH}cisco-nso-dev:${NSO_VERSION} AS build
+
+COPY packages /packages
+RUN for PKG in $(ls /packages); do make -C /packages/${PKG}/src; make -C packages/${PKG}/netsim; done
+
+COPY test-packages /test-packages
+RUN for PKG in $(ls /test-packages); do make -C /test-packages/${PKG}/src; done
+
+# build a netsim docker image by copying the compiled NED and changing the
+# default CMD to one that runs netsim, thus running this docker image will per
+# default startup a netsim instance
+FROM ${NSO_IMAGE_PATH}cisco-nso-dev:${NSO_VERSION} AS netsim
+ARG NED_NAME
+# slight hack to set the *run time* environment variable NNAME to the
+# *build-time* argument NED_NAME, this is so this Dockerfile can remain generic,
+# yet write static information (the NED package name) to the resulting Docker
+# image. Directly using NED_NAME in the CMD line below would mean that it
+# requires the NED_NAME variable to be set at run time.
+ENV NNAME=${NED_NAME}
+
+COPY --from=build /packages /var/opt/ncs/packages
+COPY /run-netsim.sh /run-netsim.sh
+
+CMD /run-netsim.sh ${NNAME} ${NNAME}
+
+# produce an NSO image that comes loaded with our NED - perfect for our testing,
+# but probably not anything beyond that since you typically want more NSO
+# packages for a production environment
+FROM ${NSO_IMAGE_PATH}cisco-nso-base:${NSO_VERSION} AS testnso
+COPY --from=build /packages/ /var/opt/ncs/packages/
+COPY --from=build /test-packages/ /var/opt/ncs/packages/
+
+
+# build a minimal image that only contains the NED itself - perfect way to
+# distribute the compiled NED by relying on Docker package registry
+# infrastructure
+FROM scratch AS package
+COPY --from=build /packages/ /var/opt/ncs/packages/

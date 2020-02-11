@@ -1,0 +1,11 @@
+<devices xmlns="http://tail-f.com/ns/ncs">
+    <device>
+        <name>dev1</name>
+        <config>
+            <!-- TODO: replace with platform specific config -->
+            <system xmlns="urn:ietf:params:xml:ns:yang:ietf-system">
+                <hostname>foobarhostname</hostname>
+            </system>
+        </config>
+    </device>
+</devices>
