@@ -87,7 +87,8 @@ devenv-start:
 # Test environment targets
 
 testenv-start:
-	docker run -td --name $(CNT_PREFIX)-nso --label $(CNT_PREFIX) $${NSO_EXTRA_ARGS} $(IMAGE_PATH)$(PROJECT_NAME)-testnso:$(DOCKER_TAG)
+	-docker network create $(CNT_PREFIX)
+	docker run -td --name $(CNT_PREFIX)-nso --network $(CNT_PREFIX) --label $(CNT_PREFIX) $${NSO_EXTRA_ARGS} $(IMAGE_PATH)$(PROJECT_NAME)-testnso:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "show packages" | ncs_cli -u admin'
 	$(MAKE) testenv-start-extra
