@@ -37,6 +37,10 @@ testenv-test:
 # - doing sync-from again
 #   - we check that the hostname is as expected
 #
+# TODO: to complete the test from the NED skeleton, you have to provide the
+# configuration to set the hostname on the device in the file
+# test/device-config-hostname.xml
+#
 
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
