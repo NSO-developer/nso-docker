@@ -53,7 +53,7 @@ $(error Could not determine NED package name automatically. Multiple directories
 endif
 endif
 
--include nidcommon.mk
+include nidcommon.mk
 
 all:
 	$(MAKE) build
