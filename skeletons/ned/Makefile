@@ -1,6 +1,6 @@
 # Include standard NID (NSO in Docker) package Makefile that defines all
 # standard make targets
--include nidned.mk
+include nidned.mk
 
 # The following are specific to this repositories packages
 testenv-start-extra:

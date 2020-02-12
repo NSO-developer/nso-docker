@@ -40,7 +40,7 @@ else
 PROJECT_NAME:=$(shell basename $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST)))))
 endif
 
--include nidcommon.mk
+include nidcommon.mk
 
 all:
 	$(MAKE) build
