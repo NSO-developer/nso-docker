@@ -52,7 +52,7 @@ test:
 	$(MAKE) testenv-stop
 
 
-build:
+build: check-nid-available
 	docker build --target testnso -t $(IMAGE_PATH)$(PROJECT_NAME)-testnso:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) .
 	docker build --target package -t $(IMAGE_PATH)$(PROJECT_NAME):$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) .
 

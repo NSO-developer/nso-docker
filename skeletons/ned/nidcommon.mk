@@ -90,3 +90,12 @@ NSO_IMAGE_PATH?=$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/nso-docker/
 IMAGE_PATH?=$(CI_REGISTRY_IMAGE)/
 PKG_PATH?=$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/
 endif
+
+.PHONE: check-nid-available
+
+check-nid-available:
+# Check for the existance of the NID base and dev images.
+# We don't need this check from a strictly functional perspective as builds or
+# tests would fail anyway but by explicitly checking we can make some
+# guesstimates and provide hints to the user on what might be wrong.
+	@echo "Checking NSO in Docker images are available..." && docker inspect $(NSO_IMAGE_PATH)cisco-nso-base:$(NSO_VERSION) >/dev/null 2>&1 || (if [ -z "$(NSO_IMAGE_PATH)" ]; then echo "ERROR: The docker image $(NSO_IMAGE_PATH)cisco-nso-base:$(NSO_VERSION) does not exist"; docker image inspect $(NSO_IMAGE_PATH)cisco-nso-base:$(NSO_VERSION)-$(PNS) >/dev/null 2>&1 && (echo "HINT: You have a locally built image cisco-nso-base:$(NSO_VERSION)-$(PNS), see the 'version-tag' make target to set the required tag on it" && exit 1) || echo "HINT: Set NSO_IMAGE_PATH to the registry path of the nso-docker repo, for example 'registry.gitlab.com/nso-developer/nso-docker/'" && false; else docker pull $(NSO_IMAGE_PATH)cisco-nso-base:$(NSO_VERSION) 2>/dev/null || (echo "ERROR: $(NSO_IMAGE_PATH)cisco-nso-base:$(NSO_VERSION) not found"; echo "$(NSO_IMAGE_PATH)" | grep "/$$" >/dev/null || (echo "HINT: did you forget a trailing '/' in NSO_IMAGE_PATH?" && false)) && echo "HINT: Is NSO_IMAGE_PATH correctly set? Set NSO_IMAGE_PATH to the registry URL of the nso-docker repo, for example 'registry.gitlab.com/nso-developer/nso-docker/'" && false; fi)
