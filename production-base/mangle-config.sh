@@ -49,3 +49,24 @@ if [ "$HTTPS_ENABLE" == "true" ]; then
                --update '/x:ncs-config/x:webui/x:transport/x:ssl/x:cert-file' --value '/nso/ssl/cert/host.cert' \
                $CONF_FILE
 fi
+
+# enable unhiding the two common groups 'debug' and 'full'
+# This might be a little trickier to understand - we first add two new subnodes
+# (-s option) under /ncs-config. They will just be placed at the end, then we
+# fill them in by creating the name node in each and setting its value. The
+# result looks like:
+#
+#     ...
+#     <hide-group>
+#       <name>debug</name>
+#     </hide-group>
+#     <hide-group>
+#       <name>full</name>
+#     </hide-group>
+#   </ncs-config>
+xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
+           -s '/x:ncs-config' -t elem -n hide-group \
+           -s '/x:ncs-config' -t elem -n hide-group \
+           -s '/x:ncs-config/hide-group[1]' -t elem -n name -v debug \
+           -s '/x:ncs-config/hide-group[2]' -t elem -n name -v full \
+           $CONF_FILE
