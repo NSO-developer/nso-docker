@@ -1,0 +1,136 @@
+* NSO in Docker: package standard form skeleton
+  This is the README file for the NSO in Docker (NID) standard form package skeleton. If you see this file (=README.nid-package.org=) in a repository, it means the repository follows the standard form.
+
+  The NID package standard form provides a standardized environment for how to do development (=devenv=) and testing (=testenv=) of NSO packages. It ships with a CI configuration file for GitLab that enables the test environment to automatically run in CI. All repositories using these skeletons provide a consistent user interface.
+
+* Usage of a repo that follows the NED standard form
+  Run ~make all~ to build and test the NED. You will need to set the =NSO_VERSION= environment variable and likely =NSO_IMAGE_PATH=, for example:
+
+  #+BEGIN_SRC shell
+    export NSO_VERSION=5.3
+    export NSO_IMAGE_PATH=registry.gitlab.com/my-group/nso-docker/
+    make all
+  #+END_SRC
+
+  The =all= make target will first build images using the =build= target and then run the test suite using the =test= target.
+
+** NSO_VERSION
+   As the version of NSO is a parameter throughout the entire NSO in Docker ecosystem, you have to supply the NSO version through the environment variable =NSO_VERSION=.
+
+** NSO_IMAGE_PATH
+   The =NSO_IMAGE_PATH= specifies the location of the NSO images that are used for building. If you have built NSO in Docker images locally, i.e. you have the images =cisco-nso-base= and =cisco-nso-dev= available locally, you do not need to set =NSO_IMAGE_PATH=. If you want to use images built elsewhere, perhaps from a CI system, you need to specify the path like =registry.gitlab.com/my-group/nso-docker/=.
+
+** Building and testing
+   As part of the =build= make target, two docker images are produced:
+   - =testnso=: an NSO image that has the package loaded
+   - =package=: a Docker image that only contains the compiled package
+     - this container can't be run, it's only a vessel to carry the compiled output to another Docker image build
+
+   To produce these images, a multi-stage Dockerfile is used where the first stage compiles packages and later stages produce the mentioned images.
+
+   After build, the test suite will start up a test environment (=testenv=) that consists of:
+   - =nso= container running the =testnso= image
+
+   Then the tests, defined in the =testenv-test= target of the repository specific =Makefile=, are run. The skeleton contains some examples for how to run basic tests in NSO. The actual tests need to be adopted to the functionality of the NSO package in question.
+
+** The test environment - testenv
+   There are a number of make targets related to the control of =testenv=:
+   - =testenv-start=: Start the test environment
+     - the standard topology, which consists of a single test NSO instance (of the =testnso= image) is defined in the standard form package skeleton
+     - a Docker network specific to this testenv is used
+       - this makes it possible to have network localized names, like a netsim can be called and accessed via the name =dev1= and Docker handles name resolution to the actual IP address
+         - running multiple =testenv= in parallel won't collide as we have a network (namespace) per =testenv=
+     - it is possible to start up more containers, like netsims, which should be achieved by adding them to the =testenv-start-extra= target in =Makefile=
+       - ensure that you have ~$(DOCKER_ARGS)~ in the argument list to =docker=
+         - it starts the container in the correct Docker network and sets the correct label, which is a prerequisite for the =testenv-stop= target to work
+   - =testenv-stop=: Stop the test environment
+     - it removes all containers labeled with ~$(CNT_PREFIX)~
+       - make sure any extra containers you start have this label by adding ~$(DOCKER_ARGS)~ to the argument list
+     - removes the Docker network
+     - removes an optional volume (see =devenv= for more info on volume usage)
+   - =testenv-shell=: Get an interactive =bash= shell in the =testnso= container
+   - =testenv-cli=: Get an interactive NSO CLI (=ncs_cli=) in the =testnso= container
+   - =testenv-runcmd=: Run a command with =ncs_cli=, provide the command through the environment variable =CMD=
+     - the =testenv-runcmd= target can be called to run a command, from an interactive shell like ~make testenv-runcmd CMD="show ncs-state version"~
+     - it can also be called from other make targets, for example to run commands from tests
+       - ~$(MAKE) testenv-runcmd CMD="show ncs-state version"~
+
+** The development environment - devenv
+   The development environment is similar to the =testenv= but additionally a =devenv= allows recompilation and reloading of packages in NSO. This enables a much shorter REPL cycle.
+
+   Instead of starting with =testenv-start= you start up a devenv using =devenv-start=. After modifying the source you can use =devenv-build= to build your package and reload it in NSO.
+
+   It is possible to develop using the normal build and the testenv by modifying the code and running ~make build testenv-stop test~ which will:
+   - stop the currently running testenv
+   - compile all packages and build new =testnso= Docker images
+   - rebuild the images, stop the currently running testenv and then run the tests again (which starts the =testenv= based on the newly rebuilt images). This is slow, both because compiling large service or NED packages can take a long time (and it will be started from scratch whenever anything has changed) and because stopping and starting the Docker containers takes some time.
+
+   When starting a =devenv=, a Docker volume is created to host the NSO packages.
+
+** Docker tags and prefixes
+   Built images are tagged with the NSO version and "PNS" ("Pipeline NameSpace", when in a CI context, or "Pseudo NameSpace", when running locally, outside of CI), like ~$(NSO_VERSION)-$(PNS)~. For local builds, PNS is set to your username (modulo some mangling as some characters are forbidden in Docker image tags), e.g. =5.3-kll= (for username =kll=). In CI, PNS is set to the CI pipeline ID, like =5.3-12345=. The PNS part means we don't immediately overwrite the previously built images with the version tag like =5.3=, which might be included by other repositories. We don't want a development version to overwrite the released one.
+
+   Use the =tag-release= target to set the release tags on the image, e.g. go from =5.3-kll= to =5.3=. The CI configuration automatically does this for CI jobs run on the =master= branch. You might have to do it locally in case you wish to retag images so they can be tested with other repositories.
+
+   In the =testenv= and =devenv= the started containers have a name prefix to avoid collisions with other repositories that make use of the NID skeletons. The prefix is available in the Makefiles under the ~$(CNT_PREFIX)~ variable and is set to ~testenv-$(PROJECT_NAME)-$(NSO_VERSION)-$(PNS)~. It is also possible to override by manually setting the environment variable =CNT_PREFIX=.
+
+** Repository related make targets
+   - =build=: Builds the images
+   - =push=: Pushes the =package= image
+   - =tag-release=: Adds a tag with release version, like =5.3=
+   - =push-release=: Pushes the release version to the Docker registry
+     - this is based on the =CI_REGISTRY_IMAGE= variable set by GitLab CI
+
+* Applying the skeleton / Creating a new repo based on the skeleton
+  The NID package standard form comes as a skeleton that can be applied to a repository by copying over a number of files to your repository. If you are starting from scratch, simple copy the skeleton directory (and init git), like:
+
+  #+BEGIN_SRC shell
+    cp -av ../nso-docker/skeletons/package my-package
+    cd my-package
+    git init
+    git add .
+    git commit -a -m "Starting from NID skeleton for package"
+  #+END_SRC
+
+  Place your NSO package in the =packages/= folder, despite the plural 's' on =packages=, you should only use a single package per repository (other skeletons in the NID ecosystem supports multiple packages). This will automatically include them in the build.
+
+  If you are building a new package, you can start a =devenv-shell= to run =ncs-make-package=. For this we need access to the =cisco-nso-dev= image, set =NSO_VERSION= and =NSO_IMAGE_PATH= accordingly (see top of this file for more information on that).
+
+  #+BEGIN_SRC shell
+    export NSO_VERSION=5.3
+    export NSO_IMAGE_PATH=my-registry.example.com/nso-docker/
+    make devenv-shell
+  #+END_SRC
+
+  Once in the =devenv-shell= we can use =ncs-make-package= to make a new package. Our package folder is mounted in =/src=. Let's say we want to make a python based package:
+
+  #+BEGIN_SRC shell
+    cd /src/packages
+    ncs-make-package --service-skeleton python-and-template package-foo
+    chown -Rv 1000:1000 package-foo
+  #+END_SRC
+
+  Note how when you are working in a Docker container you are root and as such, files you create are owned by root. Change ownership to your own id/gid from within the container. Also note how the container is not aware of your username nor group, so you need to use numeric identifiers.
+
+  Now we can build our package and start up a =testenv=:
+
+  #+BEGIN_SRC shell
+    make build
+    make testenv-start
+  #+END_SRC
+
+  Modify the =Makefile=, which includes some examples, to apply the tests you want.
+
+* Skeleton content
+  The NID package standard form comes as a skeleton that can be applied to a repository by copying over a number of files to your repository. The files are:
+  - =README.nid-package.org=: This README file
+  - =.gitlab-ci.yml=: a GitLab CI configuration file that runs the standard testenv targets
+  - =nidcommon.mk=: Makefile with definitions common across the NID skeletons
+  - =nidpackage.mk=: Makefile with common targets for the NID package skeleton
+  - =Makefile=: repository specific Makefile, while it comes with the skeleton, this is meant to be customized for each project
+  - =test/=: Directory containing test related files
+  - =packages/=: Standard location for placing the NSO package itself
+  - =test-packages/=: Standard location for placing NSO packages for testing. These are included in the =testnso= container that can be used to test the package but aren't included in the final output.
+
+** Skeleton source location and updating the skeleton
+   The authoritative origin for the standard form NID package skeleton is the =nso-docker= repository at [[https://gitlab.com/nso-developer/nso-docker/]], specifically in the directory =skeletons/package=. To upgrade to a later version of the skeleton, pull the files from that location and avoid touching the =Makefile= as it typically contains custom modifications. Be sure to include files starting with a dot (=.=).
