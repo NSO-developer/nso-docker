@@ -52,7 +52,16 @@ test:
 	$(MAKE) testenv-stop
 
 
-build: check-nid-available
+Dockerfile: Dockerfile.in includes/*
+	@echo "Generating Dockerfile"
+	cp Dockerfile.in Dockerfile
+	@echo "Injecting includes from include manifest into Dockerfile"
+# expand variables before injecting them into the Dockerfile as otherwise we
+# would have to pass all the variables as build-args which makes this much
+# harder to do in a generic manner
+	for DEP_NAME in $$(ls includes/* | xargs -n1 basename); do export DEP_URL=$$( (echo -n "echo "; cat includes/$${DEP_NAME}) | $(SHELL) -); sed -i -e "s;# DEP_END;FROM $${DEP_URL} AS $${DEP_NAME}\n# DEP_END;" -e "s;^# DEP_INC_END;COPY --from=$${DEP_NAME} /var/opt/ncs/packages/ /var/opt/ncs/packages/\n# DEP_INC_END;" Dockerfile; done
+
+build: check-nid-available Dockerfile
 	docker build --target testnso -t $(IMAGE_PATH)$(PROJECT_NAME)-testnso:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) .
 	docker build --target package -t $(IMAGE_PATH)$(PROJECT_NAME):$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) .
 
