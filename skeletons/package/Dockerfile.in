@@ -1,6 +1,9 @@
 ARG NSO_IMAGE_PATH
 ARG NSO_VERSION
 
+# DEP_START
+# DEP_END
+
 FROM ${NSO_IMAGE_PATH}cisco-nso-dev:${NSO_VERSION} AS build
 
 COPY packages /packages
@@ -11,6 +14,10 @@ RUN for PKG in $(ls /test-packages); do make -C /test-packages/${PKG}/src; done
 
 
 FROM ${NSO_IMAGE_PATH}cisco-nso-base:${NSO_VERSION} AS testnso
+
+# DEP_INC_START
+# DEP_INC_END
+
 COPY --from=build /packages/ /var/opt/ncs/packages/
 COPY --from=build /test-packages/ /var/opt/ncs/packages/
 
