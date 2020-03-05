@@ -65,7 +65,7 @@ test:
 	$(MAKE) testenv-stop
 
 
-Dockerfile: Dockerfile.in includes/*
+Dockerfile: Dockerfile.in $(wildcard includes/*)
 	@echo "Generating Dockerfile"
 	cp Dockerfile.in Dockerfile
 	@echo "Injecting includes from include manifest into Dockerfile"
