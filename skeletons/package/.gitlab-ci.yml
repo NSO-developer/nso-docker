@@ -7,9 +7,11 @@ before_script:
 .build:
   stage: build
   script:
-    - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
-    - echo Building for NSO version ${NSO_VERSION}
+    - if [ -n "${CI_DOCKER_USER}" ]; then echo "Using provided credentials for authentication with docker registry"; docker login -u ${CI_DOCKER_USER} -p ${CI_DOCKER_PASSWORD} ${CI_REGISTRY}; else docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}; fi
+    - echo "Building for NSO version ${NSO_VERSION}"
     - make build testenv-start testenv-test testenv-stop
+    - echo "Using Gitlab CI token to authenticate with Docker registry for pushing image"
+    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
     - if [ "${DOCKER_PUSH}" != "false" ]; then make push; fi
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ]; then make tag-release; fi
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-release; fi
