@@ -36,7 +36,7 @@ export DOCKER_BUILD_CACHE_ARG
 endif
 endif
 
-.PHONY: all build build-all build-version test test-version test-version-multiver $(NSO_BUILD) $(NSO_TEST)
+.PHONY: all build build-all build-version test test-version test-version-multiver tag-release $(NSO_BUILD) $(NSO_TEST)
 
 all: build-all test-all
 
@@ -85,11 +85,11 @@ push:
 	docker push $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG)
 	docker push $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 
-version-tag:
+tag-release:
 	docker tag $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) $(DOCKER_REGISTRY)cisco-nso-dev:$(NSO_VERSION)
 	docker tag $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) $(DOCKER_REGISTRY)cisco-nso-base:$(NSO_VERSION)
 
-push-latest:
+push-release:
 	docker push $(DOCKER_REGISTRY)cisco-nso-dev:$(NSO_VERSION)
 	docker push $(DOCKER_REGISTRY)cisco-nso-base:$(NSO_VERSION)
 
