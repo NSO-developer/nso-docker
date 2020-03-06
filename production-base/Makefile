@@ -9,9 +9,3 @@ build:
 	cp $(FILE) $(FILENAME)
 	docker build $(DOCKER_BUILD_CACHE_ARG) --build-arg NSO_INSTALL_FILE=$(FILENAME) -t $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) .
 	rm -f *.bin
-
-version-tag:
-	docker tag $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) $(DOCKER_REGISTRY)cisco-nso-base:$(NSO_VERSION)
-
-push:
-	docker push $(DOCKER_REGISTRY)cisco-nso-base:$(NSO_VERSION)
