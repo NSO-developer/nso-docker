@@ -28,7 +28,7 @@ stages:
 # Remove / comment in case you want to override for which NSO versions this
 # project is built or point it to your own list of versions, which is useful if
 # you want to keep it synchronized across multiple repositories.
-include: 'https://gitlab.com/nso-developer/nso-docker/version-includes/build-tot.yml'
+include: 'https://gitlab.com/nso-developer/nso-docker/version-includes/build-tot.yaml'
 
 # Uncomment the following and modify the version to build for a specific NSO
 # version.
