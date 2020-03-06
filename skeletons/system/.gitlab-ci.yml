@@ -21,15 +21,14 @@ stages:
   after_script:
     - make testenv-stop
 
-# Include CI configuration file of NSO versions to build for from
-# nso-developer/nso-docker repo. This assumes this repo is hosted at gitlab.com
-# so that the relative reference nso-developer/nso-docker resolves.
+# Include CI configuration file of NSO versions to build for from the upstream
+# nso-docker repo. This is good for public packages as they will be tested
+# across a range of NSO versions.
+#
 # Remove / comment in case you want to override for which NSO versions this
-# project is built.
-include:
-  - project: 'nso-developer/nso-docker'
-    ref: master
-    file: '/version-includes/build-tot.yaml'
+# project is built or point it to your own list of versions, which is useful if
+# you want to keep it synchronized across multiple repositories.
+include: 'https://gitlab.com/nso-developer/nso-docker/version-includes/build-tot.yml'
 
 # Uncomment the following and modify the version to build for a specific NSO
 # version.
