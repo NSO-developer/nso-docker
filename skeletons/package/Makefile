@@ -5,6 +5,8 @@ include nidpackage.mk
 # The following are specific to this repositories packages
 testenv-start-extra:
 	@echo "Starting repository specific testenv"
+# Start extra things, for example a netsim container by doing:
+# docker run -td --name $(CNT_PREFIX)-my-netsim $(DOCKER_ARGS) $(IMAGE_PATH)my-netsim-image:$(DOCKER_TAG)
 
 testenv-test:
 	@echo "TODO: Fill in your tests here"

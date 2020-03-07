@@ -96,6 +96,8 @@ IMAGE_PATH?=$(CI_REGISTRY_IMAGE)/
 PKG_PATH?=$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/
 endif
 
+DOCKER_ARGS=--network $(CNT_PREFIX) --label $(CNT_PREFIX)
+
 .PHONE: check-nid-available
 
 check-nid-available:
