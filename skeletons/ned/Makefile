@@ -44,12 +44,14 @@ testenv-test:
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin' | grep "oper-status up"
 
-	@echo "Add device to NSO"
-	@echo "Copy config straight, for NSO 5"
-	cp test/add-device.xml add-device.xml
-	@echo "On NSO 4 we remove the ned-id from the config since that's a NSO 5 thing"
-	-echo $(NSO_VERSION) | grep "^4" && sed -e '/<ned-id/d' test/add-device.xml > add-device.xml
-	docker cp add-device.xml $(CNT_PREFIX)-nso:/add-device.xml
+	@echo "-- Add device to NSO"
+	@echo "   Get the package-meta-data.xml file from the compiled NED (we grab it from the netsim build)"
+	mkdir -p tmp
+	docker cp $(CNT_PREFIX)-netsim:/var/opt/ncs/packages/$(NED_NAME)/package-meta-data.xml tmp/package-meta-data.xml
+	@echo "   Fill in the device-type in add-device.xml by extracting the relevant part from the package-meta-data of the NED"
+	echo $(NSO_VERSION) | grep "^4" && xmlstarlet sel -N x=http://tail-f.com/ns/ncs-packages -t -c "//x:ned-id" tmp/package-meta-data.xml | grep cli && STRIP_NED=' -d "//x:ned-id" '; \
+		xmlstarlet sel -R -N x=http://tail-f.com/ns/ncs-packages -t -c "//*[x:ned-id]" -c "document('test/add-device.xml')" tmp/package-meta-data.xml | xmlstarlet edit -O -N x=http://tail-f.com/ns/ncs-packages -N y=http://tail-f.com/ns/ncs -d "/x:xsl-select/*[x:ned-id]/*[not(self::x:ned-id)]" -m "/x:xsl-select/*[x:ned-id]" "/x:xsl-select/y:devices/y:device/y:device-type" $${STRIP_NED} | tail -n +2 | head -n -1 | cut -c 3- > tmp/add-device.xml
+	docker cp tmp/add-device.xml $(CNT_PREFIX)-nso:/add-device.xml
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo -e "configure\nload merge /add-device.xml\ncommit\nexit" | ncs_cli -u admin -g ncsadmin'
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "show devices brief" | ncs_cli -u admin -g ncsadmin'
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "request devices device dev1 ssh fetch-host-keys" | ncs_cli -u admin -g ncsadmin'

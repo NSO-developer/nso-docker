@@ -12,11 +12,7 @@
         <name>dev1</name>
         <address>dev1</address>
         <authgroup>netsim</authgroup>
-        <device-type>
-            <netconf>
-                <ned-id xmlns:ietf-ned-nc-1.0="http://tail-f.com/ns/ned-id/ietf-ned-nc-1.0">ietf-ned-nc-1.0:ietf-ned-nc-1.0</ned-id>
-            </netconf>
-        </device-type>
+        <device-type/>
         <state>
             <admin-state>unlocked</admin-state>
         </state>
