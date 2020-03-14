@@ -8,3 +8,8 @@ build-4.7.6:
   variables:
     NSO_VERSION: "4.7.6"
 
+build-4.7.7:
+  extends: .build
+  variables:
+    NSO_VERSION: "4.7.7"
+
