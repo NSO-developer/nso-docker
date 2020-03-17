@@ -81,12 +81,15 @@ build: check-nid-available Dockerfile
 
 push:
 	docker push $(IMAGE_PATH)$(PROJECT_NAME):$(DOCKER_TAG)
+	docker push $(IMAGE_PATH)$(PROJECT_NAME)-netsim:$(DOCKER_TAG)
 
 tag-release:
 	docker tag $(IMAGE_PATH)$(PROJECT_NAME):$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME):$(NSO_VERSION)
+	docker tag $(IMAGE_PATH)$(PROJECT_NAME)-netsim:$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME)-netsim:$(NSO_VERSION)
 
 push-release:
 	docker push $(IMAGE_PATH)$(PROJECT_NAME):$(NSO_VERSION)
+	docker push $(IMAGE_PATH)$(PROJECT_NAME)-netsim:$(NSO_VERSION)
 
 
 # Development environment targets
