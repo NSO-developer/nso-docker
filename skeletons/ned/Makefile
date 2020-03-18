@@ -42,6 +42,10 @@ testenv-test:
 # - doing sync-from again
 #   - we check that the hostname is as expected
 #
+# TODO: to complete the test from the NED skeleton, you have to provide the
+# configuration to set the hostname on the device in the file
+# test/device-config-hostname.xml
+#
 
 	@echo "-- Add device to NSO"
 	@echo "   Get the package-meta-data.xml file from the compiled NED (we grab it from the netsim build)"
