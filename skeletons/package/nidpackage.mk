@@ -82,8 +82,8 @@ devenv-shell:
 
 devenv-build:
 	docker run -it --rm -v $(PWD):/src -v $(CNT_PREFIX)-packages:/dst $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -lc 'cp -a /src/packages/* /dst/; cp -av /src/test-packages/* /dst/; for PKG in $$(ls /dst); do make -C /dst/$${PKG}/src; done'
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "request packages reload" | ncs_cli -u admin'
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "show packages" | ncs_cli -u admin'
+	$(MAKE) testenv-runcmd CMD="request packages reload"
+	$(MAKE) testenv-runcmd CMD="show packages"
 
 devenv-clean:
 	docker run -it --rm -v $(PWD):/src -v $(CNT_PREFIX)-packages:/dst $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -lc 'ls /dst/ | xargs --no-run-if-empty rm -rf'
@@ -100,7 +100,7 @@ testenv-start:
 	docker run -td --name $(CNT_PREFIX)-nso $(DOCKER_ARGS) $${NSO_EXTRA_ARGS} $(IMAGE_PATH)$(PROJECT_NAME)-testnso:$(DOCKER_TAG)
 	$(MAKE) testenv-start-extra
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'ncs --wait-started 600'
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "show packages" | ncs_cli -u admin'
+	$(MAKE) testenv-runcmd CMD="show packages"
 
 testenv-stop:
 	docker ps -aq --filter label=$(CNT_PREFIX) | xargs --no-run-if-empty docker rm -f
