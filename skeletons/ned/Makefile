@@ -43,10 +43,6 @@ testenv-test:
 #   - we check that the hostname is as expected
 #
 
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'ncs --wait-started 600'
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin'
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "show packages" | ncs_cli -u admin -g ncsadmin' | grep "oper-status up"
-
 	@echo "-- Add device to NSO"
 	@echo "   Get the package-meta-data.xml file from the compiled NED (we grab it from the netsim build)"
 	mkdir -p tmp
@@ -55,13 +51,14 @@ testenv-test:
 	echo $(NSO_VERSION) | grep "^4" && xmlstarlet sel -N x=http://tail-f.com/ns/ncs-packages -t -c "//x:ned-id" tmp/package-meta-data.xml | grep cli && STRIP_NED=' -d "//x:ned-id" '; \
 		xmlstarlet sel -R -N x=http://tail-f.com/ns/ncs-packages -t -c "//*[x:ned-id]" -c "document('test/add-device.xml')" tmp/package-meta-data.xml | xmlstarlet edit -O -N x=http://tail-f.com/ns/ncs-packages -N y=http://tail-f.com/ns/ncs -d "/x:xsl-select/*[x:ned-id]/*[not(self::x:ned-id)]" -m "/x:xsl-select/*[x:ned-id]" "/x:xsl-select/y:devices/y:device/y:device-type" $${STRIP_NED} | tail -n +2 | head -n -1 | cut -c 3- > tmp/add-device.xml
 	docker cp tmp/add-device.xml $(CNT_PREFIX)-nso:/add-device.xml
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo -e "configure\nload merge /add-device.xml\ncommit\nexit" | ncs_cli -u admin -g ncsadmin'
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "show devices brief" | ncs_cli -u admin -g ncsadmin'
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "request devices device dev1 ssh fetch-host-keys" | ncs_cli -u admin -g ncsadmin'
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo "request devices device dev1 sync-from" | ncs_cli -u admin -g ncsadmin'
+	$(MAKE) testenv-runcmd CMD="configure\nload merge /add-device.xml\ncommit\nexit"
+	$(MAKE) testenv-runcmd CMD="show devices brief"
+	$(MAKE) testenv-runcmd CMD="request devices device dev1 ssh fetch-host-keys"
+	$(MAKE) testenv-runcmd CMD="request devices device dev1 sync-from"
+
 	@echo "Configure hostname on device through NSO"
 	docker cp test/device-config-hostname.xml $(CNT_PREFIX)-nso:/device-config-hostname.xml
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo -e "configure\nload merge /device-config-hostname.xml\ncommit\nexit" | ncs_cli -u admin -g ncsadmin'
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo -e "show configuration devices device dev1 config" | ncs_cli -u admin -g ncsadmin' | grep foobarhostname
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo -e "request devices device dev1 sync-from" | ncs_cli -u admin -g ncsadmin'
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo -e "show configuration devices device dev1 config" | ncs_cli -u admin -g ncsadmin' | grep foobarhostname
+	$(MAKE) testenv-runcmd CMD="configure\nload merge /device-config-hostname.xml\ncommit\nexit"
+	$(MAKE) testenv-runcmd CMD="show configuration devices device dev1 config" | grep foobarhostname
+	$(MAKE) testenv-runcmd CMD="request devices device dev1 sync-from"
+	$(MAKE) testenv-runcmd CMD="show configuration devices device dev1 config" | grep foobarhostname
