@@ -45,11 +45,11 @@ endif
 # which is then assumed to be the NED package we are looking for
 ifeq ($(NED_NAME),)
 ifeq ($(shell ls packages/*/src/package-meta-data.xml* | wc -l),0)
-$(error Could not determine NED package name automatically. No directory found based on globa packages/*/src/package-meta-data.xml*)
+$(warning Could not determine NED package name automatically. No directory found based on globa packages/*/src/package-meta-data.xml*)
 else ifeq ($(shell ls packages/*/src/package-meta-data.xml* | wc -l),1)
 NED_NAME=$(shell basename $(shell dirname $(shell dirname $(shell ls packages/*/src/package-meta-data.xml*))))
 else
-$(error Could not determine NED package name automatically. Multiple directories found based on glob packages/*/src/package-meta-data.xml*)
+$(warning Could not determine NED package name automatically. Multiple directories found based on glob packages/*/src/package-meta-data.xml*)
 endif
 endif
 
