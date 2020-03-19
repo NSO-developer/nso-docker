@@ -36,19 +36,29 @@
   Yet another alternative is to use Docker for development and CI and when it's time to deploy to production you use something entirely different. Docker images are glorified tar files so it is possible to extract the relevant files from them and deploy by other means.
 
 * Use cases & guides
-  NSO in Docker is not just two Docker container images but rather an ecosystem. Using NSO in Docker is about a way of working and approaching problems. Here's a list of some use cases, examples and guides for how to use NSO in Docker:
+  NSO in Docker is not just two Docker container images but rather an ecosystem - the NID (Nso In Docker) ecosystem, which is about a way of working and approaching problems. The NID ecosystem defines the concept of common development and test environments. It uses the base NSO images as the foundation to allow building:
 
-  - run netsim as a container - [[https://gitlab.com/nso-developer/docker-example-ned-ietf/][see example repo]]
-    - use the familiar Docker interface to run netsim
-    - simple migration path to using virtual routers with [[https://github.com/plajjan/vrnetlab][vrnetlab]]
-  - common development environments - [[https://gitlab.com/nso-developer/docker-example-prod-nso-compose/][see example repo]]
-    - when writing network automation code, the devices to automate become part of the development environment (devenv)
-    - setting up the topology of NSO and network devices, either virtual or netsim, is tedious
-      - in particular if each developer is left to do it themselves
-    - use shared definitions of devenv!
+  - NED repository
+    - including running the NED as a netsim
+    - having a standardized test and development environment
+  - package repository
+    - service or other package repository
+    - including testing of the repository
+  - NSO system repository
+    - a repository encompassing an entire NSO system
+    - use NSO service packages
+    - include NEDs and other packages built on other repositories
+    - write tests in a simple way
+    - having a standardized test and development environment
+  - common for all NID skeletons
+    - easily implement tests for
+    - test across multiple NSO versions
+    - share the definition of a development environment among colleagues
       - provide a simple to use and familiar starting point and ergonomics
       - drastically shorten time from branching feature branch to writing and testing first lines of code
       - leverage same topology for development and testing
+
+  See the [[skeletons/][NID skeletons]] for how to get started developing in the NID ecosystem.
 
 * Usage
   The ideal scenario would be to ship prebuilt Docker images containing NSO but as legal requirements prevent that, this is the second best option. This repository contains recipes that you can use to produce Docker images yourself. Just add +water+ Cisco NSO ;)
