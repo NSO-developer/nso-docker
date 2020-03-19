@@ -1,9 +1,33 @@
 * Skeletons for NSO in Docker git repositories
-  The directories herein are repository skeletons for the standard forms of repositories in the NID (NSO in Docker) ecosystem, specifically:
+  The directories herein are repository skeletons for the standard form of repositories in the NID (NSO in Docker) ecosystem, specifically:
 
   - *ned*: a repository skeleton for the standard form of NID NED repos
   - *package*: generally for repositories containing one or more packages, except for NEDs which are better served by the NID ned standard form
-  - *system*: for working with an NSO system
-  - *lsa-system*: for working with an NSO LSA system
+  - *system*: for working with an NSO system, for example, composing multiple other packages (like NEDs) and/or having local service packages
 
-  To get started, create your new project directory and copy the content of the skeleton into the directory. See the skeleton README file for more information.
+  To get started, create your new project directory and copy the content of the skeleton into the directory. Ensure you also copy files starting with '.' (dot-files).
+
+  Place your package(s) in =/packages=, which will automatically include them in the build process. For the =ned= and =package= repo, you are only supposed to place a single package in the =/packages= folder. Only the =system= skeleton supports multiple packages.
+
+  See the skeleton README file for more information.
+
+  All skeletons provide a common set of make targets for interaction:
+
+  | Make target   | Description                                                        |
+  |---------------+--------------------------------------------------------------------|
+  | all           | Build and test (runs =build test= targets)                         |
+  | build         | Build container images                                             |
+  | test          | Run tests (runs =testenv-start testenv-test testenv-stop= targets) |
+  | testenv-start | Start the test environment                                         |
+  | testenv-test  | Run the tests defined for the test environment                     |
+  | testenv-stop  | Stop the test environment                                          |
+  | testenv-shell | Start shell in test NSO instance                                   |
+  | testenv-cli   | Starts ncs_cli in test NSO instance                                |
+  | devenv-start  | Start the development environment                                  |
+  | devenv-build  | Build project in the development environment                       |
+  | devenv-shell  | Start shell environment                                            |
+  | push          | Push built Docker image(s) to registry                             |
+  | tag-release   | Tag built image as release                                         |
+  | push-release  | Push release tagged Docker image(s) to registry                    |
+
+  These targets can be refined and modified for a particular project but having a uniform interface with common entrypoints means anyone can quickly become familiar and productive with the project.
