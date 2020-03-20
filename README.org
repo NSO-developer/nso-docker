@@ -365,7 +365,7 @@ Do note that the example image URLs used above would be the result of the defaul
    Assuming the NSO install file has been placed in the ~NSO_INSTALL_FILES_DIR~ (per default ~nso-install-files/~), you can run:
 
    #+BEGIN_SRC shell
-     make NSO_VERSION=5.2.1 build-version
+     make NSO_VERSION=5.2.1 build
    #+END_SRC
 
    To produce a docker image based on NSO 5.2.1. It requires that the corresponding installer file is present, i.e. ~nso-install-files/nso-5.2.1.linux.x86_64.installer.bin~.
@@ -375,7 +375,7 @@ Do note that the example image URLs used above would be the result of the defaul
    installer file, for example:
 
    #+BEGIN_SRC shell
-     make FILE=/home/foo/nso-docker/nso-install-files/nso-5.2.1.linux.x86_64.installer.bin build
+     make FILE=/home/foo/nso-docker/nso-install-files/nso-5.2.1.linux.x86_64.installer.bin build-file
    #+END_SRC
 
 ** For all NSO installer files in NSO_INSTALL_FILES_DIR
