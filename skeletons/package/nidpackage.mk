@@ -62,17 +62,17 @@ Dockerfile: Dockerfile.in $(wildcard includes/*)
 	for DEP_NAME in $$(ls includes/* | xargs --no-run-if-empty -n1 basename); do export DEP_URL=$$( (echo -n "echo "; cat includes/$${DEP_NAME}) | $(SHELL) -); sed -i -e "s;# DEP_END;FROM $${DEP_URL} AS $${DEP_NAME}\n# DEP_END;" -e "s;^# DEP_INC_END;COPY --from=$${DEP_NAME} /var/opt/ncs/packages/ /var/opt/ncs/packages/\n# DEP_INC_END;" Dockerfile; done
 
 build: check-nid-available Dockerfile
-	docker build --target testnso -t $(IMAGE_PATH)$(PROJECT_NAME)-testnso:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) .
-	docker build --target package -t $(IMAGE_PATH)$(PROJECT_NAME):$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) .
+	docker build --target testnso -t $(IMAGE_PATH)$(PROJECT_NAME)/testnso:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) .
+	docker build --target package -t $(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) .
 
 push:
-	docker push $(IMAGE_PATH)$(PROJECT_NAME):$(DOCKER_TAG)
+	docker push $(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG)
 
 tag-release:
-	docker tag $(IMAGE_PATH)$(PROJECT_NAME):$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME):$(NSO_VERSION)
+	docker tag $(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME)/package:$(NSO_VERSION)
 
 push-release:
-	docker push $(IMAGE_PATH)$(PROJECT_NAME):$(NSO_VERSION)
+	docker push $(IMAGE_PATH)$(PROJECT_NAME)/package:$(NSO_VERSION)
 
 
 # Development environment targets
@@ -97,7 +97,7 @@ devenv-start:
 
 testenv-start:
 	-docker network create $(CNT_PREFIX)
-	docker run -td --name $(CNT_PREFIX)-nso $(DOCKER_ARGS) -e ADMIN_PASSWORD=NsoDocker1337 $${NSO_EXTRA_ARGS} $(IMAGE_PATH)$(PROJECT_NAME)-testnso:$(DOCKER_TAG)
+	docker run -td --name $(CNT_PREFIX)-nso $(DOCKER_ARGS) -e ADMIN_PASSWORD=NsoDocker1337 $${NSO_EXTRA_ARGS} $(IMAGE_PATH)$(PROJECT_NAME)/testnso:$(DOCKER_TAG)
 	$(MAKE) testenv-start-extra
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'ncs --wait-started 600'
 	$(MAKE) testenv-runcmd CMD="show packages"
