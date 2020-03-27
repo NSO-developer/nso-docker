@@ -131,8 +131,8 @@ testenv-shell:
 testenv-cli:
 	docker exec -it $(CNT_PREFIX)-nso bash -lc 'ncs_cli -u admin'
 
-testenv-runcmd:
+testenv-runcmdC testenv-runcmdJ:
 	@if [ -z "$(CMD)" ]; then echo "CMD variable must be set"; false; fi
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'echo -e "$(CMD)" | ncs_cli -u admin'
+	docker exec -t $(CNT_PREFIX)-nso$(NSO) bash -lc 'echo -e "$(CMD)" | ncs_cli -$(subst testenv-runcmd,,$@)u admin'
 
 .PHONY: all test build push tag-release push-release devenv-shell devenv-build devenv-start testenv-start testenv-test testenv-stop
