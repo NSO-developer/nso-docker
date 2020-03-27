@@ -87,9 +87,15 @@ endif
 DOCKER_TAG?=$(NSO_VERSION)-$(PNS)
 CNT_PREFIX?=testenv-$(PROJECT_NAME)-$(NSO_VERSION)-$(PNS)
 
-# Path for the NSO docker images (NSO_IMAGE_PATH) is derived based on
-# information we get from Gitlab CI, if available. Similarly, the path we use
-# for the images we produce is also based on information from Gitlab CI.
+# There are three important paths that we provide:
+# - NSO_IMAGE_PATH is the path to where we can find the standard nso-docker images
+#   cisco-nso-base and cisco-nso-dev
+# - IMAGE_PATH is the path to where we should write our resulting output images
+# - PKG_PATH is the path from where we pull in dependencies, i.e. the included
+#   packages
+# All three are derived from information we get from GitLab CI, if available.
+# These defaults can be overridden simply by setting the variables in the
+# environment.
 ifneq ($(CI_REGISTRY),)
 NSO_IMAGE_PATH?=$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/nso-docker/
 IMAGE_PATH?=$(CI_REGISTRY_IMAGE)/
