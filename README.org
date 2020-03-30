@@ -461,13 +461,17 @@ Do note that the example image URLs used above would be the result of the defaul
 
   While NSO in Docker isn't specifically built for Gitlab (the intention is to make it more general than that), it is currently well suited to be hosted in Gitlab since the accompanying CI configuration file is for Gitlab CI. Gitlab features a mirroring functionality that can either push or pull in changes from a remote repository. For example, this functionality is used on this repository to keep it in sync (through pushing) with [[https://github.com/nso-developer/nso-docker/]]. You can use GitLab mirroring to continuously mirror this repository, however, it comes with a major constraint; only fast-forward merging is possible. This essentially prevents you from making even the most minute changes to the repository as continued mirroring will break. While you are encouraged to upstream any patches or changes you might have for this repository and others in the NID world, there are times when you want to make changes, for example if you need to apply a particular CI runner tag or limit the versions of NSO that you build for. To cater to such scenarios, an alternative mirror mechanism is provided: The CI configuration of this repository and the repo skeletons, are capable of mirroring itself from an upstream through a special CI job.
 
-  Enable mirroring from an upstream by scheduling a CI job and setting the =CI_MODE= variable to =mirror=. In addition, you need to set a number of other variables for the mirroring functionality to work:
+  Enable mirroring from an upstream by scheduling a CI job and setting the =CI_MODE= variable to =mirror=. You create a CI schedule by going to =CI / CD= -> =Schedules= in Gitlab. In addition, you need to set a number of other variables for the mirroring functionality to work:
   - =CI_MODE=: =CI_MODE= must be set to =mirror= which will skip running any of the normal build and test jobs and instead only run the mirror job
   - =GITLAB_HOSTKEY=: the public hostkey(s) of the GitLab server
     - run ~ssh-keyscan URL-OF-YOUR-GITLAB-SERVER~ to get suitable output to include in the variable value
   - =GIT_SSH_PRIV_KEY=: a private SSH key to use for cloning of its own repository and pushing the updates
-    - create a deploy key that has write privileges and enter the private key
-    - you can use your own SSH key too but it is better to use a deploy key
+    - create a deploy key that has write privileges
+      - generate a key locally ~ssh-keygen -t ed25519 -f my-nso-docker-mirror~
+      - in GitLab for your repository, go to =Settings= -> =CI / CD= -> =Deploy keys=
+      - create a new key, paste in the public part from what you generated
+        - Check =Write access allowed=
+    - enter the private key in the =GIT_SSH_PRIV_KEY= variable
   - =MIRROR_REMOTE=: the URL of the upstream repository that you wish to mirror
     - for example, to mirror the authoritative repo for =nso-docker=, use =https://gitlab.com/nso-developer/nso-docker.git=
   Set ~CI_MODE=mirror~ in the CI schedule (since this should only apply for that job and not the normal CI jobs). Use the repo wide CI variable section to set at least =GITLAB_HOSTKEY= and =GIT_SSH_PRIV_KEY=, possibly =MIRROR_REMOTE= too (or set from CI schedule). These are multi-line values and it appears some GitLab versions cannot correctly set multi-line values in the CI schedule, instead using repo wide CI variables effectively works around this issue.
