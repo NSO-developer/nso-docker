@@ -454,6 +454,23 @@ Do note that the example image URLs used above would be the result of the defaul
   #+END_SRC
   This will work for any repository hosted on the same GitLab instance as the =nso-developer/nso-docker= repo. Once you clone the =nso-docker= repository to your own environment, as you are encouraged to do, you are likely to place it in another namespace (not =nso-developer=) and so you must update the include statements for the dependent repositories accordingly.
 
+* Mirroring
+  You are encouraged to mirror any components in the NSO-in-Docker (NID) ecosystem that you use. While you can rely on binaries built upstream, including them in your NSO system means a build time risk as broken Internet connectivity or similar could mean you cannot download the packages you depend on. If you need to quickly rebuild your system to integrate a small hot fix, such a risk could mean you cannot deploy a new version. Mirroring the git source repositories of your dependencies not only mean you get to build them locally but also allows you to make minor (or major) modifications to the source. It could be to update the =.gitlab-ci.yml= file to add a build for a different NSO version or a minor patch to a NED. Mirroring was kept in mind while designing NID ecosystem.
+
+  While NSO in Docker isn't specifically built for Gitlab (the intention is to make it more general than that), it is currently well suited to be hosted in Gitlab since the accompanying CI configuration file is for Gitlab CI. Gitlab features a mirroring functionality that can either push or pull in changes from a remote repository. For example, this functionality is used on this repository to keep it in sync (through pushing) with [[https://github.com/nso-developer/nso-docker/]]. You can use GitLab mirroring to continuously mirror this repository, however, it comes with a major constraint; only fast-forward merging is possible. This essentially prevents you from making even the most minute changes to the repository as continued mirroring will break. While you are encouraged to upstream any patches or changes you might have for this repository and others in the NID world, there are times when you want to make changes, for example if you need to apply a particular CI runner tag or limit the versions of NSO that you build for. To cater to such scenarios, an alternative mirror mechanism is provided: The CI configuration of this repository and the repo skeletons, are capable of mirroring itself from an upstream through a special CI job.
+
+  Enable mirroring from an upstream by scheduling a CI job and setting the =CI_MODE= variable to =mirror=. In addition, you need to set a number of other variables for the mirroring functionality to work:
+  - =CI_MODE=: =CI_MODE= must be set to =mirror= which will skip running any of the normal build and test jobs and instead only run the mirror job
+  - =GITLAB_HOSTKEY=: the public hostkey(s) of the GitLab server
+    - run ~ssh-keyscan URL-OF-YOUR-GITLAB-SERVER~ to get suitable output to include in the variable value
+  - =GIT_SSH_PRIV_KEY=: a private SSH key to use for cloning of its own repository and pushing the updates
+    - create a deploy key that has write privileges and enter the private key
+    - you can use your own SSH key too but it is better to use a deploy key
+  - =MIRROR_REMOTE=: the URL of the upstream repository that you wish to mirror
+    - for example, to mirror the authoritative repo for =nso-docker=, use =https://gitlab.com/nso-developer/nso-docker.git=
+
+  The mirroring functionality is quite simple. It will run ~git clone~ to get a copy of its own repository (which is why it needs SSH host keys and deploy keys), then add the upstream repository as a HTTP mirror (presuming it is a public repository and does not require any credentials). It will then pull in changes, allowing merge conflicts, and finally push the result to its own repository, thus functionally achieving a mirror. It uses the user name and email of the user who initiated the CI build as the git commit author (for merge commits).
+
 * Contribution guidelines
   Contributions are welcome, however before you start writing code, please open an issue to discuss your idea or bug fix to make sure your ideas or intended solution align with the goals or ideals of the project.
 
