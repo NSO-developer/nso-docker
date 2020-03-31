@@ -148,14 +148,11 @@ def write_job_set(name, versions):
     with open("{}-tot5.yaml".format(name), "w") as f:
         f.write("".join(map(lambda x: formatter(x, name), f_tot(f_major(5, versions)))))
 
-def write_flat(versions):
-    with open("versions.txt", "w") as f:
+def write_flat(filename, versions):
+    with open(filename, "w") as f:
         f.write("".join(map(lambda x: frmt(flat_tmpl, x), versions)))
 
-with open("versions.json") as f:
-    versions = sorted(list(map(lambda x: vsn_split(x), json.load(f))))
-
-def write_multiver_test(versions):
+def write_multiver_test(filename, versions):
     """
     For a given version, we want to test upgrading from the trip of train for all previous trains within our major version. For example, for 5.3 we want to try upgrading from 5.2.1 and 5.1.2 which are the last maintenance releases of the 5.2 and 5.1 branch respectively. We also want to upgrade from the last 4 release, i.e. 4.7.6 at the time of this writing.
     For a given version we want to test:
@@ -168,7 +165,7 @@ def write_multiver_test(versions):
       - e.g. for 5.2.1, test going from from 5.1.2 and 5.3
     For 5.x versions, we want to test an upgrade from the last 4.x version
     """
-    with open("multiver.yaml", "w") as f:
+    with open(filename, "w") as f:
         for vsn in versions:
             olds = []
             majmin = vsn[0:2]
@@ -196,8 +193,23 @@ def write_multiver_test(versions):
 
             f.write("".join(map(lambda x: formatter_mv(x, vsn), sorted(list(set(olds) - set([vsn]))))))
 
-write_multiver_test(versions)
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('version_file', metavar='version-file')
+    parser.add_argument('--job')
+    parser.add_argument('--flat')
+    parser.add_argument('--multiver')
+    args = parser.parse_args()
 
-write_job_set('build', versions)
-write_job_set('push', versions)
-write_flat(versions)
+    with open(args.version_file) as f:
+        versions = sorted(list(map(lambda x: vsn_split(x), json.load(f))))
+
+    if args.multiver is not None:
+        write_multiver_test(args.multiver, versions)
+
+    if args.job is not None:
+        write_job_set(args.job, versions)
+
+    if args.flat is not None:
+        write_flat(args.flat, versions)
