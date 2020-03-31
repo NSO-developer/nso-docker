@@ -4,6 +4,7 @@ stages:
   - multiver-test
   - push
 
+
 # The before script makes sure that docker is installed, since that is a
 # prerequisite for most jobs. If the jobs are run with a standard debian or
 # Ubuntu image, docker isn't installed. To speed up the build, this install step
@@ -12,21 +13,6 @@ stages:
 before_script:
   - if [ "$(which docker)" == "/usr/bin/docker" ]; then echo "Docker already installed"; else echo "Docker is not installed, installing..." && apt-get update && apt-get install -qy apt-transport-https ca-certificates curl expect gnupg2 software-properties-common sshpass && curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && apt-key fingerprint 0EBFCD88 && add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" && apt-get update && apt-get install -qy docker-ce docker-ce-cli containerd.io; fi
 
-# Compute the version matrix and make sure that none of the generated files are
-# out of date with the source.
-version-matrix:
-  stage: build
-  except:
-    variables:
-      - $CI_MODE == "mirror"
-  script:
-    - apt-get update && apt-get install -qy git python3
-    - cd version-includes
-    - ./gen.py
-    - git add -N .
-    - git status
-    - git diff
-    - git diff --exit-code
 
 # Template for the standard build job
 .build:
@@ -42,6 +28,7 @@ version-matrix:
   after_script:
     - make -C test clean
 
+
 # Template for the standard multi-version testing job
 .multiver_test:
   stage: multiver-test
@@ -55,6 +42,7 @@ version-matrix:
   after_script:
     - make -C test clean
 
+
 # Template for the standard push job
 .push:
   stage: push
@@ -66,6 +54,7 @@ version-matrix:
     - if [ "${DOCKER_PUSH}" != "false" ]; then make pull; fi
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ]; then make tag-release; fi
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-release; fi
+
 
 mirror:
   stage: mirror
@@ -93,5 +82,21 @@ mirror:
 # the templates above for various version of NSO. The default is to build for
 # all supported NSO versions. It is normal to build your own version set for the
 # NSO versions you are interested in and include that here.
+# NOTE: the path used here needs to align with the CI job version-matrix below
 include:
   - 'version-includes/supported-nso/nso-docker.yaml'
+
+
+# Compute the version matrix and make sure that none of the generated files are
+# out of date with the source.
+# NOTE: the path here needs align with the included version set above
+version-matrix:
+  stage: build
+  script:
+    - apt-get update && apt-get install -qy git python3
+    - cd version-includes/support-nso
+    - make generate
+    - git add -N .
+    - git status
+    - git diff
+    - git diff --exit-code
