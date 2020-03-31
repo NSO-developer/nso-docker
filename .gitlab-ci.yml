@@ -1,4 +1,5 @@
 stages:
+  - mirror
   - build
   - multiver-test
   - push
@@ -8,6 +9,9 @@ before_script:
 
 version-matrix:
   stage: build
+  except:
+    variables:
+      - $CI_MODE == "mirror"
   script:
     - apt-get update && apt-get install -qy git python3
     - cd version-includes
@@ -19,6 +23,9 @@ version-matrix:
 
 .build:
   stage: build
+  except:
+    variables:
+      - $CI_MODE == "mirror"
   script:
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
     - make build
@@ -29,6 +36,9 @@ version-matrix:
 
 .multiver_test:
   stage: multiver-test
+  except:
+    variables:
+      - $CI_MODE == "mirror"
   script:
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
     - if [ "${DOCKER_PUSH}" != "false" ]; then make pull; fi
@@ -38,11 +48,35 @@ version-matrix:
 
 .push:
   stage: push
+  except:
+    variables:
+      - $CI_MODE == "mirror"
   script:
     - docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}
     - if [ "${DOCKER_PUSH}" != "false" ]; then make pull; fi
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ]; then make tag-release; fi
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-release; fi
+
+mirror:
+  stage: mirror
+  only:
+    variables:
+      - $CI_MODE == "mirror"
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install -y openssh-client )'
+    - 'which git || ( apt-get update -y && apt-get install -y git )'
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "${GIT_SSH_PRIV_KEY}")
+    - mkdir -p ~/.ssh
+    - echo "${GITLAB_HOSTKEY}" >> ~/.ssh/known_hosts
+    - git config --global user.email "${GITLAB_USER_EMAIL}"
+    - git config --global user.name "${GITLAB_USER_NAME}"
+  script:
+    - "git clone git@${CI_SERVER_HOST}:${CI_PROJECT_PATH}.git"
+    - cd "${CI_PROJECT_NAME}"
+    - git remote add upstream "${MIRROR_REMOTE}"
+    - git pull upstream master
+    - git push origin master
 
 include:
   - 'version-includes/build-all.yaml'
