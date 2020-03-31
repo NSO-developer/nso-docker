@@ -468,6 +468,18 @@ Do note that the example image URLs used above would be the result of the defaul
   #+END_SRC
   This will work for any repository hosted on the same GitLab instance as the =nso-developer/nso-docker= repo. Once you clone the =nso-docker= repository to your own environment, as you are encouraged to do, you are likely to place it in another namespace (not =nso-developer=) and so you must update the include statements for the dependent repositories accordingly.
 
+** Create new version set
+   Merely copy an existing version set, modify the =versions.json= file and regenerate the files. For example;
+
+   #+BEGIN_SRC shell
+     cp -av version-sets/supported-nso version-sets/my-versions
+     cd version-sets/my-versions
+     vi versions.json # edit the file to list the NSO versions you want
+     make generate
+   #+END_SRC
+
+   Include it in your nso-docker build or build of other packages in the NSO in Docker ecosystem.
+
 * Continuous mirroring
   You are encouraged to mirror any components in the NSO-in-Docker (NID) ecosystem that you use. While you can rely on binaries built upstream, including them in your NSO system means a build time risk as broken Internet connectivity or similar could mean you cannot download the packages you depend on. If you need to quickly rebuild your system to integrate a small hot fix, such a risk could mean you cannot deploy a new version. Mirroring the git source repositories of your dependencies not only mean you get to build them locally but also allows you to make minor (or major) modifications to the source. It could be to update the =.gitlab-ci.yml= file to add a build for a different NSO version or a minor patch to a NED. Mirroring was kept in mind while designing NID ecosystem.
 
