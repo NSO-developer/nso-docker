@@ -1,0 +1,4 @@
+include:
+  - '/version-sets/supported-nso/build-all.yaml'
+  - '/version-sets/supported-nso/multiver.yaml'
+  - '/version-sets/supported-nso/push-all.yaml'

@@ -89,7 +89,7 @@ mirror:
 # NSO versions you are interested in and include that here.
 # NOTE: the path used here needs to align with the CI job version-matrix below
 include:
-  - 'version-includes/supported-nso/nso-docker.yaml'
+  - 'version-sets/supported-nso/nso-docker.yaml'
 
 
 # Make sure the computed version set files are up to date with the source by
