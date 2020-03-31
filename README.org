@@ -434,23 +434,37 @@ Do note that the example image URLs used above would be the result of the defaul
 ** Security
    Note that exposing the Docker control socket has security implications. Containers as run by the CI runner normally provide isolation such that CI jobs are contained within the container and are unable to access anything outside of the container. By exposing the docker control socket, the CI jobs can start new containers, including starting a privileged one, which means it has root access on the host machine and enables escaping the container entirely. Do not grant access to your project or CI runner to anyone you do not trust. For example, someone that is able to create a branch on your repository can write a Gitlab CI configuration file that instructs the CI runner to run a privileged container and then gain access to the CI runner machine itself.
 
-* GitLab CI configuration files for inclusion
-  New NSO versions are released periodically and over time the list of NSO versions grows fairly long. For someone writing a NSO package, keeping the list of NSO versions to build and test for in CI up to date can be a time consuming task, in particular if there are many packages to be maintained. GitLab CI allows for inclusion of configuration files such that the project CI configuration can include another file that is external to the repo. By using this feature we can keep a central list of the NSO versions to test with.
+* Version sets for inclusion in CI configuration
+  The versions of NSO to build and test for will vary per environment. To handle this, the concept of "version sets" are used. A list of NSO versions is used to compute a number of CI configuration files that can be included from the main CI configuration and different lists can be used for different environments.
 
-  ~version-includes/versions.json~ is the root definition of the currently supported versions. ~version-includes/gen.py~ is a Python script that uses ~versions.json~ as input and produces a number of YAML files that can be included in other repositories.
+  For this repository in its online form at https://gitlab.com/nso-developer/nso-docker/, all currently supported versions of NSO are tested. This is useful to ensure that nso-docker itself is compatible with a wide range of NSO versions but also as other repositories in the NSO in Docker ecosystem can be checked against the same range of versions.
 
-  For example, we have ~build-all.yaml~, which uses the prototypical CI job definition called =build= and defines jobs for all currently supported versions of NSO.
+  Ideally, a typical user will test against two versions of NSO;
+  - the current version used in production
+  - the latest version of NSO, as the potential target to move to
 
-  ~build-all4.yaml~ is similar but only includes NSO 4.x versions, whereas ~build-all5.yaml~ does the same for NSO 5.x. Since NSO 5 looks quite different with schema-mount, it could be reasonable for some packages to only target NSO 5.
+  In practice, it is common to have a few versions, for example:
+  - 5.1.2 (current version)
+  - 5.1.4 (latest maintenance release in 5.1 train)
+    - this is a smaller step than going to a newer train, like 5.2 or 5.3
+  - 5.3.1 (latest NSO version)
 
-  ~build-tot.yaml~ only includes the "tip" of each train, where a train is the combination of a major and minor version number. Patch releases are not considered for tip-of-train as they are not supposed to be used by the wide masses. For example, if we have 4.7, 4.7.1, 4.7.2 and 4.7.2.1 as well as 5.2.1, the tip-of-train would include 4.7.2 and 5.2.1.
+  New NSO versions are released periodically and over time the list of NSO versions grows fairly long. For someone writing a NSO package, keeping the list of NSO versions to build and test for in CI up to date can be a time consuming task, in particular if there are many packages to be maintained. GitLab CI allows for inclusion of configuration files such that the project CI configuration can include another file that is external to the repo. By using this feature we can keep a central list of the NSO versions to test with across multiple repositories.
 
-  To include a file, use the ~include~ directory, for example:
+  =version-sets/supported-nso/versions.json= is the root definition of the currently supported versions. =version-sets/version-get= is a Python script that is run from =version-sets/supported-nso/Makefile= and which uses =version-sets/supported-nso/versions.json= as input and produces a number of YAML files in =version-sets/supported-nso/= that can be included in other repositories.
+
+  For example, we have =build-all.yaml=, which uses the standard CI job definition called =build= and defines jobs for all currently supported versions of NSO.
+
+  =build-all4.yaml= is similar but only includes NSO 4.x versions, whereas =build-all5.yaml= does the same for NSO 5.x. Since NSO 5 looks quite different with schema-mount, it could be reasonable for some packages to only target NSO 5.
+
+  =build-tot.yaml= only includes the "tip" of each train, where a train is the combination of a major and minor version number. Patch releases are not considered for tip-of-train as they are not supposed to be used by the wide masses. For example, if we have 4.7, 4.7.1, 4.7.2 and 4.7.2.1 as well as 5.2.1, the tip-of-train would include 4.7.2 and 5.2.1. Similarly, there's also =build-tot4.yaml= and =build-tot5.yaml= for tip of train for NSO 4 or NSO 5 respectively.
+
+  To include a file, use the =include= directory, for example:
   #+BEGIN_SRC yaml
     include:
       - project: 'nso-developer/nso-docker'
         ref: master
-        file: '/version-includes/build-tot5.yaml'
+        file: '/version-sets/supported-nso/build-tot5.yaml'
   #+END_SRC
   This will work for any repository hosted on the same GitLab instance as the =nso-developer/nso-docker= repo. Once you clone the =nso-docker= repository to your own environment, as you are encouraged to do, you are likely to place it in another namespace (not =nso-developer=) and so you must update the include statements for the dependent repositories accordingly.
 
@@ -485,10 +499,8 @@ Do note that the example image URLs used above would be the result of the defaul
 
    #+BEGIN_SRC yaml
      include:
-       - 'version-includes/build-all.yaml'
-       - 'version-includes/multiver.yaml'
-       - 'version-includes/push-all.yaml'
-       - 'my-ci-config.yml'
+       - '/version-sets/supported-nso/nso-docker.yaml'
+       - '/my-ci-config.yml'
    #+END_SRC
 
    Note how we are merely appending to the already existing include statement. It is a YAML dict and adding a new =include:= line would effectively overwrite the old one.
