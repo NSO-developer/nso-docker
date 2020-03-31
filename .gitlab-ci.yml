@@ -63,7 +63,8 @@ mirror:
     variables:
       - $CI_MODE == "mirror"
   before_script:
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - 'which ssh-agent || ( apt-get update -y && apt-get install -y openssh-client )'
+    - 'which git || ( apt-get update -y && apt-get install -y git )'
     - eval $(ssh-agent -s)
     - ssh-add <(echo "${GIT_SSH_PRIV_KEY}")
     - mkdir -p ~/.ssh
