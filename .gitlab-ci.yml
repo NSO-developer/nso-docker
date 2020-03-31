@@ -79,6 +79,4 @@ mirror:
     - git push origin master
 
 include:
-  - 'version-includes/build-all.yaml'
-  - 'version-includes/multiver.yaml'
-  - 'version-includes/push-all.yaml'
+  - 'version-includes/supported-nso/nso-docker.yaml'

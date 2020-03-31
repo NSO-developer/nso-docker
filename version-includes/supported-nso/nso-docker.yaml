@@ -1,0 +1,4 @@
+include:
+  - 'build-all.yaml'
+  - 'multiver.yaml'
+  - 'push-all.yaml'
