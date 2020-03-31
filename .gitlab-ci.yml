@@ -56,6 +56,11 @@ before_script:
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-release; fi
 
 
+# Special CI job for running a mirroring job that pulls in the latest changes
+# from upstream. Unlike normal GitLab mirroring, which fails whenever the local
+# repository has diverged (has changes), this job uses a normal 'git pull' which
+# means merge commits are used when necessary. It essentially allows local
+# modifications.
 mirror:
   stage: mirror
   only:
@@ -78,7 +83,7 @@ mirror:
     - git push origin master
 
 
-# Version files to include. These file contain the actual jobs that instantiate
+# Version set to include. These file contain the actual jobs that instantiate
 # the templates above for various version of NSO. The default is to build for
 # all supported NSO versions. It is normal to build your own version set for the
 # NSO versions you are interested in and include that here.
@@ -87,10 +92,10 @@ include:
   - 'version-includes/supported-nso/nso-docker.yaml'
 
 
-# Compute the version matrix and make sure that none of the generated files are
-# out of date with the source.
+# Make sure the computed version set files are up to date with the source by
+# regenerating and checking if we get a diff.
 # NOTE: the path here needs align with the included version set above
-version-matrix:
+test-version-set:
   stage: build
   script:
     - apt-get update && apt-get install -qy git python3
