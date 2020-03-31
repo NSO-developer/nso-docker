@@ -1,4 +1,4 @@
 include:
-  - 'build-all.yaml'
-  - 'multiver.yaml'
-  - 'push-all.yaml'
+  - '/version-includes/supported-nso/build-all.yaml'
+  - '/version-includes/supported-nso/multiver.yaml'
+  - '/version-includes/supported-nso/push-all.yaml'
