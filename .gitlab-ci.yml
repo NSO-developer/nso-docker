@@ -95,11 +95,11 @@ include:
 # Make sure the computed version set files are up to date with the source by
 # regenerating and checking if we get a diff.
 # NOTE: the path here needs align with the included version set above
-test-version-set:
+.test-version-set:
   stage: build
   script:
     - apt-get update && apt-get install -qy git python3
-    - cd version-sets/supported-nso
+    - cd version-sets/${VERSION_SET}
     - make generate
     - git add -N .
     - git status
