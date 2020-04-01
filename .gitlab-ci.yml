@@ -97,6 +97,9 @@ include:
 # NOTE: the path here needs align with the included version set above
 .test-version-set:
   stage: build
+  except:
+    variables:
+      - $CI_MODE == "mirror"
   script:
     - apt-get update && apt-get install -qy git python3
     - cd version-sets/${VERSION_SET}
