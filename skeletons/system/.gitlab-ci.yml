@@ -1,10 +1,22 @@
+# Stages for our CI jobs
+# Gitlab only allows the specification of one progression of stages. We use two
+# different "modes" for running our jobs, which are essentially mutually
+# exclusive. In the special CI_MODE=mirror, there is only a single mirror job
+# that runs in the mirror stage. For a normal CI run, the other stages are used.
 stages:
   - mirror
   - build
 
+# The before script makes sure that docker is installed, since that is a
+# prerequisite for most jobs. If the jobs are run with a standard debian or
+# Ubuntu image, docker isn't installed. To speed up the build, this install step
+# can be skipped by running an image that already has docker installed, for
+# example registry.gitlab.com/nso-developer/ci-runner-image:latest
 before_script:
   - if [ "$(which docker)" == "/usr/bin/docker" ]; then echo "Docker already installed"; else echo "Docker is not installed, installing..." && apt-get update && apt-get install -qy apt-transport-https ca-certificates curl expect gnupg2 software-properties-common sshpass xmlstarlet && curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && apt-key fingerprint 0EBFCD88 && add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" && apt-get update && apt-get install -qy docker-ce docker-ce-cli containerd.io; fi
 
+
+# Template for the standard build job
 .build:
   stage: build
   except:
