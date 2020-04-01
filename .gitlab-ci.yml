@@ -4,23 +4,17 @@ stages:
   - multiver-test
   - push
 
+
+# The before script makes sure that docker is installed, since that is a
+# prerequisite for most jobs. If the jobs are run with a standard debian or
+# Ubuntu image, docker isn't installed. To speed up the build, this install step
+# can be skipped by running an image that already has docker installed, for
+# example registry.gitlab.com/nso-developer/ci-runner-image:latest
 before_script:
   - if [ "$(which docker)" == "/usr/bin/docker" ]; then echo "Docker already installed"; else echo "Docker is not installed, installing..." && apt-get update && apt-get install -qy apt-transport-https ca-certificates curl expect gnupg2 software-properties-common sshpass && curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && apt-key fingerprint 0EBFCD88 && add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" && apt-get update && apt-get install -qy docker-ce docker-ce-cli containerd.io; fi
 
-version-matrix:
-  stage: build
-  except:
-    variables:
-      - $CI_MODE == "mirror"
-  script:
-    - apt-get update && apt-get install -qy git python3
-    - cd version-includes
-    - ./gen.py
-    - git add -N .
-    - git status
-    - git diff
-    - git diff --exit-code
 
+# Template for the standard build job
 .build:
   stage: build
   except:
@@ -34,6 +28,8 @@ version-matrix:
   after_script:
     - make -C test clean
 
+
+# Template for the standard multi-version testing job
 .multiver_test:
   stage: multiver-test
   except:
@@ -46,6 +42,8 @@ version-matrix:
   after_script:
     - make -C test clean
 
+
+# Template for the standard push job
 .push:
   stage: push
   except:
@@ -57,6 +55,12 @@ version-matrix:
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ]; then make tag-release; fi
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-release; fi
 
+
+# Special CI job for running a mirroring job that pulls in the latest changes
+# from upstream. Unlike normal GitLab mirroring, which fails whenever the local
+# repository has diverged (has changes), this job uses a normal 'git pull' which
+# means merge commits are used when necessary. It essentially allows local
+# modifications.
 mirror:
   stage: mirror
   only:
@@ -78,7 +82,29 @@ mirror:
     - git pull upstream master
     - git push origin master
 
+
+# Version set to include. These file contain the actual jobs that instantiate
+# the templates above for various version of NSO. The default is to build for
+# all supported NSO versions. It is normal to build your own version set for the
+# NSO versions you are interested in and include that here.
+# NOTE: the path used here needs to align with the CI job version-matrix below
 include:
-  - 'version-includes/build-all.yaml'
-  - 'version-includes/multiver.yaml'
-  - 'version-includes/push-all.yaml'
+  - 'version-sets/supported-nso/nso-docker.yaml'
+
+
+# Make sure the computed version set files are up to date with the source by
+# regenerating and checking if we get a diff.
+# NOTE: the path here needs align with the included version set above
+.test-version-set:
+  stage: build
+  except:
+    variables:
+      - $CI_MODE == "mirror"
+  script:
+    - apt-get update && apt-get install -qy git python3
+    - cd version-sets/${VERSION_SET}
+    - make generate
+    - git add -N .
+    - git status
+    - git diff
+    - git diff --exit-code
