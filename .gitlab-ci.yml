@@ -88,18 +88,8 @@ mirror:
     - git push origin master
 
 
-# Version set to include. These file contain the actual jobs that instantiate
-# the templates above for various version of NSO. The default is to build for
-# all supported NSO versions. It is normal to build your own version set for the
-# NSO versions you are interested in and include that here.
-# NOTE: the path used here needs to align with the CI job version-matrix below
-include:
-  - 'version-sets/supported-nso/nso-docker.yaml'
-
-
 # Make sure the computed version set files are up to date with the source by
 # regenerating and checking if we get a diff.
-# NOTE: the path here needs align with the included version set above
 .test-version-set:
   stage: build
   except:
@@ -113,3 +103,11 @@ include:
     - git status
     - git diff
     - git diff --exit-code
+
+
+# Version set to include. These file contain the actual jobs that instantiate
+# the templates above for various version of NSO. The default is to build for
+# all supported NSO versions. It is normal to build your own version set for the
+# NSO versions you are interested in and include that here.
+include:
+  - 'version-sets/supported-nso/nso-docker.yaml'
