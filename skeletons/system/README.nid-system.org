@@ -20,6 +20,13 @@
 ** NSO_IMAGE_PATH
    The =NSO_IMAGE_PATH= specifies the location of the NSO images that are used for building. If you have built NSO in Docker images locally, i.e. you have the images =cisco-nso-base= and =cisco-nso-dev= available locally, you do not need to set =NSO_IMAGE_PATH=. If you want to use images built elsewhere, perhaps from a CI system, you need to specify the path to the Docker registry hosting the images, like =registry.gitlab.com/my-group/nso-docker/=.
 
+** IMAGE_PATH
+   =IMAGE_PATH= specifies the base path for the resulting output images.
+
+   In CI, =IMAGE_PATH= is automatically set, if not already defined (through a CI variable), to the project namespace path. For example, for the project =gitlab.com/example/foobar=, the =IMAGE_PATH= would be =registry.gitlab.com/example/=.
+
+   For a local build, =IMAGE_PATH= does not have a default value but can be manually set.
+
 ** Building and testing
    The =build= make target will produce a docker image that runs NSO and has the specified packages loaded.
 
