@@ -99,8 +99,8 @@ devenv-shell:
 
 devenv-build:
 	docker run -it --rm -v $(PWD):/src -v $(CNT_PREFIX)-packages:/dst $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -lc 'cp -a /src/packages/* /dst/; cp -av /src/test-packages/* /dst/; for PKG in $$(ls /src/packages /src/test-packages); do make -C /dst/$${PKG}/src; done'
-	$(MAKE) testenv-runcmd CMD="request packages reload"
-	$(MAKE) testenv-runcmd CMD="show packages"
+	$(MAKE) testenv-runcmdJ CMD="request packages reload"
+	$(MAKE) testenv-runcmdJ CMD="show packages"
 
 devenv-clean:
 	docker run -it --rm -v $(PWD):/src -v $(CNT_PREFIX)-packages:/dst $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -lc 'ls /dst/ | xargs --no-run-if-empty rm -rf'
@@ -118,7 +118,7 @@ testenv-start:
 	docker run -td --name $(CNT_PREFIX)-netsim $(DOCKER_ARGS) --network-alias dev1 $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(DOCKER_TAG)
 	$(MAKE) testenv-start-extra
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'ncs --wait-started 600'
-	$(MAKE) testenv-runcmd CMD="show packages"
+	$(MAKE) testenv-runcmdJ CMD="show packages"
 
 testenv-stop:
 	docker ps -aq --filter label=$(CNT_PREFIX) | xargs --no-run-if-empty docker rm -f

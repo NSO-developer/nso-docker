@@ -45,10 +45,11 @@
      - removes an optional volume (see =devenv= for more info on volume usage)
    - =testenv-shell=: Get an interactive =bash= shell in the =nso= container
    - =testenv-cli=: Get an interactive NSO CLI (=ncs_cli=) in the =nso= container
-   - =testenv-runcmd=: Run a command with =ncs_cli=, provide the command through the environment variable =CMD=
-     - the =testenv-runcmd= target can be called to run a command, from an interactive shell like ~make testenv-runcmd CMD="show ncs-state version"~
+   - =testenv-runcmdC= / =testenv-runcmdJ=: Run a command with =ncs_cli=, provide the command through the environment variable =CMD=
+     - the command is expected in the C-style CLI syntax for =testenv-runcmdC= or J-style CLI with =testenv-runcmdJ=
+     - the runcmd targets can be called to run a command, from an interactive shell like ~make testenv-runcmdJ CMD="show ncs-state version"~
      - it can also be called from other make targets, for example to run commands from tests
-       - ~$(MAKE) testenv-runcmd CMD="show ncs-state version"~
+       - ~$(MAKE) testenv-runcmdJ CMD="show ncs-state version"~
 
    To access NSO via one of its northbound interfaces, like NETCONF or RESTCONF, use the credentials =admin= / =NsoDocker1337=.
 

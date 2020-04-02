@@ -14,13 +14,13 @@ testenv-start-extra:
 testenv-test:
 	@echo "TODO: Fill in your tests here"
 # Some examples for how to run commands in the ncs_cli:
-#	$(MAKE) testenv-runcmd CMD="show packages"
-#	$(MAKE) testenv-runcmd CMD="request packages reload"
+#	$(MAKE) testenv-runcmdJ CMD="show packages"
+#	$(MAKE) testenv-runcmdJ CMD="request packages reload"
 # Multiple commands in a single session also works - great for configuring stuff:
-#	$(MAKE) testenv-runcmd CMD="configure\n set foo bar\n commit"
+#	$(MAKE) testenv-runcmdJ CMD="configure\n set foo bar\n commit"
 # We can test for certain output by combining show commands in the CLI with for
 # example grep:
-#	$(MAKE) testenv-runcmd CMD="show configuration foo" | grep bar
+#	$(MAKE) testenv-runcmdJ CMD="show configuration foo" | grep bar
 
 # Included below is an example test that covers the basics for a working NED and
 # netsim. The testenv-start target will set up the test environment by starting:
@@ -55,14 +55,14 @@ testenv-test:
 	echo $(NSO_VERSION) | grep "^4" && xmlstarlet sel -N x=http://tail-f.com/ns/ncs-packages -t -c "//x:ned-id" tmp/package-meta-data.xml | grep cli && STRIP_NED=' -d "//x:ned-id" '; \
 		xmlstarlet sel -R -N x=http://tail-f.com/ns/ncs-packages -t -c "//*[x:ned-id]" -c "document('test/add-device.xml')" tmp/package-meta-data.xml | xmlstarlet edit -O -N x=http://tail-f.com/ns/ncs-packages -N y=http://tail-f.com/ns/ncs -d "/x:xsl-select/*[x:ned-id]/*[not(self::x:ned-id)]" -m "/x:xsl-select/*[x:ned-id]" "/x:xsl-select/y:devices/y:device/y:device-type" $${STRIP_NED} | tail -n +2 | head -n -1 | cut -c 3- > tmp/add-device.xml
 	docker cp tmp/add-device.xml $(CNT_PREFIX)-nso:/add-device.xml
-	$(MAKE) testenv-runcmd CMD="configure\nload merge /add-device.xml\ncommit\nexit"
-	$(MAKE) testenv-runcmd CMD="show devices brief"
-	$(MAKE) testenv-runcmd CMD="request devices device dev1 ssh fetch-host-keys"
-	$(MAKE) testenv-runcmd CMD="request devices device dev1 sync-from"
+	$(MAKE) testenv-runcmdJ CMD="configure\nload merge /add-device.xml\ncommit\nexit"
+	$(MAKE) testenv-runcmdJ CMD="show devices brief"
+	$(MAKE) testenv-runcmdJ CMD="request devices device dev1 ssh fetch-host-keys"
+	$(MAKE) testenv-runcmdJ CMD="request devices device dev1 sync-from"
 
 	@echo "Configure hostname on device through NSO"
 	docker cp test/device-config-hostname.xml $(CNT_PREFIX)-nso:/device-config-hostname.xml
-	$(MAKE) testenv-runcmd CMD="configure\nload merge /device-config-hostname.xml\ncommit\nexit"
-	$(MAKE) testenv-runcmd CMD="show configuration devices device dev1 config" | grep foobarhostname
-	$(MAKE) testenv-runcmd CMD="request devices device dev1 sync-from"
-	$(MAKE) testenv-runcmd CMD="show configuration devices device dev1 config" | grep foobarhostname
+	$(MAKE) testenv-runcmdJ CMD="configure\nload merge /device-config-hostname.xml\ncommit\nexit"
+	$(MAKE) testenv-runcmdJ CMD="show configuration devices device dev1 config" | grep foobarhostname
+	$(MAKE) testenv-runcmdJ CMD="request devices device dev1 sync-from"
+	$(MAKE) testenv-runcmdJ CMD="show configuration devices device dev1 config" | grep foobarhostname

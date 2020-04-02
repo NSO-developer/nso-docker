@@ -14,10 +14,10 @@ testenv-start-extra:
 testenv-test:
 	@echo "TODO: Fill in your tests here"
 # Some examples for how to run commands in the ncs_cli:
-#	$(MAKE) testenv-runcmd CMD="show packages"
-#	$(MAKE) testenv-runcmd CMD="request packages reload"
+#	$(MAKE) testenv-runcmdJ CMD="show packages"
+#	$(MAKE) testenv-runcmdJ CMD="request packages reload"
 # Multiple commands in a single session also works - great for configuring stuff:
-#	$(MAKE) testenv-runcmd CMD="configure\n set foo bar\n commit"
+#	$(MAKE) testenv-runcmdJ CMD="configure\n set foo bar\n commit"
 # We can test for certain output by combining show commands in the CLI with for
 # example grep:
-#	$(MAKE) testenv-runcmd CMD="show configuration foo" | grep bar
+#	$(MAKE) testenv-runcmdJ CMD="show configuration foo" | grep bar
