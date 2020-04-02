@@ -63,6 +63,8 @@
 
    Instead of starting with =testenv-start= you start up a devenv using =devenv-start=. After modifying the source you can use =devenv-build= to build your package and reload it in NSO.
 
+   =devenv-build= will only rebuild the packages in =packages/= and =test-packages/=. Included packages that are specified through manifests in the =includes/= directory, are not rebuilt. Since they might not ship with their source code, it might not even be possible.
+
    It is possible to develop using the normal build and the testenv by modifying the code and running ~make build testenv-stop test~ which will:
    - stop the currently running testenv
    - compile all packages and build new =testnso= Docker images
@@ -124,6 +126,21 @@
 
   Modify the =Makefile=, which includes some examples, to apply the tests you want.
 
+* Including external packages
+  You can include externally built packages by placing a manifest file in the =includes/= folder. It is in fact encouraged to build most packages, such as NEDs and other packages on their own separate git repositories where they can be developed and tested in isolation and later include them.
+
+  There should be one manifest file in the =includes/= directory per package you want to include. The content of the file should be the URL to the Docker image, including the full registry path. For example, to include =bgworker=, a Python library for writing background workers in NSO, the manifest file could look like this:
+
+  #+BEGIN_SRC text
+    ${PKG_PATH}bgworker:${NSO_VERSION}
+  #+END_SRC
+
+  When run in CI, =PKG_PATH= is set to the Docker registry up and including the namespace of the current project. If our project is hosted at http://gitlab.com/example/my-project and the corresponding Docker registry path is =registry.gitlab.com/example/my-project/=, then =PKG_PATH= will be set to =registry.gitlab.com/example/=. =NSO_VERSION= naturally contains the value of the NSO version we are currently working with. Evaluating our manifest file, if we are running a CI build for NSO 5.3, we see that it will result in the inclusion of =registry.gitlab.com/example/bgworker:5.3=.
+
+  It is recommended that =PKG_PATH= is always used and that you use continuous mirroring to mirror packages to your own Gitlab instance into the same namespace so that this relative inclusion works.
+
+  Included packages are included in the =testnso= container image but not in the final output in the =package= image.
+
 * Skeleton content
   The NID package standard form comes as a skeleton that can be applied to a repository by copying over a number of files to your repository. The files are:
   - =README.nid-package.org=: This README file
@@ -134,6 +151,7 @@
   - =test/=: Directory containing test related files
   - =packages/=: Standard location for placing the NSO package itself
   - =test-packages/=: Standard location for placing NSO packages for testing. These are included in the =testnso= container that can be used to test the package but aren't included in the final output.
+  - =includes/=: Standard location for placing manifests for including externally built packages
 
 ** Skeleton source location and updating the skeleton
    The authoritative origin for the standard form NID package skeleton is the =nso-docker= repository at [[https://gitlab.com/nso-developer/nso-docker/]], specifically in the directory =skeletons/package=. To upgrade to a later version of the skeleton, pull the files from that location and avoid touching the =Makefile= as it typically contains custom modifications. Be sure to include files starting with a dot (=.=).
