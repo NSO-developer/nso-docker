@@ -148,3 +148,29 @@
 
 ** Skeleton source location and updating the skeleton
    The authoritative origin for the standard form NED skeleton is the =nso-docker= repository at [[https://gitlab.com/nso-developer/nso-docker/]], specifically in the directory =skeletons/ned=. To upgrade to a later version of the skeleton, pull the files from that location and avoid touching the =Makefile= as it typically contains custom modifications. Be sure to include files starting with a dot (=.=).
+
+* Continuous mirroring
+  In the NSO in Docker (NID) ecosystem, you are encouraged to mirror repositories that you use. If you found this repository outside of your own git hosting system, you should mirror it to your own git host for it to be built there by your own CI system.
+
+  While you can rely on binaries built upstream, including them in your NSO system means a build time risk as broken Internet connectivity or similar could mean you cannot download the packages you depend on. If you need to quickly rebuild your system to integrate a small hot fix, such a risk could mean you cannot deploy a new version. Mirroring the git source repositories of your dependencies not only mean you get to build them locally but also allows you to make minor (or major) modifications to the source. It could be to update the =.gitlab-ci.yml= file to add a build for a different NSO version or a minor patch to a NED. Mirroring was kept in mind while designing NID ecosystem.
+
+  We think it is important to keep a copy of your dependencies locally (in your own Gitlab instance) such that you can build it yourself if necessary. We also think it is important to keep dependencies up to date - in fact, we would like to encourage to "live-at-head", i.e. follow and include the latest version of a dependency. This is why continuous mirroring of an upstream repository makes sense. However, you should not blindly accept new versions into your main NSO system build as it can break your downstream builds. A gating function is needed and we propose a explicit version pinning workflow to provide for that gating function.
+
+  While NSO in Docker isn't specifically built for Gitlab (the intention is to make it more general than that), it is currently well suited to be hosted in Gitlab since the accompanying CI configuration file is for Gitlab CI. Gitlab features a mirroring functionality that can either push or pull in changes from a remote repository. You can use GitLab mirroring to continuously mirror this repository, however, it comes with a major constraint; only fast-forward merging is possible. This essentially prevents you from making even the most minute changes to the repository as continued mirroring will break. While you are encouraged to upstream any patches or changes you might have for this repository and others in the NID world, there are times when you want to make changes, for example if you need to apply a particular CI runner tag or limit the versions of NSO that you build for. To cater to such scenarios, an alternative mirror mechanism is provided: The CI configuration of this repository and the repo skeletons, are capable of mirroring itself from an upstream through a special CI job.
+
+  Enable mirroring from an upstream by scheduling a CI job and setting the =CI_MODE= variable to =mirror=. You create a CI schedule by going to =CI / CD= -> =Schedules= in Gitlab. In addition, you need to set a number of other variables for the mirroring functionality to work:
+  - =CI_MODE=: =CI_MODE= must be set to =mirror= which will skip running any of the normal build and test jobs and instead only run the mirror job
+  - =GITLAB_HOSTKEY=: the public hostkey(s) of the GitLab server
+    - run ~ssh-keyscan URL-OF-YOUR-GITLAB-SERVER~ to get suitable output to include in the variable value
+  - =GIT_SSH_PRIV_KEY=: a private SSH key to use for cloning of its own repository and pushing the updates
+    - create a deploy key that has write privileges
+      - generate a key locally ~ssh-keygen -t ed25519 -f my-nso-docker-mirror~
+      - in GitLab for your repository, go to =Settings= -> =CI / CD= -> =Deploy keys=
+      - create a new key, paste in the public part from what you generated
+        - Check =Write access allowed=
+    - enter the private key in the =GIT_SSH_PRIV_KEY= variable
+  - =MIRROR_REMOTE=: the URL of the upstream repository that you wish to mirror
+    - for example, to mirror the authoritative repo for =nso-docker=, you would use =https://gitlab.com/nso-developer/nso-docker.git=
+  Set ~CI_MODE=mirror~ in the CI schedule (since this should only apply for that job and not the normal CI jobs). Use the repo wide CI variable section to set at least =GITLAB_HOSTKEY= and =GIT_SSH_PRIV_KEY=, possibly =MIRROR_REMOTE= too (or set from CI schedule). These are multi-line values and it appears some GitLab versions cannot correctly set multi-line values in the CI schedule, instead using repo wide CI variables effectively works around this issue.
+
+  The mirroring functionality is quite simple. It will run ~git clone~ to get a copy of its own repository (which is why it needs SSH host keys and deploy keys), then add the upstream repository as a HTTP mirror (presuming it is a public repository and does not require any credentials). It will then pull in changes, allowing merge conflicts, and finally push the result to its own repository, thus functionally achieving a mirror. It uses the user name and email of the user who initiated the CI build as the git commit author (for merge commits).

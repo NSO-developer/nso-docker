@@ -1,11 +1,27 @@
+# Stages for our CI jobs
+# Gitlab only allows the specification of one progression of stages. We use two
+# different "modes" for running our jobs, which are essentially mutually
+# exclusive. In the special CI_MODE=mirror, there is only a single mirror job
+# that runs in the mirror stage. For a normal CI run, the other stages are used.
 stages:
+  - mirror
   - build
 
+# The before script makes sure that docker is installed, since that is a
+# prerequisite for most jobs. If the jobs are run with a standard debian or
+# Ubuntu image, docker isn't installed. To speed up the build, this install step
+# can be skipped by running an image that already has docker installed, for
+# example registry.gitlab.com/nso-developer/ci-runner-image:latest
 before_script:
   - if [ "$(which docker)" == "/usr/bin/docker" ]; then echo "Docker already installed"; else echo "Docker is not installed, installing..." && apt-get update && apt-get install -qy apt-transport-https ca-certificates curl expect gnupg2 software-properties-common sshpass xmlstarlet && curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && apt-key fingerprint 0EBFCD88 && add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" && apt-get update && apt-get install -qy docker-ce docker-ce-cli containerd.io; fi
 
+
+# Template for the standard build job
 .build:
   stage: build
+  except:
+    variables:
+      - $CI_MODE == "mirror"
   script:
     - if [ -n "${CI_DOCKER_USER}" ]; then echo "Using provided credentials for authentication with docker registry"; docker login -u ${CI_DOCKER_USER} -p ${CI_DOCKER_PASSWORD} ${CI_REGISTRY}; else docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}; fi
     - echo "Building for NSO version ${NSO_VERSION}"
@@ -17,6 +33,34 @@ before_script:
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-release; fi
   after_script:
     - make testenv-stop
+
+
+# Special CI job for running a mirroring job that pulls in the latest changes
+# from upstream. Unlike normal GitLab mirroring, which fails whenever the local
+# repository has diverged (has changes), this job uses a normal 'git pull' which
+# means merge commits are used when necessary. It essentially allows local
+# modifications.
+mirror:
+  stage: mirror
+  only:
+    variables:
+      - $CI_MODE == "mirror"
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install -y openssh-client )'
+    - 'which git || ( apt-get update -y && apt-get install -y git )'
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "${GIT_SSH_PRIV_KEY}")
+    - mkdir -p ~/.ssh
+    - echo "${GITLAB_HOSTKEY}" >> ~/.ssh/known_hosts
+    - git config --global user.email "${GITLAB_USER_EMAIL}"
+    - git config --global user.name "${GITLAB_USER_NAME}"
+  script:
+    - "git clone git@${CI_SERVER_HOST}:${CI_PROJECT_PATH}.git"
+    - cd "${CI_PROJECT_NAME}"
+    - git remote add upstream "${MIRROR_REMOTE}"
+    - git pull upstream master
+    - git push origin master
+
 
 # Include CI configuration file of NSO versions to build for from the upstream
 # nso-docker repo. This is good for public packages as they will be tested
