@@ -38,7 +38,11 @@ endif
 
 .PHONY: all build build-all build-file build-version test test-file test-version test-file-multiver test-version-multiver tag-release push-release $(NSO_BUILD) $(NSO_TEST)
 
-all: build-all test-all
+all:
+	@echo "The default make target will build Docker images out of all the NSO"
+	@echo "versions found in $(NSO_INSTALL_FILES_DIR). To also run the test"
+	@echo "suite for the built images, run 'make test-all'"
+	$(MAKE) build-all
 
 # build target based on NSO version as input
 # run like: make NSO_VERSION=5.2.1 build
