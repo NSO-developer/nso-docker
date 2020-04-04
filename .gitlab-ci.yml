@@ -10,14 +10,13 @@ stages:
   - push
 
 
-# The before script makes sure that docker is installed, since that is a
-# prerequisite for most jobs. If the jobs are run with a standard debian or
-# Ubuntu image, docker isn't installed. To speed up the build, this install step
-# can be skipped by running an image that already has docker installed, for
-# example registry.gitlab.com/nso-developer/ci-runner-image:latest
+# The before script makes sure that our prerequisites are installed . If the
+# jobs are run with a standard debian or Ubuntu image, most prerequisites are
+# not installed. To speed up the build, this install step can be skipped by
+# running an image that already has the prerequisites installed, for example
+# registry.gitlab.com/nso-developer/ci-runner-image:latest
 before_script:
-  - if [ "$(which docker)" == "/usr/bin/docker" ]; then echo "Docker already installed"; else echo "Docker is not installed, installing..." && apt-get update && apt-get install -qy apt-transport-https ca-certificates curl expect gnupg2 software-properties-common sshpass && curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && apt-key fingerprint 0EBFCD88 && add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" && apt-get update && apt-get install -qy docker-ce docker-ce-cli containerd.io; fi
-
+  - which curl docker expect gpg2 sshpass || (echo "Installing prerequisites..." && apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -qy apt-transport-https ca-certificates curl expect gnupg2 software-properties-common sshpass; which docker || (echo "Installing docker..." && curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && apt-key fingerprint 0EBFCD88 && add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" && apt-get -y update && apt-get -qy install -qy docker-ce docker-ce-cli containerd.io))
 
 # Template for the standard build job
 .build:
