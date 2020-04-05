@@ -14,7 +14,7 @@ endif
 export DOCKER_REGISTRY
 
 ifneq ($(FILE),)
-NSO_VERSION:=$(shell basename $(FILE) | sed -E -e 's/(ncs|nso)-([0-9.]*).linux.x86_64.installer.bin/\2/')
+NSO_VERSION:=$(shell basename $(FILE) | sed -E -e 's/(ncs|nso)-(.+).linux.x86_64.installer.bin/\2/')
 endif
 
 ifneq ($(CI_PIPELINE_ID),)
