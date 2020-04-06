@@ -44,9 +44,9 @@ endif
 # of the packages directory. We look for packages/*/src/package-meta-data.xml*
 # which is then assumed to be the NED package we are looking for
 ifeq ($(NED_NAME),)
-ifeq ($(shell ls packages/*/src/package-meta-data.xml* | wc -l),0)
-$(warning Could not determine NED package name automatically. No directory found based on globa packages/*/src/package-meta-data.xml*)
-else ifeq ($(shell ls packages/*/src/package-meta-data.xml* | wc -l),1)
+ifeq ($(shell ls packages/*/src/package-meta-data.xml* | wc -l | tr -d ' '),0)
+$(warning Could not determine NED package name automatically. No directory found based on glob packages/*/src/package-meta-data.xml*)
+else ifeq ($(shell ls packages/*/src/package-meta-data.xml* | wc -l | tr -d ' '),1)
 NED_NAME=$(shell basename $(shell dirname $(shell dirname $(shell ls packages/*/src/package-meta-data.xml*))))
 else
 $(warning Could not determine NED package name automatically. Multiple directories found based on glob packages/*/src/package-meta-data.xml*)
@@ -113,7 +113,7 @@ devenv-start:
 # Test environment targets
 
 testenv-start:
-	-docker network create $(CNT_PREFIX)
+	docker network inspect $(CNT_PREFIX) >/dev/null 2>&1 || docker network create $(CNT_PREFIX)
 	docker run -td --name $(CNT_PREFIX)-nso $(DOCKER_ARGS) -e ADMIN_PASSWORD=NsoDocker1337 $${NSO_EXTRA_ARGS} $(IMAGE_PATH)$(PROJECT_NAME)/testnso:$(DOCKER_TAG)
 	docker run -td --name $(CNT_PREFIX)-netsim $(DOCKER_ARGS) --network-alias dev1 $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(DOCKER_TAG)
 	$(MAKE) testenv-start-extra
