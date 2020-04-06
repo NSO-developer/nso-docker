@@ -103,7 +103,7 @@ devenv-build:
 	$(MAKE) testenv-runcmdJ CMD="show packages"
 
 devenv-clean:
-	docker run -it --rm -v $(PWD):/src -v $(CNT_PREFIX)-packages:/dst $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -lc 'ls /dst/ | xargs --no-run-if-empty rm -rf'
+	docker run -it --rm -v $(PWD):/src -v $(CNT_PREFIX)-packages:/dst $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -lc 'ls /dst/ | $(XARGS) rm -rf'
 
 devenv-start:
 	docker volume create $(CNT_PREFIX)-packages
@@ -121,7 +121,7 @@ testenv-start:
 	$(MAKE) testenv-runcmdJ CMD="show packages"
 
 testenv-stop:
-	docker ps -aq --filter label=$(CNT_PREFIX) | xargs --no-run-if-empty docker rm -f
+	docker ps -aq --filter label=$(CNT_PREFIX) | $(XARGS) docker rm -f
 	-docker network rm $(CNT_PREFIX)
 	-docker volume rm $(CNT_PREFIX)-packages
 

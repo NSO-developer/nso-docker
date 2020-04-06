@@ -104,6 +104,18 @@ endif
 
 DOCKER_ARGS=--network $(CNT_PREFIX) --label $(CNT_PREFIX)
 
+# Determine which xargs we have. BSD xargs does not have --no-run-if-empty,
+# rather, it is the default behavior so the argument is simply superfluous. We
+# check if we are using GNU xargs by trying to run xargs --version and grep for
+# 'GNU', if that returns 0 we are on GNU and will use 'xargs --no-run-if-empty',
+# otherwise we are on BSD and will use 'xargs' straight up.
+XARGS_CHECK := $(shell xargs --version 2>&1 | grep GNU >/dev/null 2>&1; echo $$?)
+ifeq ($(XARGS_CHECK),0)
+	XARGS := xargs --no-run-if-empty
+else
+	XARGS := xargs
+endif
+
 .PHONE: check-nid-available
 
 check-nid-available:
