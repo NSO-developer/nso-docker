@@ -1,3 +1,8 @@
+* NSO in Docker
+[[./nso-in-docker-logo.png]]
+
+NSO in Docker is a project created by Cisco to enable users of NSO to easily run NSO in Docker.
+
 * NSO in Docker for development and production
   This repository contains all you need to build Docker images out of Cisco NSO. It produces two Docker images;
   - a production image
