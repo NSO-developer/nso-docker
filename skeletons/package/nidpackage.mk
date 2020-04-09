@@ -53,13 +53,12 @@ test:
 
 
 Dockerfile: Dockerfile.in $(wildcard includes/*)
-	@echo "Generating Dockerfile"
-	cp Dockerfile.in Dockerfile
-	@echo "Injecting includes from include manifest into Dockerfile"
-# expand variables before injecting them into the Dockerfile as otherwise we
+	@echo "-- Generating Dockerfile"
+# Expand variables before injecting them into the Dockerfile as otherwise we
 # would have to pass all the variables as build-args which makes this much
-# harder to do in a generic manner
-	for DEP_NAME in $$(ls includes/* | $(XARGS) -n1 basename); do export DEP_URL=$$( (echo -n "echo "; cat includes/$${DEP_NAME}) | $(SHELL) -); sed -i -e "s;# DEP_END;FROM $${DEP_URL} AS $${DEP_NAME}\n# DEP_END;" Dockerfile; sed -i -e "s;^# DEP_INC_END;COPY --from=$${DEP_NAME} /var/opt/ncs/packages/ /var/opt/ncs/packages/\n# DEP_INC_END;" Dockerfile; done
+# harder to do in a generic manner. This works across GNU and BSD awk.
+	cp Dockerfile.in Dockerfile
+	for DEP_NAME in $$(ls includes/* | $(XARGS) -n1 basename); do export DEP_URL=$$(awk '{ print "echo", $$0 }' includes/$${DEP_NAME} | $(SHELL) -); awk "/DEP_END/ { print \"FROM $${DEP_URL} AS $${DEP_NAME}\" }; /DEP_INC_END/ { print \"COPY --from $${DEP_NAME} /var/opt/ncs/packages/ /var/opt/ncs/packages/\" }; 1" Dockerfile > Dockerfile.tmp; mv Dockerfile.tmp Dockerfile; done
 
 build: check-nid-available Dockerfile
 	docker build --target testnso -t $(IMAGE_PATH)$(PROJECT_NAME)/testnso:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) .
