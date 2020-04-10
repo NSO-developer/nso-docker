@@ -554,11 +554,22 @@ Do note that the example image URLs used above would be the result of the defaul
    In order to run the tests, a maintainer will need to do a coarse review of the changes to verify there is no hostile code, after which your private branch can be copied to the =nso-developer/nso-docker= repository, which then allows it to be tested with the specialized CI runner. A shadow MR can then be setup to merge the commits to master. The commits still maintain the author, preserving credit for the changes.
 
 * Mac OS X support
-  NSO in Docker is currently not supported nor maintained for Mac OS X. It does build however and appears to be working.
+  The intention is for Mac OS X to be a generally supported platform for NSO in Docker. Docker on Mac is using a Linux VM to run the Docker engine and as such, it is compatible with normal Docker images built for Linux. You don't need to recompile your NSO in Docker images when moving between a Linux machine Docker on Mac as they are both really running Docker on Linux.
 
-  Docker is available on OS X and it does run a Linux VM in order to actually run Docker containers, which means that the base requirements for NSO in Docker to work are there. Building NSO in Docker works and produces a Docker image that appears to be working correctly. However, it isn't possible to run the test suite on OS X as the Docker networking setup is different from that on a Linux machine, preventing the test suite from working correctly.
+  NSO in Docker has been primarily developed on Linux. Continued development and testing happens on Linux first but as OS X is a popular platform and the technical prerequisites are there, it should be supported and an effort is being made to make it compliant.
+
+  What works:
+  - building the NSO in Docker images =cisco-nso-base= and =cisco-nso-dev=
+  - using the various NID skeletons to build packages and run test environments
+
+  What doesn't work:
+  - running the test suite of nso-docker itself
+    - it relies on direct connectivity to the containers which isn't provided by Docker on Mac
+    - unless you are actually modifying this repo, you are unlikely to need to run the test suite
 
   To build, make sure you have =realpath= installed, which comes with =coreutils= that you can install for example using =brew install coreutils=, in case you are using [[https://brew.sh/][brew]].
+
+  If you notice any issues, please open an issue.
 
 * FAQ / Questions and answers
 ** Q: Why are these images not based on alpine or some other minimal container friendly image
