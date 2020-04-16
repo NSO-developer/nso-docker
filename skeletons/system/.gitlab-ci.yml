@@ -12,8 +12,23 @@ stages:
 # Ubuntu image, docker isn't installed. To speed up the build, this install step
 # can be skipped by running an image that already has docker installed, for
 # example registry.gitlab.com/nso-developer/ci-runner-image:latest
+#
+# We also define the helper functions mark_section_start/end that help us mark
+# out the start and end of a "section" in a CI job. Each section can be folded
+# and gets a duration timestamp in the CI job view making it easy to see how
+# long it took to run.
 before_script:
+  - |
+    function mark_section_start() {
+      echo -e "section_start:0:$1\r\e[0K$2"
+      SECONDS=0
+    }
+    function mark_section_end() {
+      echo -e "section_end:${SECONDS}:$1\r\e[0K"
+    }
+  - mark_section_start initialize Initializing
   - if [ "$(which docker)" == "/usr/bin/docker" ]; then echo "Docker already installed"; else echo "Docker is not installed, installing..." && apt-get update && apt-get install -qy apt-transport-https ca-certificates curl expect gnupg2 software-properties-common sshpass xmlstarlet && curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && apt-key fingerprint 0EBFCD88 && add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" && apt-get update && apt-get install -qy docker-ce docker-ce-cli containerd.io; fi
+  - mark_section_end initialize
 
 
 # Template for the standard build job
@@ -25,12 +40,25 @@ before_script:
   script:
     - if [ -n "${CI_DOCKER_USER}" ]; then echo "Using provided credentials for authentication with docker registry"; docker login -u ${CI_DOCKER_USER} -p ${CI_DOCKER_PASSWORD} ${CI_REGISTRY}; else docker login -u gitlab-ci-token -p ${CI_BUILD_TOKEN} ${CI_REGISTRY}; fi
     - echo "Building for NSO version ${NSO_VERSION}"
-    - make build testenv-start testenv-test testenv-stop
+    - mark_section_start build Building
+    - make build
+    - mark_section_end build
+    - mark_section_start test-start "Starting testenv"
+    - make testenv-start
+    - mark_section_end test-start
+    - mark_section_start test-run "Running tests"
+    - make testenv-test
+    - mark_section_end test-run
+    - mark_section_start test-stop "Stopping testenv"
+    - make testenv-stop
+    - mark_section_end test-stop
+    - mark_section_start image-push "Pushing images"
     - echo "Using Gitlab CI token to authenticate with Docker registry for pushing image"
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
     - if [ "${DOCKER_PUSH}" != "false" ]; then make push; fi
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ]; then make tag-release; fi
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-release; fi
+    - mark_section_end image-push
   after_script:
     - make testenv-stop
 
