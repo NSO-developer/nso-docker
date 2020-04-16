@@ -66,6 +66,9 @@
 # recommendation is to get across the threshold and use them in the prescribed
 # manner.
 
+# helper function to turn a string into lower case
+lc = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(subst G,g,$(subst H,h,$(subst I,i,$(subst J,j,$(subst K,k,$(subst L,l,$(subst M,m,$(subst N,n,$(subst O,o,$(subst P,p,$(subst Q,q,$(subst R,r,$(subst S,s,$(subst T,t,$(subst U,u,$(subst V,v,$(subst W,w,$(subst X,x,$(subst Y,y,$(subst Z,z,$1))))))))))))))))))))))))))
+
 # require that NSO_VERSION is set
 ifeq ($(NSO_VERSION),)
 $(error "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on NSO version 5.2.1")
@@ -97,9 +100,9 @@ CNT_PREFIX?=testenv-$(PROJECT_NAME)-$(NSO_VERSION)-$(PNS)
 # These defaults can be overridden simply by setting the variables in the
 # environment.
 ifneq ($(CI_REGISTRY),)
-NSO_IMAGE_PATH?=$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/nso-docker/
-IMAGE_PATH?=$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/
-PKG_PATH?=$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/
+NSO_IMAGE_PATH?=$(call lc,$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/nso-docker/)
+IMAGE_PATH?=$(call lc,$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/)
+PKG_PATH?=$(call lc,$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/)
 endif
 
 DOCKER_ARGS=--network $(CNT_PREFIX) --label $(CNT_PREFIX)
