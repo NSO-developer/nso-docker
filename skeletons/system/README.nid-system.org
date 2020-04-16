@@ -134,14 +134,12 @@
   There should be one manifest file in the =includes/= directory per package you want to include. The content of the file should be the URL to the Docker image, including the full registry path. For example, to include =bgworker=, a Python library for writing background workers in NSO, the manifest file could look like this:
 
   #+BEGIN_SRC text
-    ${PKG_PATH}bgworker:${NSO_VERSION}
+    ${PKG_PATH}bgworker/package:${NSO_VERSION}
   #+END_SRC
 
-  When run in CI, =PKG_PATH= is set to the Docker registry up and including the namespace of the current project. If our project is hosted at http://gitlab.com/example/my-project and the corresponding Docker registry path is =registry.gitlab.com/example/my-project/=, then =PKG_PATH= will be set to =registry.gitlab.com/example/=. =NSO_VERSION= naturally contains the value of the NSO version we are currently working with. Evaluating our manifest file, if we are running a CI build for NSO 5.3, we see that it will result in the inclusion of =registry.gitlab.com/example/bgworker:5.3=.
+  When run in CI, =PKG_PATH= is set to the Docker registry up and including the namespace of the current project. If our project is hosted at http://gitlab.com/example/my-project and the corresponding Docker registry path is =registry.gitlab.com/example/my-project/=, then =PKG_PATH= will be set to =registry.gitlab.com/example/=. =NSO_VERSION= naturally contains the value of the NSO version we are currently working with. Evaluating our manifest file, if we are running a CI build for NSO 5.3, we see that it will result in the inclusion of =registry.gitlab.com/example/bgworker/package:5.3=.
 
   It is recommended that =PKG_PATH= is always used and that you use continuous mirroring to mirror packages to your own Gitlab instance into the same namespace so that this relative inclusion works.
-
-  Included packages are included in the =testnso= container image but not in the final output in the =package= image.
 
 * Skeleton content
   The NSO system standard form comes as a skeleton that can be applied to a repository by copying over a number of files to your repository. The files ar  e:
