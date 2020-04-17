@@ -49,7 +49,7 @@ all:
 # assumes the corresponding NSO install file is located in the directory
 # specified by NSO_INSTALL_FILES_DIR
 # TODO: build-version is deprecated, remove it at some point
-build build-version: export FILE=$(shell realpath -e $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin $(NSO_INSTALL_FILES_DIR)/ncs-$(NSO_VERSION).linux.x86_64.installer.bin)
+build build-version: export FILE=$(shell realpath -q -e $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin $(NSO_INSTALL_FILES_DIR)/ncs-$(NSO_VERSION).linux.x86_64.installer.bin)
 build build-version:
 	@if [ "$@" = "build-version" ]; then echo "WARNING: the make target 'build-version' is deprecated, please use 'build' instead"; fi
 	@if [ -z "$(NSO_VERSION)" ]; then echo "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin"; false; fi
