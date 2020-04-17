@@ -119,7 +119,7 @@ else
 	XARGS := xargs
 endif
 
-.PHONE: check-nid-available
+.PHONY: check-nid-available
 
 check-nid-available:
 # Check for the existance of the NID base and dev images.
