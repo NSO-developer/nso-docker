@@ -1,7 +1,7 @@
 * NSO in Docker: package standard form skeleton
   This is the README file for the NSO in Docker (NID) standard form package skeleton. If you see this file (=README.nid-package.org=) in a repository, it means the repository follows the standard form.
 
-  The NID package standard form provides a standardized environment for how to do development (=devenv=) and testing (=testenv=) of NSO packages. It ships with a CI configuration file for GitLab that enables the test environment to automatically run in CI. All repositories using these skeletons provide a consistent user interface.
+  The NID package standard form provides a standardized environment, called a =testenv=, for how to do development and testing of NSO packages. It ships with a CI configuration file for GitLab that enables the test environment to automatically run in CI. All repositories using these skeletons provide a consistent user interface.
 
 * Usage of a repo that follows the NED standard form
   Run ~make all~ to build and test the NED. You will need to set the =NSO_VERSION= environment variable and likely =NSO_IMAGE_PATH=, for example:
@@ -18,7 +18,7 @@
    As the version of NSO is a parameter throughout the entire NSO in Docker ecosystem, you have to supply the NSO version through the environment variable =NSO_VERSION=.
 
 ** NSO_IMAGE_PATH
-   The =NSO_IMAGE_PATH= specifies the location of the NSO images that are used for building. If you have built NSO in Docker images locally, i.e. you have the images =cisco-nso-base= and =cisco-nso-dev= available locally, you do not need to set =NSO_IMAGE_PATH=. If you want to use images built elsewhere, perhaps from a CI system, you need to specify the path like =registry.gitlab.com/my-group/nso-docker/=.
+   The =NSO_IMAGE_PATH= specifies the location of the NSO images that are used for building. If you have built NSO in Docker images locally, i.e. you have the images =cisco-nso-base= and =cisco-nso-dev= available locally, you do not need to set =NSO_IMAGE_PATH=. If you want to use images built elsewhere, perhaps from a CI system, you need to specify the path to the Docker registry hosting the images, like =registry.gitlab.com/my-group/nso-docker/=.
 
 ** IMAGE_PATH
    =IMAGE_PATH= specifies the base path for the resulting output images.
@@ -50,11 +50,15 @@
      - it is possible to start up more containers, like netsims, which should be achieved by adding them to the =testenv-start-extra= target in =Makefile=
        - ensure that you have ~$(DOCKER_ARGS)~ in the argument list to =docker=
          - it starts the container in the correct Docker network and sets the correct label, which is a prerequisite for the =testenv-stop= target to work
+   - =testenv-build=: recompile packages and run ~request packages reload~ in NSO
+     - only packages in =packages/= will be rebuilt, included packages that are specified through manifests in the =includes/= directory, are not rebuilt.
+       - as they might not ship with their source code, it might not even be possible
+   - =testenv-clean=: for the running NSO container, run ~make clean~ for all packages in the =packages/= and =test-packages/= directory
    - =testenv-stop=: Stop the test environment
      - it removes all containers labeled with ~$(CNT_PREFIX)~
        - make sure any extra containers you start have this label by adding ~$(DOCKER_ARGS)~ to the argument list
+       - any anonymous volumes associated with the containers will be removed as well
      - removes the Docker network
-     - removes an optional volume (see =devenv= for more info on volume usage)
    - =testenv-shell=: Get an interactive =bash= shell in the =testnso= container
    - =testenv-cli=: Get an interactive NSO CLI (=ncs_cli=) in the =testnso= container
    - =testenv-runcmdC= / =testenv-runcmdJ=: Run a command with =ncs_cli=, provide the command through the environment variable =CMD=
@@ -65,26 +69,12 @@
 
    To access NSO via one of its northbound interfaces, like NETCONF or RESTCONF, use the credentials =admin= / =NsoDocker1337=.
 
-** The development environment - devenv
-   The development environment is similar to the =testenv= but additionally a =devenv= allows recompilation and reloading of packages in NSO. This enables a much shorter REPL cycle.
-
-   Instead of starting with =testenv-start= you start up a devenv using =devenv-start=. After modifying the source you can use =devenv-build= to build your package and reload it in NSO.
-
-   =devenv-build= will only rebuild the packages in =packages/= and =test-packages/=. Included packages that are specified through manifests in the =includes/= directory, are not rebuilt. Since they might not ship with their source code, it might not even be possible.
-
-   It is possible to develop using the normal build and the testenv by modifying the code and running ~make build testenv-stop test~ which will:
-   - stop the currently running testenv
-   - compile all packages and build new =testnso= Docker images
-   - rebuild the images, stop the currently running testenv and then run the tests again (which starts the =testenv= based on the newly rebuilt images). This is slow, both because compiling large service or NED packages can take a long time (and it will be started from scratch whenever anything has changed) and because stopping and starting the Docker containers takes some time.
-
-   When starting a =devenv=, a Docker volume is created to host the NSO packages.
-
 ** Docker tags and prefixes
    Built images are tagged with the NSO version and "PNS" ("Pipeline NameSpace", when in a CI context, or "Pseudo NameSpace", when running locally, outside of CI), like ~$(NSO_VERSION)-$(PNS)~. For local builds, PNS is set to your username (modulo some mangling as some characters are forbidden in Docker image tags), e.g. =5.3-kll= (for username =kll=). In CI, PNS is set to the CI pipeline ID, like =5.3-12345=. The PNS part means we don't immediately overwrite the previously built images with the version tag like =5.3=, which might be included by other repositories. We don't want a development version to overwrite the released one.
 
    Use the =tag-release= target to set the release tags on the image, e.g. go from =5.3-kll= to =5.3=. The CI configuration automatically does this for CI jobs run on the =master= branch. You might have to do it locally in case you wish to retag images so they can be tested with other repositories.
 
-   In the =testenv= and =devenv= the started containers have a name prefix to avoid collisions with other repositories that make use of the NID skeletons. The prefix is available in the Makefiles under the ~$(CNT_PREFIX)~ variable and is set to ~testenv-$(PROJECT_NAME)-$(NSO_VERSION)-$(PNS)~. It is also possible to override by manually setting the environment variable =CNT_PREFIX=.
+   In the =testenv=, the started containers have a name prefix to avoid collisions with other repositories that make use of the NID skeletons. The prefix is available in the Makefiles under the ~$(CNT_PREFIX)~ variable and is set to ~testenv-$(PROJECT_NAME)-$(NSO_VERSION)-$(PNS)~. It is also possible to override by manually setting the environment variable =CNT_PREFIX=.
 
 ** Repository related make targets
    - =build=: Builds the images
@@ -106,15 +96,15 @@
 
   Place your NSO package in the =packages/= folder, despite the plural 's' on =packages=, you should only use a single package per repository (other skeletons in the NID ecosystem supports multiple packages). This will automatically include them in the build.
 
-  If you are building a new package, you can start a =devenv-shell= to run =ncs-make-package=. For this we need access to the =cisco-nso-dev= image, set =NSO_VERSION= and =NSO_IMAGE_PATH= accordingly (see top of this file for more information on that).
+  If you are building a new package, you can start a =dev-shell= to run =ncs-make-package=. For this we need access to the =cisco-nso-dev= image, set =NSO_VERSION= and =NSO_IMAGE_PATH= accordingly (see top of this file for more information on that).
 
   #+BEGIN_SRC shell
     export NSO_VERSION=5.3
     export NSO_IMAGE_PATH=my-registry.example.com/nso-docker/
-    make devenv-shell
+    make dev-shell
   #+END_SRC
 
-  Once in the =devenv-shell= we can use =ncs-make-package= to make a new package. Our package folder is mounted in =/src=. Let's say we want to make a python based package:
+  Once in the =dev-shell= we can use =ncs-make-package= to make a new package. Our package folder is mounted in =/src=. Let's say we want to make a python based package:
 
   #+BEGIN_SRC shell
     cd /src/packages

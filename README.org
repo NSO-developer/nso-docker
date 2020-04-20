@@ -31,8 +31,8 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
     - simple to use for development
   - benefits of NSO in Docker ecosystem
     - easy to run netsim or virtual routers for testing
-    - creating testing and development environments (testenv / devenv) that are shareable
-      - it is key for an efficient development team to have organized and shareable devenvs
+    - creating testing and development environments (testenv) that are shareable
+      - it is key for an efficient development team to have organized and shareable environments for development
   - you do NOT need Kubernetes, Docker swarm or other fancy orchestration
     - run Docker engine on a single machine
 
