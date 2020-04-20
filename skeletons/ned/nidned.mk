@@ -90,7 +90,6 @@ testenv-start:
 	docker run -td --name $(CNT_PREFIX)-netsim --network-alias dev1 $(DOCKER_ARGS) $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(DOCKER_TAG)
 	$(MAKE) testenv-start-extra
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'ncs --wait-started 600'
-	$(MAKE) testenv-runcmdJ CMD="show packages"
 
 testenv-build:
 	docker run -it --rm -v $(PWD):/src --volumes-from $(CNT_PREFIX)-nso $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -lc 'cp -a /src/packages/. /var/opt/ncs/packages/; cp -a /src/test-packages/. /var/opt/ncs/packages/; for PKG in $$(ls -d /src/packages/* /src/test-packages/* 2>/dev/null | $(XARGS) -n1 basename); do make -C /var/opt/ncs/packages/$${PKG}/src; done'
