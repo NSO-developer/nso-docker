@@ -7,10 +7,10 @@ ARG NSO_VERSION
 FROM ${NSO_IMAGE_PATH}cisco-nso-dev:${NSO_VERSION} AS build
 
 COPY packages /packages
-RUN for PKG in $(ls /packages); do make -C /packages/${PKG}/src; done
+RUN for PKG in $(ls /packages); do make -C /packages/${PKG}/src || exit 1; done
 
 COPY test-packages /test-packages
-RUN for PKG in $(ls /test-packages); do make -C /test-packages/${PKG}/src; done
+RUN for PKG in $(ls /test-packages); do make -C /test-packages/${PKG}/src || exit 1; done
 
 
 FROM ${NSO_IMAGE_PATH}cisco-nso-base:${NSO_VERSION} AS testnso
