@@ -20,12 +20,11 @@
   | test          | Run tests (runs =testenv-start testenv-test testenv-stop= targets) |
   | testenv-start | Start the test environment                                         |
   | testenv-test  | Run the tests defined for the test environment                     |
+  | testenv-build | Build (recompile) project in the test environment                  |
   | testenv-stop  | Stop the test environment                                          |
   | testenv-shell | Start shell in test NSO instance                                   |
   | testenv-cli   | Starts ncs_cli in test NSO instance                                |
-  | devenv-start  | Start the development environment                                  |
-  | devenv-build  | Build project in the development environment                       |
-  | devenv-shell  | Start shell environment                                            |
+  | dev-shell     | Start shell environment with project mounted at /src               |
   | push          | Push built Docker image(s) to registry                             |
   | tag-release   | Tag built image as release                                         |
   | push-release  | Push release tagged Docker image(s) to registry                    |
