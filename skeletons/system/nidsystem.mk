@@ -66,7 +66,6 @@ testenv-start:
 	docker run -td --name $(CNT_PREFIX)-nso --network-alias nso $(DOCKER_ARGS) -e ADMIN_PASSWORD=NsoDocker1337 -v /var/opt/ncs/packages $${NSO_EXTRA_ARGS} $(IMAGE_PATH)$(PROJECT_NAME)/nso:$(DOCKER_TAG)
 	$(MAKE) testenv-start-extra
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'ncs --wait-started 600'
-	$(MAKE) testenv-runcmdJ CMD="show packages"
 
 testenv-build:
 	docker run -it --rm -v $(PWD):/src --volumes-from $(CNT_PREFIX)-nso $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -lc 'cp -a /src/packages/. /var/opt/ncs/packages/; for PKG in $$(ls -d /src/packages/* 2>/dev/null | $(XARGS) -n1 basename); do make -C /var/opt/ncs/packages/$${PKG}/src; done'

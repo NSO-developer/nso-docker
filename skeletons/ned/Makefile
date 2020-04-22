@@ -2,51 +2,45 @@
 # standard make targets
 include nidned.mk
 
-# The following are specific to this repositories packages
+# The rest of this file is specific to this repository.
+
+# For development purposes it is useful to be able to start a testenv once and
+# then run the tests, defined in testenv-test, multiple times, adjusting the
+# code in between each run. That is what a normal development cycle looks like.
+# There is usually some form of initial configuration that we want to apply
+# once, after the containers have started up, but avoid applying it for each
+# invocation of testenv-test. Such configuration can be placed at the end of
+# testenv-start-extra. You can also start extra containers with
+# testenv-start-extra, for example netsims or virtual routers.
+
+# TODO: you should modify the make targets below for your package
+# TODO: clean up your Makefile by removing comments explaining how to do things
+
+# Start extra containers or place things you want to run once, after startup of
+# the containers, in testenv-start-extra.
 testenv-start-extra:
-	@echo "\n== Starting repository specific testenv containers"
+	@echo "\n== Starting repository specific testenv"
 # Start extra things, for example a netsim container by doing:
 # docker run -td --name $(CNT_PREFIX)-my-netsim --network-alias mynetsim1 $(DOCKER_ARGS) $(IMAGE_PATH)my-ned-repo/netsim:$(DOCKER_TAG)
-# Note how it becomes available under the name 'mynetsim1' from the NSO
-# container, i.e. you can set the device address to 'mynetsim1' and it will
-# magically work.
-
-testenv-test:
-	@echo "TODO: Fill in your tests here"
-# Some examples for how to run commands in the ncs_cli:
-#	$(MAKE) testenv-runcmdJ CMD="show packages"
-#	$(MAKE) testenv-runcmdJ CMD="request packages reload"
-# Multiple commands in a single session also works - great for configuring stuff:
-#	$(MAKE) testenv-runcmdJ CMD="configure\n set foo bar\n commit"
-# We can test for certain output by combining show commands in the CLI with for
-# example grep:
-#	$(MAKE) testenv-runcmdJ CMD="show configuration foo" | grep bar
-
-# Included below is an example test that covers the basics for a working NED and
-# netsim. The testenv-start target will set up the test environment by starting:
-# - a netsim container based on the NED YANG models
-# - an NSO container with the NED loaded
+# Use --network-alias to give it a name that will be resolvable from NSO and
+# other containers in our testenv network, i.e. in NSO, the above netsim should
+# be configured with the address 'mynetsim1'.
+# Make sure to include $(DOCKER_ARGS) as it sets the right docker network and
+# label which other targets, such as testenv-stop, operates on.
 #
-# Already by starting up we have verified that the YANG models of the netsim /
-# NED pass load time verification. For example, this could fail if there are
-# constraints in the YANG model that require certain data to be present (and
-# it's not when we start up as CDB is empty).
+# Add things to be run after startup is complete. If you want to configure NSO,
+# be sure to wait for it to start, using e.g.:
+#docker exec -t $(CNT_PREFIX)-nso bash -lc 'ncs --wait-started 600'
 #
-# This test then consists of:
-# - adding the netsim container as a device to the test NSO
-# - fetching SSH host-keys
-# - doing sync-from
-# - configuring the hostname on the netsim device to the magic string foobarhostname
-#   - we then grep for this
-#   - ensuring we can send config and commit on the netsim device
-# - doing sync-from again
-#   - we check that the hostname is as expected
+# For example, to load an XML configuration file:
+# docker cp test/initial-config.xml $(CNT_PREFIX)-nso:/tmp/initial-config.xml
+#	$(MAKE) testenv-runcmdJ CMD="configure\n load merge /tmp/initial-config.xml\n commit"
 #
-# TODO: to complete the test from the NED skeleton, you have to provide the
-# configuration to set the hostname on the device in the file
-# test/device-config-hostname.xml
-#
-
+	@echo "-- Wait for NSO to start up"
+	docker exec -t $(CNT_PREFIX)-nso bash -lc 'ncs --wait-started 600'
+# The following is an example (but a working example) of how to add the netsim
+# device started per default in the NED skeleton to NSO. Feel free to use it,
+# remove or modify as you see fit for your environment.
 	@echo "-- Add device to NSO"
 	@echo "   Get the package-meta-data.xml file from the compiled NED (we grab it from the netsim build)"
 	mkdir -p tmp
@@ -58,6 +52,54 @@ testenv-test:
 	$(MAKE) testenv-runcmdJ CMD="configure\nload merge /add-device.xml\ncommit\nexit"
 	$(MAKE) testenv-runcmdJ CMD="show devices brief"
 	$(MAKE) testenv-runcmdJ CMD="request devices device dev1 ssh fetch-host-keys"
+
+
+# Place your tests in testenv-test. Feel free to define a target per test case
+# and call them from testenv-test in case you have more than a handful of cases.
+# Sometimes when there is a "setup" or "preparation" part of a test, it can be
+# useful to separate into its own target as to make it possible to run that
+# prepare phase and then manually inspect the state of the system. You can
+# achieve this by further refining the make targets you have.
+testenv-test:
+	@echo "\n== Running tests"
+	@echo "TODO: Fill in your tests here"
+# Some examples for how to run commands in the ncs_cli:
+#	$(MAKE) testenv-runcmdJ CMD="show packages"
+#	$(MAKE) testenv-runcmdJ CMD="request packages reload"
+# Multiple commands in a single session also works - great for configuring stuff:
+#	$(MAKE) testenv-runcmdJ CMD="configure\n set foo bar\n commit"
+# We can test for certain output by combining show commands in the CLI with for
+# example grep:
+#	$(MAKE) testenv-runcmdJ CMD="show configuration foo" | grep bar
+
+# Included below is an example test that covers the basics for a working NED and
+# netsim. The standard testenv-start target, defined in nidned.mk, will set up
+# the test environment by starting:
+# - a netsim container based on the NED YANG models
+# - an NSO container with the NED loaded
+#
+# Already by starting up we have verified that the YANG models of the netsim /
+# NED pass load time verification. For example, this could fail if there are
+# constraints in the YANG model that require certain data to be present (and
+# it's not when we start up as CDB is empty).
+#
+# As part of the testenv startup, in testenv-start-extra, we:
+# - add the netsim container as a device to the test NSO
+# - fetch SSH host-keys
+# - run sync-from
+#
+# This test then consists of:
+# - configuring the hostname on the netsim device to the magic string foobarhostname
+#   - we then grep for this magic string
+#   - ensuring we can send config and commit on the netsim device
+# - doing sync-from again
+#   - we check that the hostname is as expected
+#
+# TODO: to complete the test from the NED skeleton, you have to provide the
+# configuration to set the hostname on the device in the file
+# test/device-config-hostname.xml
+#
+
 	$(MAKE) testenv-runcmdJ CMD="request devices device dev1 sync-from"
 
 	@echo "Configure hostname on device through NSO"
