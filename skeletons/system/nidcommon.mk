@@ -98,11 +98,12 @@ CNT_PREFIX?=testenv-$(PROJECT_NAME)-$(NSO_VERSION)-$(PNS)
 #   packages
 # All three are derived from information we get from GitLab CI, if available.
 # These defaults can be overridden simply by setting the variables in the
-# environment.
+# environment. Makefile variable macros are available from within the Makefile,
+# we export them to also make them available to subshells.
 ifneq ($(CI_REGISTRY),)
-NSO_IMAGE_PATH?=$(call lc,$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/nso-docker/)
-IMAGE_PATH?=$(call lc,$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/)
-PKG_PATH?=$(call lc,$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/)
+export NSO_IMAGE_PATH?=$(call lc,$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/nso-docker/)
+export IMAGE_PATH?=$(call lc,$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/)
+export PKG_PATH?=$(call lc,$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/)
 endif
 
 DOCKER_ARGS=--network $(CNT_PREFIX) --label $(CNT_PREFIX)
