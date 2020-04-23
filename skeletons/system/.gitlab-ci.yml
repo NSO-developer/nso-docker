@@ -98,4 +98,19 @@ mirror:
 include: 'https://gitlab.com/nso-developer/nso-docker/-/raw/master/version-sets/supported-nso/build-tot.yaml'
 # For example, replace it with the URL to your mirror of the nso-docker repo and
 # the version-set you use;
-#include: 'https://example.com/foo/nso-docker/-/raw/master/version-set/bar/build-tot.yaml'
+# include: 'https://example.com/foo/nso-docker/-/raw/master/version-sets/bar/build-tot.yaml'
+#
+# Or if it is hosted on the same GitLab instance as this repo, you can use a
+# relative link:
+# include: 'foo/nso-docker/-/raw/master/version-sets/bar/build-tot.yaml'
+#
+# An alternative is to specify the build jobs manually, like so:
+#
+# build-5.3.1:
+#   extends: .build
+#   variables:
+#     NSO_VERSION: "5.3.1"
+#
+# This isn't recommended other than perhaps for a quick test. It is much better
+# to build a version-set on your main NSO system repo and include it so you
+# build all your repositories for a consistent set of versions.
