@@ -54,6 +54,7 @@ RUN apt-get update \
      mypy \
      openssl \
      pylint3 \
+     rsync \
      snmp \
      vim-tiny \
      xsltproc \

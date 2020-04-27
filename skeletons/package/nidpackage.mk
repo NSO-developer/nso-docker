@@ -69,30 +69,68 @@ dev-shell:
 
 testenv-start:
 	-docker network create $(CNT_PREFIX)
-	docker run -td --name $(CNT_PREFIX)-nso --network-alias nso $(DOCKER_ARGS) -e ADMIN_PASSWORD=NsoDocker1337 -v /var/opt/ncs/packages $${NSO_EXTRA_ARGS} $(IMAGE_PATH)$(PROJECT_NAME)/testnso:$(DOCKER_TAG)
+	docker run -td --name $(CNT_PREFIX)-nso --network-alias nso $(DOCKER_NSO_ARGS) -e ADMIN_PASSWORD=NsoDocker1337 $${NSO_EXTRA_ARGS} $(IMAGE_PATH)$(PROJECT_NAME)/testnso:$(DOCKER_TAG)
 	$(MAKE) testenv-start-extra
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'ncs --wait-started 600'
 
+# testenv-build - recompiles and loads new packages in NSO
+# Compilation happens in a cisco-nso-dev container that attaches up the running
+# containers package directory as a volume. The source files are then copied
+# over using rsync. The rsync operation is analyzed (by looking at the log) to
+# determine what files were updated and based on that either reload all package
+# or selectively redeploy individual packages. ENG-20488, released in NSO 5.3,
+# made large improvements to package redeploy, before it, changes configuration
+# template required a package reload. We take this into account by first looking
+# at the NSO version. Note how the package name can be different from the
+# package directory name, thus we use xmlstarlet to get the package name from
+# package-meta-data.xml. A full package reload can be forced by setting
+# PACKAGE_RELOAD to anything non-empty.
+SUPPORTS_NEW_REDEPLOY=$(shell if [ $(NSO_VERSION_MAJOR) -gt 5 ] || [ $(NSO_VERSION_MAJOR) -eq 5 -a $(NSO_VERSION_MINOR) -ge 3 ]; then echo "true"; fi)
+ifeq ($(SUPPORTS_NEW_REDEPLOY),true)
+RELOAD_PATTERN="(package-meta-data.xml|\.cli$$|\.yang$$)"
+else
+RELOAD_PATTERN="(package-meta-data.xml|templates/.*\.xml$$|\.cli$$|\.yang$$)"
+endif
 testenv-build:
-	docker run -it --rm -v $(PWD):/src --volumes-from $(CNT_PREFIX)-nso $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -lc 'cp -a /src/packages/. /var/opt/ncs/packages/; cp -a /src/test-packages/. /var/opt/ncs/packages/; for PKG in $$(ls -d /src/packages/* /src/test-packages/* 2>/dev/null | $(XARGS) -n1 basename); do make -C /var/opt/ncs/packages/$${PKG}/src; done'
-	$(MAKE) testenv-runcmdJ CMD="request packages reload"
-	$(MAKE) testenv-runcmdJ CMD="show packages"
+	for NSO in $$(docker ps --format '{{.Names}}' --filter label=$(CNT_PREFIX) --filter label=nidtype=nso); do \
+		echo "-- Rebuilding for NSO: $${NSO}"; \
+		mkdir -p tmp && \
+		docker run -it --rm -v $(PWD):/src --volumes-from $${NSO} $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -lc 'rsync -aEim /src/packages/. /src/test-packages/. /var/opt/ncs/packages/ > /src/tmp/rsync.log; chown $$(stat -c "%u:%g" /src/tmp) /src/tmp/rsync.log 2>/dev/null; for PKG in $$(find /src/packages /src/test-packages -mindepth 1 -maxdepth 1 -type d | xargs -n1 basename); do make -C /var/opt/ncs/packages/$${PKG}/src; done' && \
+		egrep $(RELOAD_PATTERN) tmp/rsync.log >/dev/null; if [ $$? -eq 0 ] || [ -n "$$PACKAGE_RELOAD" ]; then \
+			$(MAKE) testenv-runcmdJ CMD="request packages reload force"; \
+		else \
+			for PKG in $$(sed 's,^[^ ]\+ \([^/]\+\).*,\1,' tmp/rsync.log | sort | uniq); do \
+				PKG_NAME=$$(xmlstarlet sel -N x=http://tail-f.com/ns/ncs-packages -t -v "/x:ncs-package/x:name" -nl) \
+				$(MAKE) testenv-runcmdJ CMD="request packages package $${PKG_NAME} redeploy"; \
+			done; \
+		fi; \
+		rm -rf tmp; \
+	done
 
-testenv-clean:
-	docker run -it --rm -v $(PWD):/src --volumes-from $(CNT_PREFIX)-nso $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -lc 'for PKG in $$(ls -d /src/packages/* /src/test-packages/* 2>/dev/null | $(XARGS) -n1 basename); do make -C /var/opt/ncs/packages/$${PKG}/src clean; done'
+# testenv-clean-build - clean and rebuild from scratch
+# We rsync (with --delete) in sources, which effectively is a superset of 'make
+# clean' per package, as this will delete any built packages as well as removing
+# old sources files that no longer exist.
+testenv-clean-build:
+	for NSO in $$(docker ps --format '{{.Names}}' --filter label=$(CNT_PREFIX) --filter label=nidtype=nso); do \
+		echo "-- Cleaning NSO: $${NSO}"; \
+		docker run -it --rm -v $(PWD):/src --volumes-from $${NSO} $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -lc 'rsync -aEim --delete /src/packages/. /src/test-packages/. /var/opt/ncs/packages/ >/dev/null'; \
+	done
+	@echo "-- Done cleaning, rebuilding with forced package reload..."
+	$(MAKE) testenv-build PACKAGE_RELOAD="true"
 
 testenv-stop:
 	docker ps -aq --filter label=$(CNT_PREFIX) | $(XARGS) docker rm -vf
 	-docker network rm $(CNT_PREFIX)
 
 testenv-shell:
-	docker exec -it $(CNT_PREFIX)-nso bash -l
+	docker exec -it $(CNT_PREFIX)-nso$(NSO) bash -l
 
 testenv-cli:
-	docker exec -it $(CNT_PREFIX)-nso bash -lc 'ncs_cli -u admin'
+	docker exec -it $(CNT_PREFIX)-nso$(NSO) bash -lc 'ncs_cli -u admin'
 
 testenv-runcmdC testenv-runcmdJ:
 	@if [ -z "$(CMD)" ]; then echo "CMD variable must be set"; false; fi
 	docker exec -t $(CNT_PREFIX)-nso$(NSO) bash -lc 'echo -e "$(CMD)" | ncs_cli -$(subst testenv-runcmd,,$@)u admin'
 
-.PHONY: all build dev-shell push push-release tag-release test testenv-build testenv-clean testenv-start testenv-stop testenv-test
+.PHONY: all build dev-shell push push-release tag-release test testenv-build testenv-clean-build testenv-start testenv-stop testenv-test

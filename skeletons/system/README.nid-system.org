@@ -45,10 +45,11 @@
      - it is possible to start up more containers, like netsims, which should be achieved by adding them to the =testenv-start-extra= target in =Makefile=
        - ensure that you have ~$(DOCKER_ARGS)~ in the argument list to =docker=
          - it starts the container in the correct Docker network and sets the correct label, which is a prerequisite for the =testenv-stop= target to work
-   - =testenv-build=: recompile packages and run ~request packages reload~ in NSO
-     - only packages in =packages/= will be rebuilt, included packages that are specified through manifests in the =includes/= directory, are not rebuilt.
+   - =testenv-build=: recompile packages and run ~request packages reload~ in all NSO containers
+     - only packages in =packages/= will be rebuilt
+     - included packages that are specified through manifests in the =includes/= directory, are not rebuilt
        - as they might not ship with their source code, it might not even be possible
-   - =testenv-clean=: for the running NSO container, run ~make clean~ for all packages in the =packages/= and =test-packages/= directory
+   - =testenv-clean-build=: for all running NSO containers, clean out and rebuild all packages in =packages/= from scratch
    - =testenv-stop=: Stop the test environment
      - it removes all containers labeled with ~$(CNT_PREFIX)~
        - make sure any extra containers you start have this label by adding ~$(DOCKER_ARGS)~ to the argument list

@@ -26,7 +26,10 @@ testenv-start-extra:
 # other containers in our testenv network, i.e. in NSO, the above netsim should
 # be configured with the address 'mynetsim1'.
 # Make sure to include $(DOCKER_ARGS) as it sets the right docker network and
-# label which other targets, such as testenv-stop, operates on.
+# label which other targets, such as testenv-stop, operates on. If you start an
+# extra NSO container, use $(DOCKER_NSO_ARGS) and give a unique name but
+# starting with '-nso', like so:
+# docker run -td --name $(CNT_PREFIX)-nsofoo --network-alias nsofoo $(DOCKER_NSO_ARGS) $(IMAGE_PATH)$(PROJECT_NAME)/nso:$(DOCKER_TAG)
 #
 # Add things to be run after startup is complete. If you want to configure NSO,
 # be sure to wait for it to start, using e.g.:
