@@ -176,6 +176,7 @@
     - enter the private key in the =GIT_SSH_PRIV_KEY= variable
   - =MIRROR_REMOTE=: the URL of the upstream repository that you wish to mirror
     - for example, to mirror the authoritative repo for =nso-docker=, you would use =https://gitlab.com/nso-developer/nso-docker.git=
+  - =MIRROR_PULL_MODE=: can be set to =rebase= to do ~git pull --rebase~ instead of a normal ~git pull~
   Set ~CI_MODE=mirror~ in the CI schedule (since this should only apply for that job and not the normal CI jobs). Use the repo wide CI variable section to set at least =GITLAB_HOSTKEY= and =GIT_SSH_PRIV_KEY=, possibly =MIRROR_REMOTE= too (or set from CI schedule). These are multi-line values and it appears some GitLab versions cannot correctly set multi-line values in the CI schedule, instead using repo wide CI variables effectively works around this issue.
 
   The mirroring functionality is quite simple. It will run ~git clone~ to get a copy of its own repository (which is why it needs SSH host keys and deploy keys), then add the upstream repository as a HTTP mirror (presuming it is a public repository and does not require any credentials). It will then pull in changes, allowing merge conflicts, and finally push the result to its own repository, thus functionally achieving a mirror. It uses the user name and email of the user who initiated the CI build as the git commit author (for merge commits).
