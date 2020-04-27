@@ -123,7 +123,7 @@ mirror:
     - "git clone git@${CI_SERVER_HOST}:${CI_PROJECT_PATH}.git"
     - cd "${CI_PROJECT_NAME}"
     - git remote add upstream "${MIRROR_REMOTE}"
-    - git pull upstream master
+    - if [ "${MIRROR_PULL_MODE}" = "rebase" ]; then git pull --rebase upstream master; else git pull upstream master; fi
     - git push origin master
     - mark_section_end mirror
 
