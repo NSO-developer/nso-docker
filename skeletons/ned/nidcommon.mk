@@ -73,6 +73,8 @@ lc = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(s
 ifeq ($(NSO_VERSION),)
 $(error "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on NSO version 5.2.1")
 endif
+NSO_VERSION_MAJOR=$(shell echo ${NSO_VERSION} | sed 's/^\([0-9]\+\)\..*/\1/')
+NSO_VERSION_MINOR=$(shell echo ${NSO_VERSION} | sed 's/^[0-9]\+\.\([0-9]\+\).*/\1/')
 
 # Set PNS - our pseudo-namespace or pipeline namespace. All containers running
 # within a CI pipeline will have the same namespace, which isn't a namespace
@@ -107,6 +109,7 @@ export PKG_PATH?=$(call lc,$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/)
 endif
 
 DOCKER_ARGS=--network $(CNT_PREFIX) --label $(CNT_PREFIX)
+DOCKER_NSO_ARGS=$(DOCKER_ARGS) --label nidtype=nso --volume /var/opt/ncs/packages
 
 # Determine which xargs we have. BSD xargs does not have --no-run-if-empty,
 # rather, it is the default behavior so the argument is simply superfluous. We
