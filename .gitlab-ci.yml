@@ -100,15 +100,6 @@ mirror:
     variables:
       - $CI_MODE == "mirror"
   before_script:
-    - |
-      function mark_section_start() {
-        echo -e "section_start:0:$1\r\e[0K$2"
-        SECONDS=0
-      }
-      function mark_section_end() {
-        echo -e "section_end:${SECONDS}:$1\r\e[0K"
-      }
-    - mark_section_start initialize "Initializing"
     - 'which ssh-agent || ( apt-get update -y && apt-get install -y openssh-client )'
     - 'which git || ( apt-get update -y && apt-get install -y git )'
     - eval $(ssh-agent -s)
@@ -117,15 +108,12 @@ mirror:
     - echo "${GITLAB_HOSTKEY}" >> ~/.ssh/known_hosts
     - git config --global user.email "${GITLAB_USER_EMAIL}"
     - git config --global user.name "${GITLAB_USER_NAME}"
-    - mark_section_end initialize
   script:
-    - mark_section_start mirror Mirroring
     - "git clone git@${CI_SERVER_HOST}:${CI_PROJECT_PATH}.git"
     - cd "${CI_PROJECT_NAME}"
     - git remote add upstream "${MIRROR_REMOTE}"
     - if [ "${MIRROR_PULL_MODE}" = "rebase" ]; then git pull --rebase upstream master; else git pull upstream master; fi
-    - git push origin master
-    - mark_section_end mirror
+    - if [ "${MIRROR_PULL_MODE}" = "rebase" ]; then git push --force origin master; else git push origin master; fi
 
 
 # Make sure the computed version set files are up to date with the source by
