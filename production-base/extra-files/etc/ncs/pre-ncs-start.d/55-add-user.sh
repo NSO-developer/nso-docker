@@ -13,7 +13,7 @@ if [ "${ADMIN_PASSWORD}" != "" -o "${ADMIN_SSHKEY}" != "" ]; then
                --update "/c:config/a:aaa/a:authentication/a:users/a:user/a:name" --value "${ADMIN_USERNAME}" \
                --update "/c:config/a:aaa/a:authentication/a:users/a:user/a:homedir" --value "/home/${ADMIN_USERNAME}" \
                --update "/c:config/a:aaa/a:authentication/a:users/a:user/a:ssh_keydir" --value "/home/${ADMIN_USERNAME}/.ssh" \
-               /add_user_template.xml
+               /nid/add_user_template.xml
 
     if [ "${ADMIN_PASSWORD}" != "" ]; then
         xmlstarlet edit --inplace \
@@ -21,7 +21,7 @@ if [ "${ADMIN_PASSWORD}" != "" -o "${ADMIN_SSHKEY}" != "" ]; then
                    -N n='urn:ietf:params:xml:ns:yang:ietf-netconf-acm' \
                    -N a='http://tail-f.com/ns/aaa/1.1' \
                    --update "/c:config/a:aaa/a:authentication/a:users/a:user/a:password" --value "${ADMIN_PASSWORD}" \
-                   /add_user_template.xml
+                   /nid/add_user_template.xml
     fi
     if [ "${ADMIN_SSHKEY}" != "" ]; then
         mkdir -p /home/${ADMIN_USERNAME}/.ssh
@@ -31,5 +31,5 @@ if [ "${ADMIN_PASSWORD}" != "" -o "${ADMIN_SSHKEY}" != "" ]; then
         grep "${ADMIN_SSHKEY}" /home/${ADMIN_USERNAME}/.ssh/authorized_keys || echo ${ADMIN_SSHKEY} >> /home/${ADMIN_USERNAME}/.ssh/authorized_keys
     fi
 
-    cp /add_user_template.xml /nso/run/cdb/add_admin_user.xml
+    cp /nid/add_user_template.xml /nso/run/cdb/add_admin_user.xml
 fi
