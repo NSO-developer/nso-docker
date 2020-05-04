@@ -352,9 +352,13 @@ Do note that the example image URLs used above would be the result of the defaul
 * Extending the Docker image
   There are multiple approaches to extending the functionality of the NSO docker image.
 
-  The standard Docker run script (~run-nso.sh~) looks for files that ends with ~.sh~ in ~/etc/ncs/pre-ncs-start.d/~ and ~/etc/ncs/post-ncs-start.d/~ and will run any scripts found before or after starting NSO. ~ncs --wait-started~ is used to wait for NSO to start. If you want to modify the configuration file, produce some XML files to be read into CDB on startup or similar, you can write a script for that and place it in the relevant startup directory (typically before NSO is started).
+** Default CDB data
+   When NSO starts up with no pre-existing CDB, it will load the files placed in =/nid/cdb-default/= in the container image. Simple place an XML file in =/nid/cdb-default/= to have its content loaded on first startup.
 
-  In other situations you want to run scripts that load or modify some configuration in NSO (CDB) somehow, which might be better suited to be placed in ~/etc/ncs/post-ncs-start.d~ (though don't mistake these capabilities for what CDB upgrade logic and similar offers). For example, it is possible to start another process in the same container and if that process is dependent upon NSO having started, placing the script in ~/etc/ncs/post-ncs-start-d/~ is a convenient approach as those scripts are only started after NSO have started up (as determined by ~ncs --wait-started~).
+** Running scripts on startup
+   The standard Docker run script (~run-nso.sh~) looks for files that ends with ~.sh~ in ~/etc/ncs/pre-ncs-start.d/~ and ~/etc/ncs/post-ncs-start.d/~ and will run any scripts found before or after starting NSO. ~ncs --wait-started~ is used to wait for NSO to start. If you want to modify the configuration file, produce some XML files to be read into CDB on startup or similar, you can write a script for that and place it in the relevant startup directory (typically before NSO is started).
+
+   In other situations you want to run scripts that load or modify some configuration in NSO (CDB) somehow, which might be better suited to be placed in ~/etc/ncs/post-ncs-start.d~ (though don't mistake these capabilities for what CDB upgrade logic and similar offers). For example, it is possible to start another process in the same container and if that process is dependent upon NSO having started, placing the script in ~/etc/ncs/post-ncs-start-d/~ is a convenient approach as those scripts are only started after NSO have started up (as determined by ~ncs --wait-started~).
 
 * Healthcheck
   The production-base image comes with a basic Docker healthcheck. It is using ncs_cmd to get the phase that NCS is currently in. Only the result status, i.e. if ncs_cmd was able to communicate with the ~ncs~ process or not, is actually observed. This tells us whether the ~ncs~ process is responding to IPC requests.

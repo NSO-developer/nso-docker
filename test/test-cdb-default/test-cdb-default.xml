@@ -1,0 +1,11 @@
+<devices xmlns="http://tail-f.com/ns/ncs">
+    <authgroups>
+        <group>
+            <name>foobarmagicstring</name>
+            <default-map>
+                <remote-name>foo</remote-name>
+                <remote-password>foo</remote-password>
+            </default-map>
+        </group>
+    </authgroups>
+</devices>

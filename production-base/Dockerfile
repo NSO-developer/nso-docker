@@ -12,6 +12,9 @@ RUN apt-get update \
 
   # wipe SSH keys
 RUN rm -f /etc/ncs/ssh/* \
+  # save the default aaa_init for later
+  && mkdir -p /nid/cdb-default \
+  && mv /nso/run/cdb/aaa_init.xml /nid/cdb-default/ \
   # Remove stuff we don't need/want from the NSO installation \
   && rm -rf \
        /opt/ncs/current/doc \
@@ -72,6 +75,7 @@ COPY --from=0 /etc/init.d/ncs /etc/init.d/.
 COPY --from=0 /etc/ncs /etc/ncs/
 COPY --from=0 /opt/ncs /opt/ncs/
 COPY --from=0 /nso /nso
+COPY --from=0 /nid /nid
 
 COPY extra-files/ /
 

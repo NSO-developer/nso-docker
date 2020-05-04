@@ -41,7 +41,7 @@ endif
 endif
 
 
-.PHONY: test-post-start-script
+.PHONY: test-post-start-script test-cdb-default
 
 test:
 	@echo "\n== Building test Docker image"
@@ -63,6 +63,7 @@ test:
 	$(MAKE) test-java
 	$(MAKE) test-python
 	$(MAKE) test-docker-healthcheck
+	$(MAKE) test-cdb-default
 
 	$(MAKE) test-multiver
 
@@ -219,6 +220,7 @@ test-post-start-script:
 	docker run -td --name $(CNT_PREFIX)-$@ --label CNT_PREFIX=$(CNT_PREFIX) $(CNT_PREFIX)-$@
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Verify that our post-start script ran by grepping in the container log"
 	docker logs -f $(CNT_PREFIX)-$@ | grep -m 1 "post-start-script result"
 	docker logs $(CNT_PREFIX)-$@ | grep "post-start-script result: success"
 	@echo "-- Remove the container"
@@ -332,6 +334,25 @@ test-docker-healthcheck:
 	@echo "-- Ensuring health is 'healthy' ------------------------------------------------"
 	docker inspect --format='{{.State.Health.Status}}' $(CNT_PREFIX)-$@ | grep "healthy"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
+test-cdb-default:
+	@echo "\n== Verify CDB is properly persisted on a docker volume"
+	docker build $(DOCKER_BUILD_CACHE_ARG) -t $(CNT_PREFIX)-$@ --build-arg BASE_IMAGE=$(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) --build-arg BUILD_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) $@
+	@echo "-- Clean any already running containers with 'our' name"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Start NSO container with admin password"
+	docker run -td --name $(CNT_PREFIX)-$@ --label CNT_PREFIX=$(CNT_PREFIX) $(CNT_PREFIX)-$@
+	@echo "-- Wait for NSO in container to start"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Verify that our post-start script ran by grepping in the container log"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration devices authgroup" | ncs_cli -u admin'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration devices authgroup" | ncs_cli -u admin' | grep "foobarmagicstring"
+	@echo "-- Remove the container"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Remove the container image"
+	-docker rmi $(CNT_PREFIX)-$@
+
 
 #######################
 # Multi Version tests #
