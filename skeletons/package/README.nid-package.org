@@ -139,6 +139,9 @@
 
   Included packages are included in the =testnso= container image but not in the final output in the =package= image.
 
+* Include extra files
+  It is possible to include more files in the Docker image by merely placing them in the directory =extra-files/=. The entire content of =extra-files/= is copied to the root of the resulting =testnso= image, for example, create =extra-files/tmp/foobar= to have it placed at =/tmp/foobar= in the =testnso= image.
+
 * Skeleton content
   The NID package standard form comes as a skeleton that can be applied to a repository by copying over a number of files to your repository. The files are:
   - =README.nid-package.org=: This README file
@@ -150,6 +153,7 @@
   - =packages/=: Standard location for placing the NSO package itself
   - =test-packages/=: Standard location for placing NSO packages for testing. These are included in the =testnso= container that can be used to test the package but aren't included in the final output.
   - =includes/=: Standard location for placing manifests for including externally built packages
+  - =extra-files/=: Standard location for placing extra files to be included in the =testnso=. Files are relative to the image file system root, i.e. create =extra-files/tmp/foobar= to have it placed at =/tmp/foobar= in the Docker image.
 
 ** Skeleton source location and updating the skeleton
    The authoritative origin for the standard form NID package skeleton is the =nso-docker= repository at [[https://gitlab.com/nso-developer/nso-docker/]], specifically in the directory =skeletons/package=. To upgrade to a later version of the skeleton, pull the files from that location and avoid touching the =Makefile= as it typically contains custom modifications. Be sure to include files starting with a dot (=.=).

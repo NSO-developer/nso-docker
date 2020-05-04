@@ -152,6 +152,9 @@
 
   NEDs do not typically depend on other packages and so includes might not be useful for the NED package itself, however, the test-packages could very well depend on an external package for which the include manifest functionality can be used.
 
+* Include extra files
+  It is possible to include more files in the Docker image by merely placing them in the directory =extra-files/=. The entire content of =extra-files/= is copied to the root of the resulting =testnso= image, for example, create =extra-files/tmp/foobar= to have it placed at =/tmp/foobar= in the =testnso= image.
+
 * Skeleton content
   The NED skeleton contains the following files
   - =README.nid-ned.org=: This README file
@@ -164,6 +167,7 @@
   - =packages/=: Standard location for placing the NSO package for the NED itself. Despite plural, only supposed to be one NED package (other skeletons in the NID ecosystem supports multiple packages)
   - =test-packages/=: Standard location for placing NSO packages for testing. These are included in the =testnso= container that can be used to test the NED but aren't included in the final output.
   - =includes/=: Standard location for placing manifests for including externally built packages
+  - =extra-files/=: Standard location for placing extra files to be included in the =testnso=. Files are relative to the image file system root, i.e. create =extra-files/tmp/foobar= to have it placed at =/tmp/foobar= in the Docker image.
 
 ** Skeleton source location and updating the skeleton
    The authoritative origin for the standard form NED skeleton is the =nso-docker= repository at [[https://gitlab.com/nso-developer/nso-docker/]], specifically in the directory =skeletons/ned=. To upgrade to a later version of the skeleton, pull the files from that location and avoid touching the =Makefile= as it typically contains custom modifications. Be sure to include files starting with a dot (=.=).

@@ -132,6 +132,9 @@
 
   It is recommended that =PKG_PATH= is always used and that you use continuous mirroring to mirror packages to your own Gitlab instance into the same namespace so that this relative inclusion works.
 
+* Include extra files
+  It is possible to include more files in the Docker image by merely placing them in the directory =extra-files/=. The entire content of =extra-files/= is copied to the root of the resulting =nso= image, for example, create =extra-files/tmp/foobar= to have it placed at =/tmp/foobar= in the =nso= image.
+
 * Skeleton content
   The NSO system standard form comes as a skeleton that can be applied to a repository by copying over a number of files to your repository. The files ar  e:
   - =README.nid-system.org=: This README file
@@ -142,6 +145,7 @@
   - =test/=: Directory containing test related files
   - =packages/=: Standard location for placing the NSO package you want included in your NSO system build
   - =includes/=: Standard location for placing manifests for including externally built packages
+  - =extra-files/=: Standard location for placing extra files to be included in the =nso=. Files are relative to the image file system root, i.e. create =extra-files/tmp/foobar= to have it placed at =/tmp/foobar= in the Docker image.
 
 ** Skeleton source location and updating the skeleton
    The authoritative origin for the standard form NSO system skeleton is the =nso-docker= repository at [[https://gitlab.com/nso-developer/nso-docker/]], specifically in the directory =skeletons/system=. To upgrade to a later version of the skeleton, pull the files from that location and avoid touching the =Makefile= as it typically contains custom modifications. Be sure to include files starting with a dot (=.=).

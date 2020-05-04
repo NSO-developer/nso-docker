@@ -4,6 +4,8 @@ ARG NSO_VERSION
 # DEP_START
 # DEP_END
 
+
+# Compile local packages in the build stage
 FROM ${NSO_IMAGE_PATH}cisco-nso-dev:${NSO_VERSION} AS build
 
 COPY packages /packages
@@ -13,6 +15,9 @@ COPY test-packages /test-packages
 RUN for PKG in $(ls /test-packages); do make -C /test-packages/${PKG}/src || exit 1; done
 
 
+# produce an NSO image that comes loaded with our NED - perfect for our testing,
+# but probably not anything beyond that since you typically want more NSO
+# packages for a production environment
 FROM ${NSO_IMAGE_PATH}cisco-nso-base:${NSO_VERSION} AS testnso
 
 # DEP_INC_START
@@ -21,6 +26,13 @@ FROM ${NSO_IMAGE_PATH}cisco-nso-base:${NSO_VERSION} AS testnso
 COPY --from=build /packages/ /var/opt/ncs/packages/
 COPY --from=build /test-packages/ /var/opt/ncs/packages/
 
+# Copy in extra files as an overlay, for example additions to
+# /etc/ncs/pre-ncs-start.d/
+COPY extra-files /
 
+
+# build a minimal image that only contains the package itself - perfect way to
+# distribute the compiled package by relying on Docker package registry
+# infrastructure
 FROM scratch AS package
 COPY --from=build /packages/ /var/opt/ncs/packages/
