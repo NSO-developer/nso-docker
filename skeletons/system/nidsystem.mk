@@ -119,6 +119,12 @@ testenv-clean-build:
 	@echo "-- Done cleaning, rebuilding with forced package reload..."
 	$(MAKE) testenv-build PACKAGE_RELOAD="true"
 
+# testenv-stop - stop the testenv
+# This finds the currently running containers that are part of our testenv based
+# on their labels and then stops them, finally removing the docker network too.
+# All containers that are part of our testenv must be started with the correct
+# labels for this to work correctly. Use the variables DOCKER_ARGS or
+# DOCKER_NSO_ARGS when running 'docker run', see testenv-start.
 testenv-stop:
 	docker ps -aq --filter label=$(CNT_PREFIX) | $(XARGS) docker rm -vf
 	-docker network rm $(CNT_PREFIX)
