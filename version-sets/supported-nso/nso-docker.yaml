@@ -48,6 +48,11 @@ build-5.2.2:
   variables:
     NSO_VERSION: "5.2.2"
 
+build-5.2.3:
+  extends: .build
+  variables:
+    NSO_VERSION: "5.2.3"
+
 build-5.3:
   extends: .build
   variables:
@@ -57,6 +62,11 @@ build-5.3.1:
   extends: .build
   variables:
     NSO_VERSION: "5.3.1"
+
+build-5.3.2:
+  extends: .build
+  variables:
+    NSO_VERSION: "5.3.2"
 
 multiver-test_4.7.5_4.7.6:
   extends: .multiver_test
@@ -160,6 +170,24 @@ multiver-test_5.2.1_5.2.2:
     OLD_NSO_VERSION: "5.2.1"
     NSO_VERSION: "5.2.2"
 
+multiver-test_4.7.7_5.2.3:
+  extends: .multiver_test
+  variables:
+    OLD_NSO_VERSION: "4.7.7"
+    NSO_VERSION: "5.2.3"
+
+multiver-test_5.1.4_5.2.3:
+  extends: .multiver_test
+  variables:
+    OLD_NSO_VERSION: "5.1.4"
+    NSO_VERSION: "5.2.3"
+
+multiver-test_5.2.2_5.2.3:
+  extends: .multiver_test
+  variables:
+    OLD_NSO_VERSION: "5.2.2"
+    NSO_VERSION: "5.2.3"
+
 multiver-test_4.7.7_5.3:
   extends: .multiver_test
   variables:
@@ -172,10 +200,10 @@ multiver-test_5.1.4_5.3:
     OLD_NSO_VERSION: "5.1.4"
     NSO_VERSION: "5.3"
 
-multiver-test_5.2.2_5.3:
+multiver-test_5.2.3_5.3:
   extends: .multiver_test
   variables:
-    OLD_NSO_VERSION: "5.2.2"
+    OLD_NSO_VERSION: "5.2.3"
     NSO_VERSION: "5.3"
 
 multiver-test_4.7.7_5.3.1:
@@ -190,10 +218,10 @@ multiver-test_5.1.4_5.3.1:
     OLD_NSO_VERSION: "5.1.4"
     NSO_VERSION: "5.3.1"
 
-multiver-test_5.2.2_5.3.1:
+multiver-test_5.2.3_5.3.1:
   extends: .multiver_test
   variables:
-    OLD_NSO_VERSION: "5.2.2"
+    OLD_NSO_VERSION: "5.2.3"
     NSO_VERSION: "5.3.1"
 
 multiver-test_5.3_5.3.1:
@@ -201,6 +229,30 @@ multiver-test_5.3_5.3.1:
   variables:
     OLD_NSO_VERSION: "5.3"
     NSO_VERSION: "5.3.1"
+
+multiver-test_4.7.7_5.3.2:
+  extends: .multiver_test
+  variables:
+    OLD_NSO_VERSION: "4.7.7"
+    NSO_VERSION: "5.3.2"
+
+multiver-test_5.1.4_5.3.2:
+  extends: .multiver_test
+  variables:
+    OLD_NSO_VERSION: "5.1.4"
+    NSO_VERSION: "5.3.2"
+
+multiver-test_5.2.3_5.3.2:
+  extends: .multiver_test
+  variables:
+    OLD_NSO_VERSION: "5.2.3"
+    NSO_VERSION: "5.3.2"
+
+multiver-test_5.3.1_5.3.2:
+  extends: .multiver_test
+  variables:
+    OLD_NSO_VERSION: "5.3.1"
+    NSO_VERSION: "5.3.2"
 
 push-4.7.5:
   extends: .push
@@ -252,6 +304,11 @@ push-5.2.2:
   variables:
     NSO_VERSION: "5.2.2"
 
+push-5.2.3:
+  extends: .push
+  variables:
+    NSO_VERSION: "5.2.3"
+
 push-5.3:
   extends: .push
   variables:
@@ -261,6 +318,11 @@ push-5.3.1:
   extends: .push
   variables:
     NSO_VERSION: "5.3.1"
+
+push-5.3.2:
+  extends: .push
+  variables:
+    NSO_VERSION: "5.3.2"
 
 
 test-version-set:
