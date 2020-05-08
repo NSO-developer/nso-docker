@@ -31,6 +31,14 @@ the tip-of-train would include 4.7.2 and 5.2.1.
 
 import json
 
+from collections import namedtuple
+
+# stores both the version, which can include extra characters, for example
+# 5.3.2_ps or 5.3.2_200407.032413.72dd81aef74b for a nightly, and then we have
+# tup which stores just the version number, like 5.3.2 or 5.4 and does that in
+# a tuple form which is easy to sort on.
+NsoV = namedtuple('NSOv', ['version', 'tup'])
+
 flat_tmpl = "{version}\n"
 
 ci_template = """{name}-{version}:
@@ -51,14 +59,21 @@ ci_mv_template = """multiver-test_{old_version}_{version}:
 def vsn_split(version):
     """
     """
-    return tuple(map(lambda x: int(x), version.split(".")))
+    import re
+    version_re = "([0-9]+(\.[0-9]+){1,2})"
+    m = re.match(version_re, version)
+    if not m:
+        raise ValueError(f"Version '{version}' does not conform to NSO version format ({version_re})")
+    num_version = m.group(1)
+    v = NsoV(version, tup=tuple(map(lambda x: int(x), num_version.split("."))))
+    return v
 
 def f_major(interesting_version, versions):
     """Filter based on the major version
 
     Filtering on version 4 means 4.7.5 is returned while 5.2.1 is not
     """
-    return filter(lambda x: x[0] == interesting_version, versions)
+    return filter(lambda ver: ver.tup[0] == interesting_version, versions)
 
 
 def f_majmin(iv, versions):
@@ -68,22 +83,22 @@ def f_majmin(iv, versions):
 
     Filtering on version [5, 2] means 5.2 and 5.2.1 is returned while 5.1.1 or 5.3 is not
     """
-    return filter(lambda x: x[0] == iv[0] and x[1] == iv[1], versions)
+    return filter(lambda ver: ver.tup[0] == iv[0] and ver.tup[1] == iv[1], versions)
 
 
-def f_lower(version, versions):
+def f_lower(ver, versions):
     """Return versions lower than the version specified by *version*
     """
     for vsn in sorted(versions):
-        if vsn < version:
+        if vsn < ver.tup:
             yield vsn
 
 
-def f_higher(version, versions):
+def f_higher(ver, versions):
     """Return versions higher than the version specified by *version*
     """
     for vsn in sorted(versions):
-        if vsn > version:
+        if vsn > ver.tup:
             yield vsn
 
 
@@ -108,53 +123,54 @@ def frmt(tmpl, version, data=None):
     """
     if not data:
         data = {}
-    version_string = ".".join(map(lambda x: str(x), version))
-    data['version'] = version_string
+    data['version'] = version
     return tmpl.format(**data)
 
 def formatter(version, name='build'):
-    version_string = ".".join(map(lambda x: str(x), version))
-    return ci_template.format(name=name, version=version_string)
+    return ci_template.format(name=name, version=version)
 
 
 def formatter_mv(old_version, version):
-    old_version_string = ".".join(map(lambda x: str(x), old_version))
-    version_string = ".".join(map(lambda x: str(x), version))
-    return ci_mv_template.format(old_version=old_version_string, version=version_string)
+    return ci_mv_template.format(old_version=old_version, version=version)
 
 
 def write_job_set(name, versions):
     # all versions
     with open("{}-all.yaml".format(name), "w") as f:
-        f.write("".join(map(lambda x: formatter(x, name), versions)))
+        f.write("".join(map(lambda ver: formatter(ver.version, name), versions)))
 
     # all 4 versions
     with open("{}-all4.yaml".format(name), "w") as f:
-        f.write("".join(map(lambda x: formatter(x, name), f_major(4, versions))))
+        f.write("".join(map(lambda ver: formatter(ver.version, name), f_major(4, versions))))
 
     # all 5 versions
     with open("{}-all5.yaml".format(name), "w") as f:
-        f.write("".join(map(lambda x: formatter(x, name), f_major(5, versions))))
+        f.write("".join(map(lambda ver: formatter(ver.version, name), f_major(5, versions))))
 
     # all tip-of-train versions
     with open("{}-tot.yaml".format(name), "w") as f:
-        f.write("".join(map(lambda x: formatter(x, name), f_tot(versions))))
+        f.write("".join(map(lambda ver: formatter(ver.version, name), f_tot(versions))))
 
     # all tip-of-train 4 versions
     with open("{}-tot4.yaml".format(name), "w") as f:
-        f.write("".join(map(lambda x: formatter(x, name), f_tot(f_major(4, versions)))))
+        f.write("".join(map(lambda ver: formatter(ver.version, name), f_tot(f_major(4, versions)))))
 
     # all tip-of-train 5 versions
     with open("{}-tot5.yaml".format(name), "w") as f:
-        f.write("".join(map(lambda x: formatter(x, name), f_tot(f_major(5, versions)))))
+        f.write("".join(map(lambda ver: formatter(ver.version, name), f_tot(f_major(5, versions)))))
 
 def write_flat(filename, versions):
     with open(filename, "w") as f:
-        f.write("".join(map(lambda x: frmt(flat_tmpl, x), versions)))
+        f.write("".join(map(lambda ver: ver.version + "\n", versions)))
 
 def write_multiver_test(filename, versions):
     """
-    For a given version, we want to test upgrading from the trip of train for all previous trains within our major version. For example, for 5.3 we want to try upgrading from 5.2.1 and 5.1.2 which are the last maintenance releases of the 5.2 and 5.1 branch respectively. We also want to upgrade from the last 4 release, i.e. 4.7.6 at the time of this writing.
+    For a given version, we want to test upgrading from the tip of train for
+    all previous trains within our major version. For example, for 5.3 we want
+    to try upgrading from 5.2.1 and 5.1.2 which are the last maintenance
+    releases of the 5.2 and 5.1 branch respectively. We also want to upgrade
+    from the last 4 release, i.e. 4.7.6 at the time of this writing.
+
     For a given version we want to test:
     - upgrading from previous maintenance release
       - e.g. for 4.7.6 we want to try upgrading from 4.7.5
