@@ -25,7 +25,7 @@ ARG NED_NAME
 # requires the NED_NAME variable to be set at run time.
 ENV NNAME=${NED_NAME}
 
-COPY --from=build /packages /var/opt/ncs/packages
+COPY --from=build /src/packages /var/opt/ncs/packages
 COPY /run-netsim.sh /run-netsim.sh
 
 CMD /run-netsim.sh ${NNAME} ${NNAME}
