@@ -7,12 +7,10 @@ ARG NSO_VERSION
 
 # Compile local packages in the build stage
 FROM ${NSO_IMAGE_PATH}cisco-nso-dev:${NSO_VERSION} AS build
+ARG PKG_FILE
 
-COPY packages /packages
-RUN for PKG in $(ls /packages); do make -C /packages/${PKG}/src || exit 1; done
-
-COPY test-packages /test-packages
-RUN for PKG in $(ls /test-packages); do make -C /test-packages/${PKG}/src || exit 1; done
+COPY / /src
+RUN for PKG in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth 1 -type d); do make -C ${PKG}/src || exit 1; make -f /src/nid/bmd.mk -C ${PKG} build-meta-data.xml; done
 
 
 # produce an NSO image that comes loaded with our NED - perfect for our testing,
@@ -23,8 +21,8 @@ FROM ${NSO_IMAGE_PATH}cisco-nso-base:${NSO_VERSION} AS testnso
 # DEP_INC_START
 # DEP_INC_END
 
-COPY --from=build /packages/ /var/opt/ncs/packages/
-COPY --from=build /test-packages/ /var/opt/ncs/packages/
+COPY --from=build /src/packages/ /var/opt/ncs/packages/
+COPY --from=build /src/test-packages/ /var/opt/ncs/packages/
 
 # Copy in extra files as an overlay, for example additions to
 # /etc/ncs/pre-ncs-start.d/
@@ -35,4 +33,4 @@ COPY extra-files /
 # distribute the compiled package by relying on Docker package registry
 # infrastructure
 FROM scratch AS package
-COPY --from=build /packages/ /var/opt/ncs/packages/
+COPY --from=build /src/packages/ /var/opt/ncs/packages/
