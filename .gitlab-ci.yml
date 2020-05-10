@@ -1,3 +1,5 @@
+image: registry.gitlab.com/nso-developer/ci-runner-image:latest
+
 # Stages for our CI jobs
 # Gitlab only allows the specification of one progression of stages. We use two
 # different "modes" for running our jobs, which are essentially mutually
