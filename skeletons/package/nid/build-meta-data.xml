@@ -1,0 +1,16 @@
+<ncs-pkg-build xmlns='http://tail-f.com/ns/ncs-pkg-build'>
+    <date>$(date -Iseconds -u)</date>
+    <file>${PKG_FILE}</file>
+    <type>release</type>
+    <arch>linux.$(uname -m)</arch>
+    <python>$(python --version)</python>
+    <package>
+        <name>${PKG_NAME}</name>
+        <version>${PKG_VERSION}</version>
+        <ref>$(git describe --all --long --dirty)</ref>
+        <sha1>$(git rev-parse HEAD)</sha1>
+    </package>
+    <ncs>
+        <version>$(ncs --version)</version>
+    </ncs>
+</ncs-pkg-build>
