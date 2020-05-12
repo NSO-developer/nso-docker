@@ -43,6 +43,7 @@ COPY --from=0 /nso /nso
 RUN apt-get update \
   && apt-get install -qy \
      ant \
+     git \
      iputils-tracepath \
      less \
      liblog4cplus-1.1-9 \
