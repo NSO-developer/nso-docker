@@ -24,4 +24,4 @@ FROM ${NSO_IMAGE_PATH}cisco-nso-base:${NSO_VERSION} AS nso
 # /etc/ncs/pre-ncs-start.d/
 COPY extra-files /
 
-COPY --from=build /packages/ /var/opt/ncs/packages/
+COPY --from=build /src/packages/ /var/opt/ncs/packages/
