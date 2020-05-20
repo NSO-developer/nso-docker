@@ -73,8 +73,8 @@ lc = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(s
 ifeq ($(NSO_VERSION),)
 $(error "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on NSO version 5.2.1")
 endif
-NSO_VERSION_MAJOR=$(shell echo ${NSO_VERSION} | sed 's/^\([0-9]\+\)\..*/\1/')
-NSO_VERSION_MINOR=$(shell echo ${NSO_VERSION} | sed 's/^[0-9]\+\.\([0-9]\+\).*/\1/')
+NSO_VERSION_MAJOR=$(word 1,$(subst ., ,$(NSO_VERSION)))
+NSO_VERSION_MINOR=$(word 2,$(subst ., ,$(NSO_VERSION)))
 
 # Set PNS - our pseudo-namespace or pipeline namespace. All containers running
 # within a CI pipeline will have the same namespace, which isn't a namespace
