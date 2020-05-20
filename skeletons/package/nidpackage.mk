@@ -79,45 +79,12 @@ testenv-start:
 	$(MAKE) testenv-start-extra
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'ncs --wait-started 600'
 
-# testenv-build - recompiles and loads new packages in NSO
-# Compilation happens in a cisco-nso-dev container that attaches up the running
-# containers package directory as a volume. The source files are then copied
-# over using rsync. The rsync operation is analyzed (by looking at the log) to
-# determine what files were updated and based on that either reload all package
-# or selectively redeploy individual packages. ENG-20488, released in NSO 5.3,
-# made large improvements to package redeploy, before it, changes configuration
-# template required a package reload. We take this into account by first looking
-# at the NSO version. Note how the package name can be different from the
-# package directory name, thus we use xmlstarlet to get the package name from
-# package-meta-data.xml. A full package reload can be forced by setting
-# PACKAGE_RELOAD to anything non-empty.
-#
-# build-meta-data.xml is also generated for packages that do not ship / build
-# one themselves. Note how NSO only reads in build-meta-data.xml on package
-# *reload*. A package *redeploy* will thus lead to a stale view in NSO.
-SUPPORTS_NEW_REDEPLOY=$(shell if [ $(NSO_VERSION_MAJOR) -gt 5 ] || [ $(NSO_VERSION_MAJOR) -eq 5 -a $(NSO_VERSION_MINOR) -ge 3 ]; then echo "true"; fi)
-ifeq ($(SUPPORTS_NEW_REDEPLOY),true)
-RELOAD_PATTERN="(package-meta-data.xml|\.cli$$|\.yang$$)"
-else
-RELOAD_PATTERN="(package-meta-data.xml|templates/.*\.xml$$|\.cli$$|\.yang$$)"
-endif
+# testenv-build - incrementally recompile and load new packages in running NSO
+# See the nid/testenv-build script for more details.
 testenv-build:
 	for NSO in $$(docker ps --format '{{.Names}}' --filter label=$(CNT_PREFIX) --filter label=nidtype=nso); do \
 		echo "-- Rebuilding for NSO: $${NSO}"; \
-		mkdir -p tmp && \
-		docker run -it --rm -v $(PWD):/src --volumes-from $${NSO} -e PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -lc 'rsync -aEim /src/packages/. /src/test-packages/. /var/opt/ncs/packages/ > /src/tmp/rsync.log; chown $$(stat -c "%u:%g" /src/tmp) /src/tmp/rsync.log 2>/dev/null; for PKG_DIR in $$(find /src/packages /src/test-packages -mindepth 1 -maxdepth 1 -type d); do export PKG_NAME=$$(basename $${PKG_DIR}); make -C /var/opt/ncs/packages/$${PKG_NAME}/src; OUTPUT_PATH=/var/opt/ncs/packages/$${PKG_NAME}/ make -f /src/nid/bmd.mk -C $${PKG_DIR} build-meta-data.xml; done' && \
-		egrep $(RELOAD_PATTERN) tmp/rsync.log >/dev/null; if [ $$? -eq 0 ] || [ -n "$$PACKAGE_RELOAD" ]; then \
-			echo "-- Reloading packages for NSO $${NSO}"; \
-			$(MAKE) testenv-runcmdJ CMD="request packages reload force"; \
-		else \
-			for PKG in $$(sed 's,^[^ ]\+ \([^/]\+\).*,\1,' tmp/rsync.log | sort | uniq); do \
-				echo "-- Redeploying package $${PKG} for NSO $${NSO}"; \
-				PMD_FILE=$$(ls packages/$${PKG}/package-meta-data.xml packages/$${PKG}/src/package-meta-data.xml.in test-packages/$${PKG}/package-meta-data.xml test-packages/$${PKG}/src/package-meta-data.xml.in 2>/dev/null | head -n1); \
-				PKG_NAME=$$(xmlstarlet sel -N x=http://tail-f.com/ns/ncs-packages -t -v "/x:ncs-package/x:name" -nl $${PMD_FILE}) && \
-				$(MAKE) testenv-runcmdJ CMD="request packages package $${PKG_NAME} redeploy"; \
-			done; \
-		fi; \
-		rm -rf tmp; \
+		docker run -it --rm -v $(PWD):/src --volumes-from $${NSO} --network=container:$${NSO} -e NSO=$${NSO} -e PACKAGE_RELOAD=$(PACKAGE_RELOAD) -e SKIP_LINT=$(SKIP_LINT) -e PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) /src/nid/testenv-build; \
 	done
 
 # testenv-clean-build - clean and rebuild from scratch
