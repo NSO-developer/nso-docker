@@ -71,7 +71,7 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
 ** Building
 *** Manually building Docker images on your local machine
    - Clone this repository to your local machine
-     - ~git clone git@gitlab.com/nso-developer/nso-docker.git~
+     - ~git clone https://gitlab.com/nso-developer/nso-docker.git~
    - Download Cisco NSO
      - go to [[https://developer.cisco.com/docs/nso/]] and click the "Download NSO for evaluation (Linux)" in the side bar
    - Place the downloaded .bin file in ~nso-install-files/~ in this repository
@@ -124,7 +124,7 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
 
 *** Automatically building Docker images using Gitlab CI
    - Clone this repository to your local machine
-     - ~git clone git@gitlab.com/nso-developer/nso-docker.git~
+     - ~git clone https://gitlab.com/nso-developer/nso-docker.git~
    - Download Cisco NSO
      - go to [[https://developer.cisco.com/docs/nso/]] and click the "Download NSO for evaluation (Linux)" in the side bar
    - Place the downloaded .bin file in ~nso-install-files/~ in this repository
