@@ -576,6 +576,27 @@ Do note that the example image URLs used above would be the result of the defaul
 
   If you notice any issues, please open an issue.
 
+* Windows support
+  Running NSO in Docker on Windows is supported, with some caveats. With a recent version of Windows 10 (May 2020 - version 2004), Docker is using a lightweight Linux VM using WSL2 (Windows Subsystem for Linux v2). As such, it is compatible with normal Docker images built for Linux. You don't need to recompile your NSO in Docker images when moving between a Linux machine and Docker in WSL2 as they are both really running Docker on Linux.
+
+  Prerequisites:
+  - Windows 10, version 2004: https://docs.microsoft.com/en-us/windows/whats-new/whats-new-windows-10-version-2004
+  - WSL2 installed: https://docs.microsoft.com/en-us/windows/wsl/install-win10
+  - Windows Terminal is recommeneded: https://www.microsoft.com/en-us/p/windows-terminal/9n0dx20hk701
+
+  After installing the prerequisites, there are two methods of deploying Docker. Depending on the method, certain networking related aspects of NSO in Docker may not work:
+  1. (Easy) Install Docker Desktop and enable WSL2 integration: https://docs.docker.com/docker-for-windows/wsl/. The Docker engine runs as a separate lightweight WSL2 VM, next to your preferred Linux distro. After enabling WSL2 integration with your preferred distro in Docker Desktop settings, docker commands are made available without requiring changes to your Linux distro. As a consequence of Docker running in a separate VM, direct network access to containers from Windows and Linux is not possible, only through port mapping: https://docs.docker.com/docker-for-windows/networking. Other features (volumes, isolated networks, ...) are not affected.
+  2. (A bit more work) Install Docker engine directly in your preferred WSL2 distro: https://docs.docker.com/engine/install/ubuntu/. This method has feature parity with a "bare" Linux installation, so all aspects of NSO in Docker are expected to work. Since there is no systemd in WSL2, Docker engine must be started manually the first time WSL2 starts up.
+
+  Note that picking one of the methods does not prevent you from switching to the other (and back). If Docker Desktop is installed, enabling WSL2 distro integration will configure your distro at runtime to prefer the engine provided by Docker Desktop. This can be disabled, allowing your distro to revert to using its own Docker engine.
+
+  What works:
+  - everything* (except when using Docker Desktop, where there is no direct network access)
+
+  To build, you need =make= and Docker executable available in your preferred WSL2 distro. To test, there are some additional dependencies (same as Linux).
+
+  If you notice any issues, please open an issue.
+
 * FAQ / Questions and answers
 ** Q: Why are these images not based on alpine or some other minimal container friendly image
    *A*: The larger the final container image is, the less impact the base image size typically has. Picking a 5MB or 50MB base image is not crucial when the final image is an order of magnitude larger.
