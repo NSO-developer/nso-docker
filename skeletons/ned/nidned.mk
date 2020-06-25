@@ -93,7 +93,7 @@ dev-shell:
 testenv-start:
 	docker network inspect $(CNT_PREFIX) >/dev/null 2>&1 || docker network create $(CNT_PREFIX)
 	docker run -td --name $(CNT_PREFIX)-nso --network-alias nso $(DOCKER_NSO_ARGS) -e ADMIN_PASSWORD=NsoDocker1337 $${NSO_EXTRA_ARGS} $(IMAGE_PATH)$(PROJECT_NAME)/testnso:$(DOCKER_TAG)
-	docker run -td --name $(CNT_PREFIX)-netsim --network-alias dev1 $(DOCKER_ARGS) $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(DOCKER_TAG)
+	docker run -td --name $(CNT_PREFIX)-netsim --network-alias dev1 --hostname dev1 $(DOCKER_ARGS) $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(DOCKER_TAG)
 	$(MAKE) testenv-start-extra
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'ncs --wait-started 600'
 

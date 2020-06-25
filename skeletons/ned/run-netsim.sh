@@ -73,7 +73,10 @@ source_dir=/var/opt/ncs/packages/$NS_TYPE
 
 # setup netsim device if it doesn't exist
 if [[ ! -e /netsim/dev/dev ]]; then
-    /opt/ncs/current/bin/ncs-netsim --dir /netsim create-device /var/opt/ncs/packages/$NS_TYPE dev
+    /opt/ncs/current/bin/ncs-netsim --dir /netsim create-device /var/opt/ncs/packages/$NS_TYPE $(hostname)
+    mkdir -p /netsim/dev
+    mv /netsim/$(hostname)/$(hostname) /netsim/dev/dev
+    rmdir /netsim/$(hostname)
 fi
 
 # start confd in the background
