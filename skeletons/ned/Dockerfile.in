@@ -10,7 +10,11 @@ FROM ${NSO_IMAGE_PATH}cisco-nso-dev:${NSO_VERSION} AS build
 ARG PKG_FILE
 
 COPY / /src
-RUN for PKG in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth 1 -type d); do make -C ${PKG}/src || exit 1; make -f /src/nid/bmd.mk -C ${PKG} build-meta-data.xml; if [ -d ${PKG}/netsim ]; then make -C ${PKG}/netsim || exit 1; fi; done
+RUN for PKG in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth 1 -type d); do \
+  make -C ${PKG}/src || exit 1; \
+  make -f /src/nid/bmd.mk -C ${PKG} build-meta-data.xml; \
+  if [ -d ${PKG}/netsim ]; then make -C ${PKG}/netsim || exit 1; fi; \
+  done
 
 
 # build a netsim docker image by copying the compiled NED and changing the
