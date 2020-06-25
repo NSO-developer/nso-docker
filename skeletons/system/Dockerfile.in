@@ -10,7 +10,10 @@ FROM ${NSO_IMAGE_PATH}cisco-nso-dev:${NSO_VERSION} AS build
 ARG PKG_FILE
 
 COPY / /src
-RUN for PKG in $(find /src/packages -mindepth 1 -maxdepth 1 -type d); do make -C ${PKG}/src || exit 1; make -f /src/nid/bmd.mk -C ${PKG} build-meta-data.xml; done
+RUN for PKG in $(find /src/packages -mindepth 1 -maxdepth 1 -type d); do \
+  make -C ${PKG}/src || exit 1; \
+  make -f /src/nid/bmd.mk -C ${PKG} build-meta-data.xml; \
+  done
 
 
 # produce the main NSO image that comes loaded with all our built both locally
