@@ -52,9 +52,9 @@ else
 fi
 echo ${RELOAD_PATTERN}
 
-# Copy in new source
+# Copy in new source using rsync. Exclude Emacs and vim temp files.
 # grep -v is for ignoring directory changes. We just care about changed files.
-rsync -aEim /src/packages/. /src/test-packages/. /var/opt/ncs/packages/ | grep -v "^\.d\.\.t\.\.\.\.\.\. " > /tmp/rsync.log
+rsync -aEim --exclude '.#*' --exclude '.*.sw[a-p]' /src/packages/. /src/test-packages/. /var/opt/ncs/packages/ | grep -v "^\.d\.\.t\.\.\.\.\.\. " > /tmp/rsync.log
 for PKG_DIR in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth 1 -type d); do
     export PKG_NAME=$(basename ${PKG_DIR});
     make -C /var/opt/ncs/packages/${PKG_NAME}/src;
