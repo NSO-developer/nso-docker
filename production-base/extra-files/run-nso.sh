@@ -68,9 +68,18 @@ for FILE in $(ls /etc/ncs/pre-ncs-start.d/*.sh 2>/dev/null); do
     . ${FILE}
 done
 
-# start NSO in the background
-# output logs to stdout a la container style
+# -- start NSO in the background
+# The 'set +-m' are for job control monitor mode. As job control monitor mode is
+# disabled per default, starting new processes places them in the same process
+# group as this script. When ctrl-c is pressed, SIGINT is delivered to all the
+# processes in the foreground process group, which would then include ncs. ncs
+# is really the Erlang BEAM VM, just renamed, and it doesn't handle ^c well - it
+# doesn't shut down ncs cleanly. To avoid this, we enable job control monitor
+# mode so that ncs is started as a background task in a different process group,
+# thus avoiding sending SIGINT to it on ^c. Instead we can handle SIGINT and
+# nicely ask ncs to shut down.
 set -m
+# output logs to stdout a la container style
 ncs --cd ${NCS_RUN_DIR} -c ${NCS_CONFIG_DIR}/ncs.conf --foreground -v --with-package-reload-force &
 NSO_PID="$!"
 set +m
