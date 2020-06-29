@@ -155,8 +155,8 @@ test-ncs-stop:
 	docker run -td --name $(CNT_PREFIX)-$@ --label CNT_PREFIX=$(CNT_PREFIX) $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
-	@echo "-- Stop NSO"
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --stop'
+	@echo "-- Stop NSO - ignoring return code because NSO 5.4 returns non-0, which should be fine here, as long as main return code, as seen by docker inspect, is 0"
+	-docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --stop'
 	@echo "-- Wait for container to stop"
 	-docker logs -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Check that container is not running"
