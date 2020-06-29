@@ -90,7 +90,7 @@ def f_lower(ver, versions):
     """Return versions lower than the version specified by *version*
     """
     for vsn in sorted(versions):
-        if vsn < ver.tup:
+        if vsn.tup < ver.tup:
             yield vsn
 
 
@@ -98,7 +98,7 @@ def f_higher(ver, versions):
     """Return versions higher than the version specified by *version*
     """
     for vsn in sorted(versions):
-        if vsn > ver.tup:
+        if vsn.tup > ver.tup:
             yield vsn
 
 
@@ -111,7 +111,7 @@ def f_tot(versions):
     """
     tot = {}
     for version in versions:
-        mm = (version[0], version[1])
+        mm = version.tup[0:2]
         if mm not in tot:
             tot[mm] = version
         if tot[mm] < version:
@@ -184,10 +184,10 @@ def write_multiver_test(filename, versions):
     with open(filename, "w") as f:
         for vsn in versions:
             olds = []
-            majmin = vsn[0:2]
+            majmin = vsn.tup[0:2]
 
             # if 5, upgrade from last 4.x release
-            if vsn[0] == 5:
+            if majmin[0] == 5:
                 all4 = list(f_major(4, versions))
                 if len(all4) >= 1:
                     olds.append(all4[-1])
@@ -204,10 +204,10 @@ def write_multiver_test(filename, versions):
 #                olds.append(mm_nexts[0])
 
             # try upgrade from all previous tot in same major version
-            for ovsn in f_tot(f_lower(vsn, f_major(vsn[0], versions))):
+            for ovsn in f_tot(f_lower(vsn, f_major(vsn.tup[0], versions))):
                 olds.append(ovsn)
 
-            f.write("".join(map(lambda x: formatter_mv(x, vsn), sorted(list(set(olds) - set([vsn]))))))
+            f.write("".join(map(lambda x: formatter_mv(x.version, vsn.version), sorted(list(set(olds) - set([vsn]))))))
 
 if __name__ == '__main__':
     import argparse
