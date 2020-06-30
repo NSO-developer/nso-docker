@@ -12,9 +12,14 @@ if [ "$PAM" != "true" ]; then
 fi
 
 # change SSH key dir and set host key algorithm
+# In NSO 5.4 and later, there is no <ssh> node while in earlier versions, it
+# already exists. We first wipe the <ssh> node to avoid creating a duplicate.
 xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
            --update '/x:ncs-config/x:aaa/x:ssh-server-key-dir' --value '/nso/ssh' \
-           --update '/x:ncs-config/x:ssh/x:algorithms/x:server-host-key' --value "ssh-rsa" \
+           --delete '/x:ncs-config/x:ssh' \
+           -s '/x:ncs-config' -t elem -n 'ssh' \
+           -s '/x:ncs-config/ssh' -t elem -n 'algorithms' \
+           -s '/x:ncs-config/ssh/algorithms' -t elem -n 'server-host-key' -v "ssh-rsa" \
            $CONF_FILE
 
 # update ports for various protocols for which the default value in ncs.conf is
