@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+#
+
+set timeout 5
+spawn ssh -o IdentityAgent=none -o IdentitiesOnly=yes -F /dev/null -l admin -i test_ssh_key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $::env(NSO_IP)
+expect {
+    -re "connected from.*using ssh" { send -- "exit\r" }
+    timeout { exit 1 }
+}
+expect eof
