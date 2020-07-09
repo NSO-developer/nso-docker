@@ -73,8 +73,10 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
    - Clone this repository to your local machine
      - ~git clone https://gitlab.com/nso-developer/nso-docker.git~
    - Download Cisco NSO
-     - go to [[https://developer.cisco.com/docs/nso/]] and click the "Download NSO for evaluation (Linux)" in the side bar
-   - Place the downloaded .bin file in ~nso-install-files/~ in this repository
+     - go to [[https://developer.cisco.com/docs/nso/#!getting-nso/getting-nso]] and click the "NSO 5.x Linux" link to download NSO
+   - If the file ends with =.signed.bin=, it is a self-extracting archive that verifies a signature, execute it to produce the installer
+     - for example running ~bash nso-5.3.linux.x86_64.signed.bin~ will produce a number of files, among them the install =nso-5.3.linux.x86_64.installer.bin=
+   - Place the =nso-5.x.linux.x86_64.installer.bin= file in ~nso-install-files/~ in this repository
    - run ~make~ in repository root directory, which will build Docker images out of all the NSO install files found
      - *NOTE*: running docker commands, which are invoked by ~make~, typically require root privileges or membership in the ~docker~ group
      - this runs ~make build-all~ which will build images for all found NSO versions
@@ -126,8 +128,10 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
    - Clone this repository to your local machine
      - ~git clone https://gitlab.com/nso-developer/nso-docker.git~
    - Download Cisco NSO
-     - go to [[https://developer.cisco.com/docs/nso/]] and click the "Download NSO for evaluation (Linux)" in the side bar
-   - Place the downloaded .bin file in ~nso-install-files/~ in this repository
+     - go to [[https://developer.cisco.com/docs/nso/#!getting-nso/getting-nso]] and click the "NSO 5.x Linux" link to download NSO
+   - If the file ends with =.signed.bin=, it is a self-extracting archive that verifies a signature, execute it to produce the installer
+     - for example running ~bash nso-5.3.linux.x86_64.signed.bin~ will produce a number of files, among them the install =nso-5.3.linux.x86_64.installer.bin=
+   - Place the =nso-5.x.linux.x86_64.installer.bin= file in ~nso-install-files/~ in this repository
    - commit file(s) in ~nso-install-files/~ using git LFS and push
      - ~git add nso-install-files/*~
      - ~git commit nso-install-files -m "Add NSO install files"~
