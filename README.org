@@ -65,6 +65,26 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
 
   See the [[skeletons/][NID skeletons]] for how to get started developing in the NID ecosystem.
 
+* Prerequisites
+  NSO in Docker runs on:
+  - Linux
+  - Mac OS X, see [[Mac OS X support]] for more information
+  - Windows, see [[Windows support]] for more information
+
+  To build these images, you need:
+  - Docker
+  - Make
+  - realpath
+
+  Install with:
+  - Debian: ~apt install coreutils make~
+  - Mac OS X: ~brew install coreutils~
+  - see [[https://docs.docker.com/get-docker/]] for installation instructions for Docker
+
+  If you want to run the test suite you also need:
+  - expect
+  - sshpass
+
 * Usage
   The ideal scenario would be to ship prebuilt Docker images containing NSO but as legal requirements prevent that, this is the second best option. This repository contains recipes that you can use to produce Docker images yourself. Just add +water+ Cisco NSO ;)
 
@@ -405,16 +425,6 @@ Do note that the example image URLs used above would be the result of the defaul
    - test
    - test-all
    They require the same variables to be set as their corresponding build target described above.
-
-* Dependencies
-  To build these images, you need:
-  - Docker
-  - Make
-  - realpath (from coreutils)
-
-  If you want to run the test suite you also need:
-  - expect
-  - sshpass
 
 * GitLab CI runner
   *NOTE*: Using a Gitlab CI runner as described in this section has different security implications than what is normally associated with using containers for CI. See the Security sub-heading.
