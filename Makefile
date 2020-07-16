@@ -79,8 +79,7 @@ test-multiver test-version-multiver:
 # file.
 build-file:
 	@if [ -z "$(FILE)" ]; then echo "ERROR: variable FILE must be set to the full path to the NSO installer, e.g. FILE=/data/foo/nso-5.2.1.linux.x86_64.install.bin"; echo "HINT: You probably want to invoke the 'build' target instead"; false; fi
-	$(MAKE) -C development DOCKER_TAG=$(DOCKER_TAG) build
-	$(MAKE) -C production-base DOCKER_TAG=$(DOCKER_TAG) build
+	$(MAKE) -C docker-images DOCKER_TAG=$(DOCKER_TAG) build
 
 # test target also takes FILE env arg as described above
 test-file test-file-multiver:
