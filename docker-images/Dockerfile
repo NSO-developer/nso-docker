@@ -113,8 +113,7 @@ RUN apt-get update \
 # package compilation.
 SHELL ["/bin/sh", "-lc"]
 
-COPY /entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/enter-shell.sh"]
 
 
 FROM deb_base AS base
