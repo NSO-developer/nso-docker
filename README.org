@@ -460,7 +460,7 @@ Do note that the example image URLs used above would be the result of the defaul
    Note that exposing the Docker control socket has security implications. Containers as run by the CI runner normally provide isolation such that CI jobs are contained within the container and are unable to access anything outside of the container. By exposing the docker control socket, the CI jobs can start new containers, including starting a privileged one, which means it has root access on the host machine and enables escaping the container entirely. Do not grant access to your project or CI runner to anyone you do not trust. For example, someone that is able to create a branch on your repository can write a Gitlab CI configuration file that instructs the CI runner to run a privileged container and then gain access to the CI runner machine itself.
 
 * Version sets for inclusion in CI configuration
-  The versions of NSO to build and test for will vary per environment. To handle this, the concept of "version sets" are used. A list of NSO versions is used to compute a number of CI configuration files that can be included from the main CI configuration and different lists can be used for different environments.
+  The versions of NSO to build and test for will vary per environment. To handle this, the concept of "version sets" are used. A list of NSO versions is used to compute a number of CI configuration files that can be included from the main CI configuration (=.gitlab-ci.yml=) and different lists can be used for different environments.
 
   For this repository in its online form at https://gitlab.com/nso-developer/nso-docker/, all currently supported versions of NSO are tested. This is useful to ensure that nso-docker itself is compatible with a wide range of NSO versions but also as other repositories in the NSO in Docker ecosystem can be checked against the same range of versions.
 
@@ -484,14 +484,15 @@ Do note that the example image URLs used above would be the result of the defaul
 
   =build-tot.yaml= only includes the "tip" of each train, where a train is the combination of a major and minor version number. Patch releases are not considered for tip-of-train as they are not supposed to be used by the wide masses. For example, if we have 4.7, 4.7.1, 4.7.2 and 4.7.2.1 as well as 5.2.1, the tip-of-train would include 4.7.2 and 5.2.1. Similarly, there's also =build-tot4.yaml= and =build-tot5.yaml= for tip of train for NSO 4 or NSO 5 respectively.
 
-  To include a file, use the =include= directory, for example:
+  To include a file, use the =include= directive in your =.gitlab-ci.yml=, for example:
   #+BEGIN_SRC yaml
     include:
       - project: 'nso-developer/nso-docker'
         ref: master
         file: '/version-sets/supported-nso/build-tot5.yaml'
   #+END_SRC
-  This will work for any repository hosted on the same GitLab instance as the =nso-developer/nso-docker= repo. Once you clone the =nso-docker= repository to your own environment, as you are encouraged to do, you are likely to place it in another namespace (not =nso-developer=) and so you must update the include statements for the dependent repositories accordingly.
+
+  This will work for any repository hosted on the same GitLab instance as the =nso-developer/nso-docker= repo. Once you clone the =nso-docker= repository to your own environment, as you are encouraged to do, you are likely to place it in another namespace (not =nso-developer=) and so you must update the include statements for the dependent repositories accordingly. For example, if you place your clone of =nso-docker= in the =foobar= group on your =gitlab.example.com= instance, then the version-set referenced should be =foobar/nso-docker=. You can also reference a version-set on a remote Gitlab instance by specifying a complete URL instead, like =https://gitlab.com/nso-developer/nso-docker/-/raw/master/version-sets/supported-nso/build-tot.yaml=.
 
 ** Create new version set
    Merely copy an existing version set, modify the =versions.json= file and regenerate the files. For example;
