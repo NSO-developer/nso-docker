@@ -1,0 +1,49 @@
+#!/bin/sh
+
+pypath="${NCS_DIR}/src/ncs/pyapi"
+
+# Make sure everyone finds the NCS Python libraries at startup
+if [ "x$PYTHONPATH" != "x" ]; then
+    PYTHONPATH=${pypath}:$PYTHONPATH
+else
+    PYTHONPATH=${pypath}
+fi
+export PYTHONPATH
+
+if [ "$1" = "-u" ]; then
+    main="${pypath}/ncs_pyvm/upgrade.py"
+else
+    main="${pypath}/ncs_pyvm/startup.py"
+fi
+
+# == Potentially source virtualenv for package
+# Get our package name, passed with the -i argument.
+for arg in "$@"; do
+    if [ -n "$FOUND" ]; then PKG_NAME=$arg; break; fi
+    if [ "$arg" = "-i" ]; then FOUND=1; fi
+done
+if [ -z "${PKG_NAME}" ]; then "Unable to determine PKG_NAME"; exit; fi
+
+# Find full path to our package
+# The path to our packages will include /some/path/${PKG_NAME}/python
+for PPATH in $(echo ${PYTHONPATH} | sed 's/:/ /g'); do
+    if [ "$(basename $(dirname ${PPATH}))" = "${PKG_NAME}" ] &&
+           [ "$(basename ${PPATH})" = "python" ]; then
+        PKG_PATH=$(dirname ${PPATH});
+        break;
+    fi
+done
+if [ -z "${PKG_PATH}" ]; then echo "Unable to determine PKG_PATH"; exit; fi
+
+# Look for virtualenv in our package and activate if found
+if [ -f "${PKG_PATH}/pyvenv/bin/activate" ]; then
+    echo "Found virtualenv for ${PKG_NAME}, activating it";
+    . ${PKG_PATH}/pyvenv/bin/activate;
+fi
+
+if [ -x "$(which python3)" ]; then
+    echo "Starting python3 -u $main $*"
+    exec python3 -u "$main" "$@"
+fi
+echo "Starting python -u $main $*"
+exec python -u "$main" "$@"
