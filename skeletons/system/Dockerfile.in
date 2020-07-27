@@ -23,8 +23,8 @@ FROM ${NSO_IMAGE_PATH}cisco-nso-base:${NSO_VERSION} AS nso
 # DEP_INC_START
 # DEP_INC_END
 
+COPY --from=build /src/packages/ /var/opt/ncs/packages/
+
 # Copy in extra files as an overlay, for example additions to
 # /etc/ncs/pre-ncs-start.d/
 COPY extra-files /
-
-COPY --from=build /src/packages/ /var/opt/ncs/packages/
