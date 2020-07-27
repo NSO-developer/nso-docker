@@ -7,8 +7,8 @@
     <package>
         <name>${PKG_NAME}</name>
         <version>${PKG_VERSION}</version>
-        <ref>$(git describe --all --long --dirty)</ref>
-        <sha1>$(git rev-parse HEAD)</sha1>
+        <ref>$(git describe --all --long --dirty 2>/dev/null)</ref>
+        <sha1>$(git rev-parse HEAD 2>/dev/null)</sha1>
     </package>
     <ncs>
         <version>$(ncs --version)</version>
