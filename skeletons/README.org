@@ -5,6 +5,20 @@
   - *package*: generally for repositories containing one or more packages, except for NEDs which are better served by the NID ned standard form
   - *system*: for working with an NSO system, for example, composing multiple other packages (like NEDs) and/or having local service packages
 
+** Picking skeleton(s)
+   A good starting point is to have one repository using the =system= skeleton that contains all your service packages, place each NED in its own repository and include them from the =system= repository. NEDs tend to take longer time to compile than the average service package, mostly due to their often larger YANG models, which is why they are best kept on their own repo. In addition, NEDs are usually developed by Cisco or another party, which again is easier to track by keeping them on a separate repository.
+
+   You will end up with multiple git repositories:
+   - your main repository using the =system= skeleton
+     - place all your service packages here
+   - NED X
+   - NED Y
+   - NED Z
+   - ...
+
+   Most users do not need to create any repositories of their own using the =package= skeleton. It is for building generic packages that are shared in multiple projects. Most packages (that aren't NEDs) are specific to a particular project (containing services specific to a certain use case) and are best placed in the main =system= repository rather than as individual =package= skeleton repositories. The CFP (Core Function Packs) provided by Cisco are good examples of generic packages, or things like [[https://gitlab.com/nso-developer/bgworker/]], which is a generic package.
+
+** Using a skeleton
   To get started, create your new project directory and copy the content of the skeleton into the directory. Ensure you also copy files starting with '.' (dot-files).
 
   Place your package(s) in =/packages=, which will automatically include them in the build process. For the =ned= and =package= repo, you are only supposed to place a single package in the =/packages= folder. Only the =system= skeleton supports multiple packages.
@@ -30,3 +44,18 @@
   | push-release  | Push release tagged Docker image(s) to registry                    |
 
   These targets can be refined and modified for a particular project but having a uniform interface with common entrypoints means anyone can quickly become familiar and productive with the project.
+
+** Multiple NSO packages in one repository vs multiple repositories and inclusion
+   It is possible to place a single or multiple NSO packages in the same =package= or =system= skeleton. There are advantages and drawbacks to having multiple packages in the same repository and in choosing how you should place your packages there a few aspects to consider;
+
+   - origin
+     - if the code originates from an external party, like a NED from Cisco or a third party library, it is likely easier to track in its own separate repository
+       - one branch can be used to track the package as received verbatim from the upstream source
+       - another branch can be used to track local patches, which can be rebased on upstream branch when necessary
+   - reusable
+     - if a package is reusable, then it should probably be placed on its own repository so that it can be easily included from multiple consuming projects
+   - compilation time
+     - if it takes a long time to compile a package you want to avoid compiling it very often
+   - rate of change
+     - if you don't change your package very often, it could be a good idea to compile it once and then include the binary, i.e. cache the compilation
+     - this is exacerbated by long compilation times, i.e. the longer compilation times and the lower rate of change, the stronger incentive to place the package in its own repository so that the build artifacts can be cached and reused
