@@ -94,6 +94,7 @@ RUN apt-get update \
      mypy \
      openssl \
      pylint3 \
+     python3-venv \
      rsync \
      snmp \
      vim-tiny \
