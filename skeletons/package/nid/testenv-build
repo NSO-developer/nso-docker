@@ -55,10 +55,13 @@ echo ${RELOAD_PATTERN}
 # Copy in new source using rsync. Exclude Emacs and vim temp files.
 # grep -v is for ignoring directory changes. We just care about changed files.
 rsync -aEim --exclude '.#*' --exclude '.*.sw[a-p]' /src/packages/. /src/test-packages/. /var/opt/ncs/packages/ | grep -v "^\.d\.\.t\.\.\.\.\.\. " > /tmp/rsync.log
-for PKG_DIR in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth 1 -type d); do
-    export PKG_NAME=$(basename ${PKG_DIR});
-    make -C /var/opt/ncs/packages/${PKG_NAME}/src;
-    OUTPUT_PATH=/var/opt/ncs/packages/${PKG_NAME}/ make -f /src/nid/bmd.mk -C ${PKG_DIR} build-meta-data.xml;
+for PKG_SRC in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth 1 -type d); do
+    export PKG_NAME=$(basename ${PKG_SRC});
+    export PKG_DIR=/var/opt/ncs/packages/${PKG_NAME}/
+    if [ -f "${PKG_DIR}pyvenv/bin/activate" ]; then . ${PKG_DIR}pyvenv/bin/activate; fi;
+    make -C /var/opt/ncs/packages/${PKG_NAME}/src || exit 1;
+    if [ -f "${PKG_DIR}pyvenv/bin/activate" ]; then deactivate; fi;
+    OUTPUT_PATH=${PKG_DIR}/ make -f /src/nid/bmd.mk -C ${PKG_SRC} build-meta-data.xml;
 done
 
 # Analyze what files were transferred and if we need to reload packages or
