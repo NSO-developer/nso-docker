@@ -1,0 +1,5 @@
+deploy-4.7.7:
+  extends: .deploy
+  variables:
+    NSO_VERSION: "4.7.7"
+
