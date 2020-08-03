@@ -9,6 +9,9 @@ ARG NSO_VERSION
 FROM ${NSO_IMAGE_PATH}cisco-nso-dev:${NSO_VERSION} AS build
 ARG PKG_FILE
 
+# DEP_INC_START
+# DEP_INC_END
+
 COPY / /src
 
 # Provide a fake environment for pylint and similar.
