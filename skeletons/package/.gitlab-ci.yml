@@ -8,6 +8,8 @@ image: registry.gitlab.com/nso-developer/ci-runner-image:latest
 stages:
   - mirror
   - build
+  - test
+  - deploy
 
 # The before script makes sure that docker is installed, since that is a
 # prerequisite for most jobs. If the jobs are run with a standard debian or

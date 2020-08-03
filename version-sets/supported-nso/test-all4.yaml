@@ -1,0 +1,15 @@
+test-4.7.5:
+  extends: .test
+  variables:
+    NSO_VERSION: "4.7.5"
+
+test-4.7.6:
+  extends: .test
+  variables:
+    NSO_VERSION: "4.7.6"
+
+test-4.7.7:
+  extends: .test
+  variables:
+    NSO_VERSION: "4.7.7"
+

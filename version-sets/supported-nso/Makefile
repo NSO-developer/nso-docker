@@ -1,8 +1,20 @@
+SUBSETS_PROTO=-all4.yaml -all5.yaml -all.yaml -tot4.yaml -tot5.yaml -tot.yaml
+SUBSETS_BUILD=$(addprefix build,$(SUBSETS_PROTO))
+SUBSETS_TEST=$(addprefix test,$(SUBSETS_PROTO))
+SUBSETS_DEPLOY=$(addprefix deploy,$(SUBSETS_PROTO))
+SUBSETS_PUSH=$(addprefix push,$(SUBSETS_PROTO))
 
-build-all4.yaml build-all5.yaml build-all.yaml build-tot4.yaml build-tot5.yaml build-tot.yaml: versions.json
+
+$(SUBSETS_BUILD): versions.json
 	../version-gen versions.json --job build
 
-push-all4.yaml push-all5.yaml push-all.yaml push-tot4.yaml push-tot5.yaml push-tot.yaml: versions.json
+$(SUBSETS_TEST): versions.json
+	../version-gen versions.json --job test
+
+$(SUBSETS_DEPLOY): versions.json
+	../version-gen versions.json --job deploy
+
+$(SUBSETS_PUSH): versions.json
 	../version-gen versions.json --job push
 
 multiver.yaml: versions.json
@@ -17,4 +29,4 @@ test-version-set.yaml:
 nso-docker.yaml: build-all.yaml multiver.yaml push-all.yaml test-version-set.yaml
 	cat build-all.yaml multiver.yaml push-all.yaml test-version-set.yaml > $@
 
-generate: build-all4.yaml build-all5.yaml build-all.yaml build-tot4.yaml build-tot5.yaml build-tot.yaml multiver.yaml push-all4.yaml push-all5.yaml push-all.yaml push-tot4.yaml push-tot5.yaml push-tot.yaml versions.txt nso-docker.yaml
+generate: $(SUBSETS_BUILD) $(SUBSETS_TEST) $(SUBSETS_DEPLOY) $(SUBSETS_PUSH) multiver.yaml versions.txt nso-docker.yaml
