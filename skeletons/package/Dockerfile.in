@@ -34,6 +34,8 @@ COPY / /src
 # placed. build-pyvenv fakes this by rewriting the path after building the venv.
 RUN mkdir -p /var/opt/ncs/packages /includes; for PKG_SRC in $(find /includes /src/packages /src/test-packages -mindepth 1 -maxdepth 1 -type d); do \
   ln -s ${PKG_SRC} /var/opt/ncs/packages/; \
+  ln -s ${PKG_SRC} /src/packages 2>/dev/null; \
+  ln -s ${PKG_SRC} /src/test-packages 2>/dev/null; \
   /src/nid/build-pyvenv ${PKG_SRC}; \
   done
 
