@@ -51,6 +51,9 @@ RUN for PKG_SRC in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth
   if [ -d ${PKG}/netsim ]; then make -C ${PKG}/netsim || exit 1; fi; \
   done
 
+RUN for PKG_LINK in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth 1 -type l); do \
+  rm ${PKG_LINK}; \
+  done
 
 # build a netsim docker image by copying the compiled NED and changing the
 # default CMD to one that runs netsim, thus running this docker image will per
@@ -71,9 +74,7 @@ CMD ["/run-netsim.sh"]
 # packages for a production environment
 FROM ${NSO_IMAGE_PATH}cisco-nso-base:${NSO_VERSION} AS testnso
 
-# DEP_INC_START
-# DEP_INC_END
-
+COPY --from=build /includes /var/opt/ncs/packages/
 COPY --from=build /src/packages/ /var/opt/ncs/packages/
 COPY --from=build /src/test-packages/ /var/opt/ncs/packages/
 
