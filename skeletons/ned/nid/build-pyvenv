@@ -1,0 +1,24 @@
+#!/bin/bash
+# Create python virtualenvs for package with a requirements.txt file
+
+# Change directory into the package provided as first argument
+cd $1
+
+if [ -f "src/requirements.txt" ]; then
+    # use --system-site-packages to be able to use already installed things,
+    # like pylint (which is built with the venv activated), without also having
+    # to install it in our venv
+    python3 -m venv --symlinks --system-site-packages --clear pyvenv
+    # venv starts by resolving the symlink of its own location, thus doesn't
+    # think /var/opt/ncs/packages/ is its location but /src/(test-)?packages
+    # - we fix that with sed...
+    sed -e 's,/src/\(test-\)\?packages/,/var/opt/ncs/packages/,' -i pyvenv/bin/activate
+    . pyvenv/bin/activate
+    # we ignore-installed to installed things even thought they are already
+    # installed in the system as otherwise we depend on the system packages and
+    # as those can shift between the -dev container and the -base container we
+    # might get unexpected results
+    pip3 install -r src/requirements.txt --ignore-installed
+    chown -R $(ls -nd /src | awk '{ print $3":"$4 }') pyvenv
+    # TODO: strip away pip etc to reduce size of venv?
+fi

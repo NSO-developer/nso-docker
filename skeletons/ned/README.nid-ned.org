@@ -172,6 +172,18 @@
 ** Skeleton source location and updating the skeleton
    The authoritative origin for the standard form NED skeleton is the =nso-docker= repository at [[https://gitlab.com/nso-developer/nso-docker/]], specifically in the directory =skeletons/ned=. To upgrade to a later version of the skeleton, pull the files from that location and avoid touching the =Makefile= as it typically contains custom modifications. Be sure to include files starting with a dot (=.=).
 
+* Python dependencies & virtualenv
+  If you are using Python for your NSO package and depend on external Python packages, you should declare them in =src/requirements.txt=. The NSO in Docker build system will automatically build a Python virtualenv based on the =requirements.txt= file.
+
+  At run time, NSO in Docker will automatically detect a Python virtualenv and if found, activate that virtualenv before starting the Python VM. The path to the virtualenv is hardcoded relative to the NSO package =${PKG_PATH}/pyvenv=.
+
+  Note that the each NSO package runs in its own Python VM and will not have access to the Python environment of another NSO package, for example:
+  - NSO package =A= depends on external Python package =foo=
+    - =foo= is installed in the pyvenv in package =A=
+  - NSO package =B= imports Python modules from package =A=
+  - NSO package =B= will not have access to the Python package =foo= in the pyvenv in package =A=
+  - =foo= will need to be installed in pyvenv of =A= as well, by specifying it in the =requirements.txt= file
+
 * Continuous mirroring
   In the NSO in Docker (NID) ecosystem, you are encouraged to mirror repositories that you use. If you found this repository outside of your own git hosting system, you should mirror it to your own git host for it to be built there by your own CI system.
 
