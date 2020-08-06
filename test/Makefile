@@ -55,6 +55,7 @@ test:
 	$(MAKE) test-admin-user
 	$(MAKE) test-admin-user-custom
 	$(MAKE) test-admin-user-sshkey
+	$(MAKE) test-netconf
 	$(MAKE) test-post-start-script
 	$(MAKE) test-http-disabled
 	$(MAKE) test-https-disabled
@@ -241,6 +242,24 @@ test-ssh-custom-port:
 	ssh-keyscan -p 2024 $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | grep "Connection refused"; test $$? -eq 1
 	IPV6_ADDRESS=$$(docker inspect --format '{{.NetworkSettings.GlobalIPv6Address}}' $(CNT_PREFIX)-$@); \
 	[ -z "$${IPV6_ADDRESS} ] && ssh-keyscan -p 2024 $${IPV6_ADDRESS} | grep "Connection refused"; test $$? -eq 1
+	@echo "-- Remove the container"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
+test-netconf:
+	@echo "\n== Verify NETCONF northbound works on port 830"
+	@echo "-- Clean any already running containers with 'our' name"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Start NSO container with admin password"
+	docker run -td --name $(CNT_PREFIX)-$@ --label CNT_PREFIX=$(CNT_PREFIX) --env ADMIN_PASSWORD=admin $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	@echo "-- Wait for NSO in container to start"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Test that NETCONF works on port 830"
+	docker run --rm $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) netconf-console --host $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) --port 830 --hello >/dev/null
+	@echo "-- NETCONF <hello> received"
+	IPV6_ADDRESS=$$(docker inspect --format '{{.NetworkSettings.GlobalIPv6Address}}' $(CNT_PREFIX)-$@); \
+	[ -z "$${IPV6_ADDRESS}" ] && docker run --rm $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) netconf-console --host $${IPV6_ADDRESS} --port 830 --hello >/dev/null; \
+	echo "-- NETCONF <hello> received over IPv6"
 	@echo "-- Remove the container"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
