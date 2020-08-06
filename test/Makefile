@@ -236,7 +236,7 @@ test-ssh-custom-port:
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	-docker network rm $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Start NSO container with admin password"
-	-IPV6_NET=fd00:$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4): ; \
+	IPV6_NET=fd00:$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4): ; \
 		docker network create $(CNT_PREFIX)-$@ --ipv6 --subnet $${IPV6_NET}:/64 --gateway $${IPV6_NET}:1
 	docker run -td --name $(CNT_PREFIX)-$@ --label CNT_PREFIX=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ -e SSH_PORT=2024 $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
@@ -255,7 +255,7 @@ test-netconf:
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	-docker network rm $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Start NSO container with admin password"
-	-IPV6_NET=fd00:$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4): ; \
+	IPV6_NET=fd00:$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4): ; \
 		docker network create $(CNT_PREFIX)-$@ --ipv6 --subnet $${IPV6_NET}:/64 --gateway $${IPV6_NET}:1
 	docker run -td --name $(CNT_PREFIX)-$@ --label CNT_PREFIX=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ --env ADMIN_PASSWORD=admin $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
@@ -294,7 +294,7 @@ test-http-enabled:
 	@echo "\n== Verify that the HTTP webUI works when enabled"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	-docker network rm $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	-IPV6_NET=fd00:$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4): ; \
+	IPV6_NET=fd00:$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4): ; \
 		docker network create $(CNT_PREFIX)-$@ --ipv6 --subnet $${IPV6_NET}:/64 --gateway $${IPV6_NET}:1
 	docker run -td --name $(CNT_PREFIX)-$@ --label CNT_PREFIX=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ --env HTTP_ENABLE=true --env ADMIN_PASSWORD=admin $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
@@ -317,7 +317,7 @@ test-https-enabled:
 	@echo "\n== Verify that the HTTPS webUI works when enabled"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	-docker network rm $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	-IPV6_NET=fd00:$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4): ; \
+	IPV6_NET=fd00:$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4): ; \
 		docker network create $(CNT_PREFIX)-$@ --ipv6 --subnet $${IPV6_NET}:/64 --gateway $${IPV6_NET}:1
 	docker run -td --name $(CNT_PREFIX)-$@ --label CNT_PREFIX=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true --env ADMIN_PASSWORD=admin $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
