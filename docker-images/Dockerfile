@@ -82,6 +82,7 @@ COPY extra-files/ /
 RUN apt-get update \
   && apt-get install -qy \
      ant \
+     curl \
      gawk \
      git \
      iputils-tracepath \
