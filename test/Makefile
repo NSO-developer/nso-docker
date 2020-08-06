@@ -250,18 +250,21 @@ test-netconf:
 	@echo "\n== Verify NETCONF northbound works on port 830"
 	@echo "-- Clean any already running containers with 'our' name"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker network rm $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Start NSO container with admin password"
-	docker run -td --name $(CNT_PREFIX)-$@ --label CNT_PREFIX=$(CNT_PREFIX) --env ADMIN_PASSWORD=admin $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	-IPV6_NET=fd00:$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4): ; \
+		docker network create $(CNT_PREFIX)-$@ --ipv6 --subnet $${IPV6_NET}:/64 --gateway $${IPV6_NET}:1
+	docker run -td --name $(CNT_PREFIX)-$@ --label CNT_PREFIX=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ --env ADMIN_PASSWORD=admin $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Test that NETCONF works on port 830"
-	docker run --rm $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) netconf-console --host $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) --port 830 --hello >/dev/null
+	docker run --rm --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) netconf-console --host $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) --port 830 --hello >/dev/null
 	@echo "-- NETCONF <hello> received"
-	IPV6_ADDRESS=$$(docker inspect --format '{{.NetworkSettings.GlobalIPv6Address}}' $(CNT_PREFIX)-$@); \
-	[ -z "$${IPV6_ADDRESS}" ] && docker run --rm $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) netconf-console --host $${IPV6_ADDRESS} --port 830 --hello >/dev/null; \
-	echo "-- NETCONF <hello> received over IPv6"
+	docker run --rm --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) netconf-console --host $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.GlobalIPv6Address}}{{end}}' $(CNT_PREFIX)-$@) --port 830 --hello >/dev/null
+	@echo "-- NETCONF <hello> received over IPv6"
 	@echo "-- Remove the container"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker network rm $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 
 test-http-disabled:
