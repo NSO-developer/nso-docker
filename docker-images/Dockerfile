@@ -100,6 +100,9 @@ RUN apt-get update \
      snmp \
      vim-tiny \
      xsltproc \
+  && apt-get install -qy -t buster-backports \
+     # paramiko is required by netconf-console
+     python3-paramiko \
   && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 3 \
   && update-alternatives --install /usr/bin/python python /usr/bin/python3.7 3 \
   && update-alternatives --install /usr/bin/pylint pylint /usr/bin/pylint3 1 \
