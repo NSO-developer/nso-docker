@@ -308,7 +308,7 @@ test-http-enabled:
 	@echo "Connection to RESTCONF (TCP port 80) was accepted, I'm happy"
 	@echo "\n== Verify that RESTCONF works over HTTP and IPv6 when enabled"
 	docker run --rm --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl -u admin:admin --noproxy '*' -H "Accept: application/yang-data+xml" -g http://[$$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.GlobalIPv6Address}}{{end}}' $(CNT_PREFIX)-$@)]/restconf | grep yang-library-version >/dev/null
-	@echo "Connection to RESTCONF (TCP port 80 via IPv6) was accepted, I'm happy"
+	@echo "Connection to RESTCONF (TCP port 80) via IPv6 was accepted, I'm happy"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	-docker network rm $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
@@ -331,7 +331,7 @@ test-https-enabled:
 	@echo "Connection to RESTCONF (TLS/TCP port 443) was accepted, I'm happy"
 	@echo "\n== Verify that RESTCONF works over HTTPS and IPv6 when enabled"
 	docker run --rm --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl -u admin:admin --noproxy '*' --insecure -H "Accept: application/yang-data+xml" -g https://[$$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.GlobalIPv6Address}}{{end}}' $(CNT_PREFIX)-$@)]/restconf | grep yang-library-version >/dev/null
-	@echo "Connection to RESTCONF (TCP port 443 via IPv6) was accepted, I'm happy"
+	@echo "Connection to RESTCONF (TCP port 443) via IPv6 was accepted, I'm happy"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	-docker network rm $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
