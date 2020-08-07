@@ -6,9 +6,9 @@
 # overridden by variables in CI.
 # TODO: uncomment and fill in values for your environment
 # Default variables:
-#NSO_IMAGE_PATH ?= registry.example.com:5000/my-group/nso-docker/
-#PKG_PATH ?= registry.example.com:5000/my-group/
-#NSO_VERSION ?= 5.4
+#export NSO_IMAGE_PATH ?= registry.example.com:5000/my-group/nso-docker/
+#export PKG_PATH ?= registry.example.com:5000/my-group/
+#export NSO_VERSION ?= 5.4
 
 # Include standard NID (NSO in Docker) package Makefile that defines all
 # standard make targets
