@@ -30,14 +30,16 @@ the tip-of-train would include 4.7.2 and 5.2.1.
 """
 
 import json
+import re
 
 from collections import namedtuple
 
 # stores both the version, which can include extra characters, for example
 # 5.3.2_ps or 5.3.2_200407.032413.72dd81aef74b for a nightly, and then we have
 # tup which stores just the version number, like 5.3.2 or 5.4 and does that in
-# a tuple form which is easy to sort on.
-NsoV = namedtuple('NSOv', ['version', 'tup'])
+# a tuple form which is easy to sort on. extra will keep the extra stuff, like
+# '_ps' or '_200407.032413.72dd81aef74b' in the above examples.
+NsoV = namedtuple('NSOv', ['version', 'tup', 'extra'])
 
 flat_tmpl = "{version}\n"
 
@@ -59,13 +61,13 @@ ci_mv_template = """multiver-test_{old_version}_{version}:
 def vsn_split(version):
     """
     """
-    import re
-    version_re = "([0-9]+(\.[0-9]+){1,2})"
+    version_re = "([0-9]+(\.[0-9]+){1,2})(.*)"
     m = re.match(version_re, version)
     if not m:
         raise ValueError(f"Version '{version}' does not conform to NSO version format ({version_re})")
     num_version = m.group(1)
-    v = NsoV(version, tup=tuple(map(lambda x: int(x), num_version.split("."))))
+    extra_stuff = m.group(3) == '' and None or m.group(3)
+    v = NsoV(version, tup=tuple(map(lambda x: int(x), num_version.split("."))), extra=extra_stuff)
     return v
 
 def f_major(interesting_version, versions):
@@ -112,11 +114,20 @@ def f_tot(versions):
     tot = {}
     for version in versions:
         mm = version.tup[0:2]
+        # if we have no matches at all for this major/minor, we insert
         if mm not in tot:
-            tot[mm] = version
-        if tot[mm] < version:
-            tot[mm] = version
-    return tot.values()
+            tot[mm] = [version]
+        # if currently stored major/minor is equal (same maintenance version)
+        # as current version, we store both by appending
+        elif tot[mm][0].tup == version.tup:
+            tot[mm].append(version)
+        # if currently stored major/minor is less (lower maintenance version),
+        # we overwrite it
+        elif tot[mm][0].tup < version.tup:
+            tot[mm] = [version]
+
+    # return flattened result
+    return [ver for mmver in tot.values() for ver in mmver]
 
 def frmt(tmpl, version, data=None):
     """Generic formatter

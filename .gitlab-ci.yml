@@ -128,7 +128,7 @@ mirror:
   script:
     - apt-get update && apt-get install -qy git python3
     - cd version-sets/${VERSION_SET}
-    - make generate
+    - make --always-make generate
     - git add -N .
     - git status
     - git diff
