@@ -46,9 +46,9 @@ fi
 SUPPORTS_NEW_REDEPLOY=$(if [ ${NSO_VERSION_MAJOR} -gt 5 ] || [ ${NSO_VERSION_MAJOR} -eq 5 -a ${NSO_VERSION_MINOR} -ge 3 ]; then echo "true"; fi)
 
 if [ "${SUPPORTS_NEW_REDEPLOY}" = "true" ]; then
-    RELOAD_PATTERN="(package-meta-data.xml|\.cli$$|\.yang$$)"
+    RELOAD_PATTERN="(^package-meta-data.xml$|\.cli$|\.yang$)"
 else
-    RELOAD_PATTERN="(package-meta-data.xml|templates/.*\.xml$$|\.cli$$|\.yang$$)"
+    RELOAD_PATTERN="(^package-meta-data.xml$|templates/.*\.xml$|\.cli$|\.yang$)"
 fi
 echo ${RELOAD_PATTERN}
 
