@@ -26,8 +26,10 @@ else
 fi
 
 if [ -x "$(which python3)" ]; then
+    debug=$(python3 -c 'import debugpy' && echo '-m debugpy --listen 0.0.0.0:5678')
     echo "Starting python3 -u $main $*"
-    exec python3 -u "$main" "$@"
+    exec python3 -u $debug "$main" "$@"
 fi
+debug=$(python -c 'import debugpy' && echo '-m debugpy --listen 0.0.0.0:5678')
 echo "Starting python -u $main $*"
-exec python -u "$main" "$@"
+exec python -u $debug "$main" "$@"
