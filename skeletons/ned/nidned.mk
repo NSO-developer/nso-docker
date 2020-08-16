@@ -68,6 +68,7 @@ Dockerfile: Dockerfile.in $(wildcard includes/*)
 
 
 build: check-nid-available Dockerfile
+	docker build --target build -t $(IMAGE_PATH)$(PROJECT_NAME)/build:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) .
 	docker build --target netsim -t $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg NED_NAME=$(NED_NAME) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) .
 	docker build --target testnso -t $(IMAGE_PATH)$(PROJECT_NAME)/testnso:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) .
 	docker build --target package -t $(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) .
@@ -108,11 +109,17 @@ testenv-build:
 # testenv-clean-build - clean and rebuild from scratch
 # We rsync (with --delete) in sources, which effectively is a superset of 'make
 # clean' per package, as this will delete any built packages as well as removing
-# old sources files that no longer exist.
+# old sources files that no longer exist. It also removes included packages and
+# as we don't have those in the source repository, we must bring them in from
+# the build container image where we previously pulled them in into the
+# /includes directory. We start up the build image and copy the included
+# packages to /var/opt/ncs/packages/ folder.
 testenv-clean-build:
 	for NSO in $$(docker ps --format '{{.Names}}' --filter label=$(CNT_PREFIX) --filter label=nidtype=nso); do \
 		echo "-- Cleaning NSO: $${NSO}"; \
 		docker run -it --rm -v $(PWD):/src --volumes-from $${NSO} $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -lc 'rsync -aEim --delete /src/packages/. /src/test-packages/. /var/opt/ncs/packages/ >/dev/null'; \
+		echo "-- Copying in pristine included packages for NSO: $${NSO}"; \
+		docker run -it --rm --volumes-from $${NSO} $(IMAGE_PATH)$(PROJECT_NAME)/build:$(DOCKER_TAG) cp -a /includes/. /var/opt/ncs/packages/; \
 	done
 	@echo "-- Done cleaning, rebuilding with forced package reload..."
 	$(MAKE) testenv-build PACKAGE_RELOAD="true"
