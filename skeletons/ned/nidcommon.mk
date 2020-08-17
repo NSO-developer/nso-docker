@@ -108,8 +108,12 @@ export IMAGE_PATH?=$(call lc,$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/)
 export PKG_PATH?=$(call lc,$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/)
 endif
 
+# DOCKER_ARGS contains arguments to 'docker run' for any type of container in
+# the test environment.
+# DOCKER_NSO_ARGS contains additional arguments specific to an NSO container.
+# This includes exposing tcp/5678 for Python Remote Debugging using debugpy.
 DOCKER_ARGS=--network $(CNT_PREFIX) --label $(CNT_PREFIX)
-DOCKER_NSO_ARGS=$(DOCKER_ARGS) --label nidtype=nso --volume /var/opt/ncs/packages
+DOCKER_NSO_ARGS=$(DOCKER_ARGS) --label nidtype=nso --volume /var/opt/ncs/packages --expose 5678 --publish-all
 
 # Determine which xargs we have. BSD xargs does not have --no-run-if-empty,
 # rather, it is the default behavior so the argument is simply superfluous. We
