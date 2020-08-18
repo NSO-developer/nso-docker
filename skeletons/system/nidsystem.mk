@@ -69,19 +69,22 @@ dev-shell:
 # Test environment targets
 
 # testenv-start: start the test environment in a configuration that allows
-# Python Remote Debugging. Exposes port 5678 on a random port on localhost and
-# modifies VSCode launch.json to connect to the environment
+# Python Remote Debugging. Exposes port 5678 on a random port on localhost.
 testenv-start:
 	docker network inspect $(CNT_PREFIX) >/dev/null 2>&1 || docker network create $(CNT_PREFIX)
 	docker run -td --name $(CNT_PREFIX)-nso --network-alias nso $(DOCKER_NSO_ARGS) -e ADMIN_PASSWORD=NsoDocker1337 $${NSO_EXTRA_ARGS} $(IMAGE_PATH)$(PROJECT_NAME)/nso:$(DOCKER_TAG)
 	$(MAKE) testenv-start-extra
+	docker exec -t $(CNT_PREFIX)-nso bash -lc 'ncs --wait-started 600'
+
+# testenv-debug-vscode: modifies VSCode launch.json to connect the python remote
+# debugger to the environment
+testenv-debug-vscode:
 	if [ -f .vscode/launch.json ]; then \
 		HOST_PORT=$$(docker inspect -f '{{(index (index .NetworkSettings.Ports "5678/tcp") 0).HostPort}}' $(CNT_PREFIX)-nso); \
 		echo "\n== Updating .vscode/launch.json for Python remote debugging"; \
 		LAUNCH=`sed '/\s*\/\/.*/d' .vscode/launch.json | jq "(.configurations[] | select(.name == \"Python: NID Remote Attach\")) |= .+ {port: $${HOST_PORT}}"` && \
 		echo "$${LAUNCH}" > .vscode/launch.json; \
 	fi
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'ncs --wait-started 600'
 
 # testenv-build - incrementally recompile and load new packages in running NSO
 # See the nid/testenv-build script for more details.
