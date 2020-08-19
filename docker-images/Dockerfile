@@ -97,6 +97,7 @@ RUN apt-get update \
      openssl \
      pylint3 \
      python3-venv \
+     python3-wheel \
      rsync \
      snmp \
      vim-tiny \
