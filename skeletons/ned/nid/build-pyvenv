@@ -34,6 +34,7 @@ if [ -f "src/requirements-dev.txt" ]; then
     # might get unexpected results
     pip3 install -r src/requirements-dev.txt --ignore-installed
     chown -R $(ls -nd /src | awk '{ print $3":"$4 }') pyvenv-dev
+    deactivate
 fi
 
 if [ -f "src/requirements.txt" ]; then
@@ -53,4 +54,5 @@ if [ -f "src/requirements.txt" ]; then
     pip3 install -r src/requirements.txt --ignore-installed
     chown -R $(ls -nd /src | awk '{ print $3":"$4 }') pyvenv
     # TODO: strip away pip etc to reduce size of venv?
+    deactivate
 fi
