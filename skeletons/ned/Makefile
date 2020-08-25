@@ -77,6 +77,8 @@ testenv-start-extra:
 # achieve this by further refining the make targets you have.
 testenv-test:
 	@echo "\n== Running tests"
+	@echo "-- Verify packages are operationally up"
+	$(MAKE) testenv-runcmdJ CMD="show packages" | docker run -i --rm $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -c '! grep -P "oper-status (?!up)" >/dev/null' || (echo "ERROR: packages not operationally up:" && $(MAKE) testenv-runcmdJ CMD="show packages" && false)
 	@echo "TODO: Fill in your tests here"
 # Some examples for how to run commands in the ncs_cli:
 #	$(MAKE) testenv-runcmdJ CMD="show packages"
