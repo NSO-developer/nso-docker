@@ -123,6 +123,19 @@ else
 	XARGS := xargs
 endif
 
+# If we are running in CI and on the default branch (typically 'master'),
+# disable the build cache for docker builds. We do this with ?= operator in make
+# so we only set DOCKER_BUILD_CACHE_ARG if it is not already set, this makes it
+# possible to still use the cache if explicitly set through environment
+# variables in CI.
+ifneq ($(CI),)
+ifeq ($(CI_COMMIT_REF_NAME),$(CI_DEFAULT_BRANCH))
+DOCKER_BUILD_CACHE_ARG?=--no-cache
+endif
+endif
+export DOCKER_BUILD_CACHE_ARG
+
+
 .PHONY: check-nid-available
 
 check-nid-available:
