@@ -107,7 +107,7 @@ testenv-debug-vscode:
 		HOST_PORT=$$(docker inspect -f '{{(index (index .NetworkSettings.Ports "5678/tcp") 0).HostPort}}' $(CNT_PREFIX)-nso); \
 		echo "\n== Updating .vscode/launch.json for Python remote debugging"; \
 		LAUNCH=`sed '/\s*\/\/.*/d' .vscode/launch.json | jq "(.configurations[] | select(.name == \"Python: NID Remote Attach\")) |= .+ {port: $${HOST_PORT}}"` && \
-		echo "$${LAUNCH}" > .vscode/launch.json; \
+		echo "$${LAUNCH}" > .vscode/launch.json && echo "== Updated Python Remote Debugging port to $${HOST_PORT}"; \
 	fi
 
 # testenv-build - incrementally recompile and load new packages in running NSO
