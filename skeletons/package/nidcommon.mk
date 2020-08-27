@@ -136,15 +136,27 @@ endif
 export DOCKER_BUILD_CACHE_ARG
 
 
-.PHONY: check-nid-available
+.PHONY: ensure-fresh-nid-available
 
-check-nid-available:
-# Check for the existance of the NID base and dev images.
-# We don't need this check from a strictly functional perspective as builds or
-# tests would fail anyway but by explicitly checking we can make some
-# guesstimates and provide hints to the user on what might be wrong.
-	@echo "Checking NSO in Docker images are available..." \
-		&& docker inspect $(NSO_IMAGE_PATH)cisco-nso-base:$(NSO_VERSION) >/dev/null 2>&1 \
+# Check for the existance of the NID base and dev images and attempt to get the
+# latest versions. We don't need this check from a strictly functional
+# perspective as builds or tests would fail anyway but by explicitly checking we
+# can make some guesstimates and provide hints to the user on what might be
+# wrong. By ensuring we have the latest version we avoid errors where newer
+# functionality would be lacking in older images.
+ensure-fresh-nid-available:
+	@echo "Checking NSO in Docker images are available..."; \
+		docker inspect $(NSO_IMAGE_PATH)cisco-nso-base:$(NSO_VERSION) >/dev/null 2>&1 && \
+		(if [ "$(SKIP_PULL)" = "true" ]; then \
+			echo "INFO: SKIP_PULL=$(SKIP_PULL), skipping pull of latest Docker images"; \
+		else \
+			if [ -n "$(NSO_IMAGE_PATH)" ]; then \
+				echo "INFO: $(NSO_IMAGE_PATH)cisco-nso-base:$(NSO_VERSION) exists, attempting pull of latest version"; \
+				docker pull $(NSO_IMAGE_PATH)cisco-nso-base:$(NSO_VERSION); \
+				docker pull $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION); \
+			fi; \
+		fi); \
+		docker inspect $(NSO_IMAGE_PATH)cisco-nso-base:$(NSO_VERSION) >/dev/null 2>&1 \
 		|| (echo "ERROR: The docker image $(NSO_IMAGE_PATH)cisco-nso-base:$(NSO_VERSION) does not exist"; \
 			if [ -z "$(NSO_IMAGE_PATH)" ]; then \
 				docker image inspect $(NSO_IMAGE_PATH)cisco-nso-base:$(NSO_VERSION)-$(PNS) >/dev/null 2>&1 \
