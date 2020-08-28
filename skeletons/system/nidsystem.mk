@@ -76,14 +76,29 @@ testenv-start:
 	$(MAKE) testenv-start-extra
 	docker exec -t $(CNT_PREFIX)-nso bash -lc 'ncs --wait-started 600'
 
+# testenv-dap-port: get the host port mapping for the DAP daemon in the container
+testenv-dap-port:
+	@docker inspect -f '{{(index (index .NetworkSettings.Ports "5678/tcp") 0).HostPort}}' $(CNT_PREFIX)-nso$(NSO)
+
 # testenv-debug-vscode: modifies VSCode launch.json to connect the python remote
-# debugger to the environment
+# debugger to the environment. Existing contents of the file are preserved.
+# First check if the file exists, and if not, create a valid empty file. Next
+# check if "Python: NID Remote Attach" debug config is present. If yes, update
+# it, otherwise add a new one.
 testenv-debug-vscode:
-	if [ -f .vscode/launch.json ]; then \
-		HOST_PORT=$$(docker inspect -f '{{(index (index .NetworkSettings.Ports "5678/tcp") 0).HostPort}}' $(CNT_PREFIX)-nso$(NSO)); \
-		echo "\n== Updating .vscode/launch.json for Python remote debugging"; \
-		LAUNCH=`sed '/\s*\/\/.*/d' .vscode/launch.json | jq "(.configurations[] | select(.name == \"Python: NID Remote Attach\")) |= .+ {port: $${HOST_PORT}}"` && \
-		echo "$${LAUNCH}" > .vscode/launch.json && echo "== Updated Python Remote Debugging port to $${HOST_PORT}"; \
+	@if [ ! -f .vscode/launch.json ]; then \
+		mkdir -p .vscode; \
+		echo '{"version": "0.2.0","configurations":[]}' > .vscode/launch.json; \
+		echo "== Created .vscode/launch.json"; \
+	fi; \
+	HOST_PORT=$$($(MAKE) --no-print-directory testenv-dap-port); \
+	LAUNCH_NO_COMMENTS=`sed '/\s*\/\/.*/d' .vscode/launch.json`; \
+	if ! echo $${LAUNCH_NO_COMMENTS} | jq --exit-status "(.configurations[] | select(.name == \"Python: NID Remote Attach\"))" >/dev/null 2>&1; then \
+		echo $${LAUNCH_NO_COMMENTS} | jq '.configurations += [{"name":"Python: NID Remote Attach","type":"python","request":"attach","port":'"$${HOST_PORT}"',"host":"localhost","pathMappings":[{"localRoot":"${workspaceFolder}/packages","remoteRoot":"/nso/run/state/packages-in-use/1"}]}]' > .vscode/launch.json; \
+		echo "== Added \"Python: NID Remote Attach\" debug configuration"; \
+	else \
+		echo $${LAUNCH_NO_COMMENTS} | jq "(.configurations[] | select(.name == \"Python: NID Remote Attach\") | .port) = $${HOST_PORT}" > .vscode/launch.json; \
+		echo "== Updated .vscode/launch.json for Python remote debugging"; \
 	fi
 
 # testenv-build - incrementally recompile and load new packages in running NSO
