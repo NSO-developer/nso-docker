@@ -1,12 +1,17 @@
 FROM debian:buster AS nso_install
-ARG NSO_INSTALL_FILE
 
-COPY $NSO_INSTALL_FILE /tmp/nso
 RUN apt-get update \
   && apt-get install -qy \
   openssh-client \
   libexpat1 \
-  && sh /tmp/nso --system-install --non-interactive --run-dir /nso/run --log-dir /log \
+  && apt-get -qy autoremove \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/* /root/.cache
+
+ARG NSO_INSTALL_FILE
+COPY $NSO_INSTALL_FILE /tmp/nso
+
+RUN sh /tmp/nso --system-install --non-interactive --run-dir /nso/run --log-dir /log \
   && sed -i -e 's/exec python -u/exec python3 -u/' /opt/ncs/current/bin/ncs-start-python-vm
 
 FROM nso_install AS nso_stripped
@@ -72,14 +77,8 @@ RUN apt-get update \
 
 FROM deb_base AS dev
 
-COPY --from=nso_install /etc/profile.d /etc/profile.d
-COPY --from=nso_install /etc/init.d/ncs /etc/init.d/.
-COPY --from=nso_install /etc/ncs /etc/ncs/
-COPY --from=nso_install /opt/ncs /opt/ncs/
-COPY --from=nso_install /nso /nso
-COPY extra-files/ /
-
-RUN apt-get update \
+RUN echo "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sources.list.d/buster-backports.list \
+  && apt-get update \
   && apt-get install -qy \
      ant \
      curl \
@@ -111,6 +110,13 @@ RUN apt-get update \
   && apt-get -qy autoremove \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /root/.cache
+
+COPY --from=nso_install /etc/profile.d /etc/profile.d
+COPY --from=nso_install /etc/init.d/ncs /etc/init.d/.
+COPY --from=nso_install /etc/ncs /etc/ncs/
+COPY --from=nso_install /opt/ncs /opt/ncs/
+COPY --from=nso_install /nso /nso
+COPY extra-files/ /
 
 # default shell is ["/bin/sh", "-c"]. We add -l so we get a login shell which
 # means the shell reads /etc/profile on startup. /etc/profile includes the files
