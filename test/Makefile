@@ -43,10 +43,12 @@ endif
 
 .PHONY: test-post-start-script test-cdb-default
 
-test:
+build-test-image:
 	@echo "\n== Building test Docker image"
 	docker build $(DOCKER_BUILD_CACHE_ARG) -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) --build-arg BASE_IMAGE=$(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) --build-arg BUILD_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) .
 
+test:
+	$(MAKE) build-test-image
 	@echo "\n== Running single-version test cases"
 	$(MAKE) test-dev-entrypoint
 	$(MAKE) test-shutdown
