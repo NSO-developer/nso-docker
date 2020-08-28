@@ -358,7 +358,7 @@ test-python:
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin' | grep oper-status.up | wc -l | grep '^\s*4$$'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-python python-test" | ncs_cli -u admin' | grep "Hello world from Python"
 	@echo "\n== Verify that Python remote debugging is disabled"
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'sleep 1 | telnet localhost 5678' | grep 'Connection refused'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'sleep 1 | telnet localhost 5678' | grep 'Unable to connect to remote host'
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 
