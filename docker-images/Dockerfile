@@ -66,6 +66,8 @@ RUN apt-get update \
   tcpdump \
   telnet \
   xmlstarlet \
+  && apt-get install -qy --no-install-recommends python3-pip \
+  && pip3 install debugpy \
   && apt-get -qy autoremove \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /root/.cache \

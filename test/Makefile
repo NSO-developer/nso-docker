@@ -43,10 +43,12 @@ endif
 
 .PHONY: test-post-start-script test-cdb-default
 
-test:
+build-test-image:
 	@echo "\n== Building test Docker image"
 	docker build $(DOCKER_BUILD_CACHE_ARG) -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) --build-arg BASE_IMAGE=$(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) --build-arg BUILD_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) .
 
+test:
+	$(MAKE) build-test-image
 	@echo "\n== Running single-version test cases"
 	$(MAKE) test-dev-entrypoint
 	$(MAKE) test-shutdown
@@ -63,6 +65,7 @@ test:
 	$(MAKE) test-https-enabled
 	$(MAKE) test-java
 	$(MAKE) test-python
+	$(MAKE) test-python-dap
 	$(MAKE) test-docker-healthcheck
 	$(MAKE) test-cdb-default
 
@@ -354,6 +357,17 @@ test-python:
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin' | grep oper-status.up | wc -l | grep '^\s*4$$'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-python python-test" | ncs_cli -u admin' | grep "Hello world from Python"
+	@echo "\n== Verify that Python remote debugging is disabled"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'sleep 1 | telnet localhost 5678' | grep 'Unable to connect to remote host'
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
+test-python-dap:
+	@echo "\n== Verify that Python remote debugging works (via Debug Adapter Protocol)"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ --label CNT_PREFIX=$(CNT_PREFIX) -e DEBUGPY=python-test-package $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'sleep 1 | telnet localhost 5678' | grep debugpy
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 
