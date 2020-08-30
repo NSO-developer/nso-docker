@@ -55,5 +55,5 @@ else
     echo "DAP not enabled for PythonVM ${VMID}"
 fi
 
-echo "Starting ${PYTHON} -u $DEBUG $main ${OPTS}"
-exec ${PYTHON} -u $DEBUG $main ${OPTS}
+echo "Starting ${PYTHON} -u ${DEBUG} ${main} ${OPTS}"
+exec ${PYTHON} -u ${DEBUG} ${main} ${OPTS}
