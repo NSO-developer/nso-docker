@@ -3,10 +3,10 @@ test-4.7.7:
   variables:
     NSO_VERSION: "4.7.7"
 
-test-5.1.4:
+test-5.1.5:
   extends: .test
   variables:
-    NSO_VERSION: "5.1.4"
+    NSO_VERSION: "5.1.5"
 
 test-5.2.3:
   extends: .test

@@ -18,6 +18,11 @@ test-5.1.4:
   variables:
     NSO_VERSION: "5.1.4"
 
+test-5.1.5:
+  extends: .test
+  variables:
+    NSO_VERSION: "5.1.5"
+
 test-5.2:
   extends: .test
   variables:
