@@ -99,6 +99,7 @@ RUN echo "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sou
      mypy \
      openssl \
      pylint3 \
+     python3-pip \
      python3-venv \
      python3-wheel \
      rsync \
