@@ -178,8 +178,17 @@
 * Python Remote Debugging
   If your packages contain Python code, you can connect a remote debugger to individual Python VMs. The base NSO in Docker images include [[https://github.com/microsoft/debugpy]] which implements the Debug Adapter Protocol. Any compatible DAP client may attach the process on the exposed port (tcp/5678). In VSCode the =Python= extension available at [[https://marketplace.visualstudio.com/items?itemName=ms-python.python]] provides the functionality. The NSO containers started by the skeleton Makefiles will automatically expose the port on a high-numbered port assigned by the docker engine.
 
-  The NSO container started by the =testenv-start= receives an env var =DEBUGPY= set to the value of =$(PROJECT_NAME)=. If you want to debug a different package, change the variable to the name of the NSO package. To start debugging use one of the provided DAP-client targets:
+  If you want to debug a Python package set the =DEBUGPY= environment variable to NSO the package name when starting the testenv. For example, if your package is called =testpy-package=, you start the environment with ~~DEBUGPY=testpy-package make testenv-start~~. If the =DEBUGPY= variable is set to an empty value or the package is not found at startup, debugging is disabled altogether. To start debugging use one of the provided DAP-client targets:
   - =testenv-debug-vscode=: will create/update debug configuration in =.vscode/launch.json= as described at [[https://code.visualstudio.com/docs/python/debugging#_remote-script-debugging-with-ssh]]
+
+  Warning: at the moment debugging a Python package that uses the =bgworker= package is not supported. Attempting to start the PythonVM in remote debug mode will prevent all background workers from running until the remote debugger is attached.
+
+  When stepping through the code with a debugger, the execution is paused. This is natural, but NSO does require the service callback to complete in under 2 minutes by default. You can extend this timeout in the =java-vm= settings with the following configuration:
+  #+BEGIN_SRC xml
+  <java-vm xmlns="http://tail-f.com/ns/ncs">
+    <service-transaction-timeout>600</service-transaction-timeout>
+  </java-vm>
+  #+END_SRC
 
   Note: the value of the =DEBUGPY= variable specifies the Python VM name. Usually this is the name of the NSO package as defined in =package-meta-data.xml=. It may differ from the package directory name. If the name of the Python VM was overriden in =package-meta-data.xml= you must use the actual name.
 
