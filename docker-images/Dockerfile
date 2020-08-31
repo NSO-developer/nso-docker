@@ -66,8 +66,10 @@ RUN apt-get update \
   tcpdump \
   telnet \
   xmlstarlet \
+  # install debugpy via pip3, then immediately remove pip3 from base
   && apt-get install -qy --no-install-recommends python3-pip \
   && pip3 install debugpy \
+  && apt-get -qy purge python3-pip \
   && apt-get -qy autoremove \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /root/.cache \
@@ -97,6 +99,7 @@ RUN echo "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sou
      mypy \
      openssl \
      pylint3 \
+     python3-pip \
      python3-venv \
      python3-wheel \
      rsync \
