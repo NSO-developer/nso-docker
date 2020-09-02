@@ -59,6 +59,7 @@ RUN apt-get update \
   && apt-get install -qy \
   default-jre-headless \
   iputils-ping \
+  less \
   libexpat1 \
   openssh-client \
   procps \
