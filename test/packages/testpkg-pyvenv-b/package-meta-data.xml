@@ -1,13 +1,7 @@
 <ncs-package xmlns="http://tail-f.com/ns/ncs-packages">
-  <name>testpkg-pyvenv</name>
+  <name>testpkg-pyvenv-b</name>
   <package-version>1.0</package-version>
   <description>Package to test Python venv support in NSO Python-VM startup script</description>
   <ncs-min-version>4.1</ncs-min-version>
 
-  <component>
-    <name>main</name>
-    <application>
-      <python-class-name>testpkg_python.main.Main</python-class-name>
-    </application>
-  </component>
 </ncs-package>

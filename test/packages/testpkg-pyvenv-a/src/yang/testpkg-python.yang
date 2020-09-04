@@ -22,12 +22,12 @@ module testpkg-python {
       "Initial revision.";
   }
 
-  container testpkg-python {
+  container testpkg-pyvenv-a {
     description "Python test package";
 
     // replace with your own stuff here
     action python-test {
-      tailf:actionpoint "test-python-actionpoint";
+      tailf:actionpoint "test-pyvenv-a-actionpoint";
       description "A Python action";
       output {
         leaf message {
