@@ -98,7 +98,7 @@ testenv-start:
 	docker run -td --name $(CNT_PREFIX)-nso --network-alias nso $(DOCKER_NSO_ARGS) -e ADMIN_PASSWORD=NsoDocker1337 $${NSO_EXTRA_ARGS} $(IMAGE_PATH)$(PROJECT_NAME)/testnso:$(DOCKER_TAG)
 	docker run -td --name $(CNT_PREFIX)-netsim --network-alias dev1 --hostname dev1 $(DOCKER_ARGS) $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(DOCKER_TAG)
 	$(MAKE) testenv-start-extra
-	docker exec -t $(CNT_PREFIX)-nso bash -lc 'ncs --wait-started 600'
+	$(MAKE) testenv-wait-started-nso
 
 # testenv-dap-port: get the host port mapping for the DAP daemon in the container
 testenv-dap-port:
@@ -171,4 +171,13 @@ testenv-runcmdC testenv-runcmdJ:
 	@if [ -z "$(CMD)" ]; then echo "CMD variable must be set"; false; fi
 	docker exec -t $(CNT_PREFIX)-nso$(NSO) bash -lc 'echo -e "$(CMD)" | ncs_cli --stop-on-error -$(subst testenv-runcmd,,$@)u admin'
 
-.PHONY: all build dev-shell push push-release tag-release test testenv-build testenv-clean-build testenv-start testenv-stop testenv-test
+# Wait for all NSO instances in testenv to start up, as determined by `ncs
+# --wait-started`, or display the docker log for the first failed NSO instance.
+testenv-wait-started-nso:
+	@for NSO in $$(docker ps --format '{{.Names}}' --filter label=$(CNT_PREFIX) --filter label=nidtype=nso); do \
+		docker exec -t $${NSO} bash -lc 'ncs --wait-started 600' || (echo "NSO instance $${NSO} failed to start in 600 seconds, displaying logs:"; docker logs $${NSO}; exit 1); \
+		echo "NSO instance $${NSO} has started"; \
+	done; \
+	echo "All NSO instance have started"
+
+.PHONY: all build dev-shell push push-release tag-release test testenv-build testenv-clean-build testenv-start testenv-stop testenv-test testenv-wait-started-nso
