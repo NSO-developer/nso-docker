@@ -49,6 +49,8 @@ RUN mkdir -p /var/opt/ncs/packages /includes /src/test-packages; for PKG_SRC in 
 # will fall back to 'pyvenv', in case one exists. We iterate over the source
 # directories rather than /var/opt/ncs/packages, since this way we don't get the
 # includes.
+# Each package may implement the strip target to clean up extra files generated
+# by ncsc, pylint and mypy. For example, ncsc-out, .mypy_cache, .pylint.d.
 RUN for PKG_SRC in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth 1 -type d | xargs -n1 basename | awk '{ print "/var/opt/ncs/packages/"$1 }'); do\
   if [ -f "${PKG_SRC}/pyvenv-dev/bin/activate" ]; then . ${PKG_SRC}/pyvenv-dev/bin/activate; \
   elif [ -f "${PKG_SRC}/pyvenv/bin/activate" ]; then . ${PKG_SRC}/pyvenv/bin/activate; \
@@ -56,6 +58,7 @@ RUN for PKG_SRC in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth
   make -C ${PKG_SRC}/src || exit 1; \
   deactivate >/dev/null 2>&1;  \
   rm -rf ${PKG_SRC}/pyvenv-dev; \
+  make -C ${PKG_SRC}/src strip; \
   make -f /src/nid/bmd.mk -C ${PKG_SRC} build-meta-data.xml; \
   done
 
