@@ -90,7 +90,6 @@ RUN echo "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sou
      gawk \
      git \
      iputils-tracepath \
-     less \
      liblog4cplus-1.1-9 \
      libuv1 \
      libxml2-utils \
