@@ -180,4 +180,21 @@ testenv-wait-started-nso:
 	done; \
 	echo "All NSO instance have started"
 
-.PHONY: all build dev-shell push push-release tag-release test testenv-build testenv-clean-build testenv-start testenv-stop testenv-test testenv-wait-started-nso
+# Find all NSO containers using the nidtype=nso and CNT_PREFIX labels, then
+# save logs from /log. For all containers (NSO inclusive) save docker logs.
+testenv-save-logs:
+	@for nso in $$(docker ps -a --filter label=nidtype=nso --filter label=$(CNT_PREFIX) --format '{{.Names}}'); do \
+		NSO_SUFFIX=$$(echo $${nso} | sed "s/$(CNT_PREFIX)-//"); \
+		echo "== Collecting NSO logs from $${NSO_SUFFIX}"; \
+		mkdir -p $${NSO_SUFFIX}-logs; \
+		docker exec $${nso} bash -lc 'ncs --debug-dump /log/debug-dump'; \
+		docker exec $${nso} bash -lc 'ncs --printlog /log/ncserr.log > /log/ncserr.log.txt'; \
+		docker cp $${nso}:/log $${NSO_SUFFIX}-logs; \
+	done
+	@for c in $$(docker ps -a --filter label=$(CNT_PREFIX) --format '{{.Names}}'); do \
+		mkdir -p docker-logs; \
+		echo "== Collecting docker logs from $${c}"; \
+		docker logs $${c} > docker-logs/$${c} 2>&1; \
+	done
+
+.PHONY: all build dev-shell push push-release tag-release test testenv-build testenv-clean-build testenv-start testenv-stop testenv-test testenv-wait-started-nso testenv-save-logs
