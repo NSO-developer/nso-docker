@@ -11,17 +11,12 @@ stages:
   - test
   - deploy
 
-# The before script makes sure that docker is installed, since that is a
-# prerequisite for most jobs. If the jobs are run with a standard debian or
-# Ubuntu image, docker isn't installed. To speed up the build, this install step
-# can be skipped by running an image that already has docker installed, for
-# example registry.gitlab.com/nso-developer/ci-runner-image:latest
-#
-# We also define the helper functions mark_section_start/end that help us mark
-# out the start and end of a "section" in a CI job. Each section can be folded
-# and gets a duration timestamp in the CI job view making it easy to see how
-# long it took to run.
-before_script:
+# The helper functions mark_section_start/end that help us mark out the start
+# and end of a "section" in a CI job. Each section can be folded and gets a
+# duration timestamp in the CI job view making it easy to see how long it took
+# to run. The functions are defined in a YAML anchor. This allows us to add the
+# functions to 'before_script' (and 'script') and also 'after_script'.
+.helper_mark_section: &helper_mark_section
   - |
     function mark_section_start() {
       echo -e "section_start:0:$1\r\e[0K$2"
@@ -30,6 +25,16 @@ before_script:
     function mark_section_end() {
       echo -e "section_end:${SECONDS}:$1\r\e[0K"
     }
+
+# The before script makes sure that docker is installed, since that is a
+# prerequisite for most jobs. If the jobs are run with a standard debian or
+# Ubuntu image, docker isn't installed. To speed up the build, this install step
+# can be skipped by running an image that already has docker installed, for
+# example registry.gitlab.com/nso-developer/ci-runner-image:latest
+#
+# We also include the mark_section helpers.
+before_script:
+  - *helper_mark_section
   - mark_section_start initialize Initializing
   - which curl docker expect gpg2 sshpass xmlstarlet >/dev/null || (echo "Installing prerequisites..." && apt-get -y update && DEBIAN_FRONTEND=noninteractive apt-get install -qy apt-transport-https ca-certificates curl expect gnupg2 software-properties-common sshpass xmlstarlet; which docker || (echo "Installing docker..." && curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && apt-key fingerprint 0EBFCD88 && add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" && apt-get -y update && apt-get -qy install -qy docker-ce docker-ce-cli containerd.io))
   - mark_section_end initialize
@@ -53,9 +58,6 @@ before_script:
     - mark_section_start test-run "Running tests"
     - make testenv-test
     - mark_section_end test-run
-    - mark_section_start test-stop "Stopping testenv"
-    - make testenv-stop
-    - mark_section_end test-stop
     - mark_section_start image-push "Pushing images"
     - echo "Using Gitlab CI token to authenticate with Docker registry for pushing image"
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
@@ -64,7 +66,18 @@ before_script:
     - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-release; fi
     - mark_section_end image-push
   after_script:
+    - *helper_mark_section
+    - mark_section_start test-save-logs "Saving logs"
+    - make testenv-save-logs
+    - mark_section_end test-save-logs
+    - mark_section_start test-save-logs "Stopping testenv"
     - make testenv-stop
+    - mark_section_end test-stop
+  artifacts:
+    when: always
+    paths:
+      - "**/nso*-logs/"
+      - "**/docker-logs/"
 
 
 # Special CI job for running a mirroring job that pulls in the latest changes
