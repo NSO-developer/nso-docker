@@ -9,7 +9,7 @@ $(SUBSETS_BUILD): versions.json
 	../version-gen versions.json --job build
 
 $(SUBSETS_TEST): versions.json
-	../version-gen versions.json --job test
+	../version-gen versions.json --job test --needs build
 
 $(SUBSETS_DEPLOY): versions.json
 	../version-gen versions.json --job deploy
@@ -18,7 +18,7 @@ $(SUBSETS_PUSH): versions.json
 	../version-gen versions.json --job push
 
 multiver.yaml: versions.json
-	../version-gen versions.json --multiver multiver.yaml
+	../version-gen versions.json --multiver multiver.yaml --needs build
 
 versions.txt: versions.json
 	../version-gen versions.json --flat $@
