@@ -14,3 +14,5 @@ expect {
     timeout { exit 1 }
 }
 expect eof
+# wait for docker to quit
+wait
