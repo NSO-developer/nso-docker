@@ -1,0 +1,17 @@
+#!/usr/bin/expect -f
+#
+
+set timeout 10
+spawn telnet $::env(NSO_IP) 5678
+expect {
+    -re "debugpy" {}
+    timeout { exit 1 }
+}
+# escape sequence in telnet
+send "\x1d"
+expect "telnet>"
+# Tell Telnet to quit.
+send "quit\r"
+expect eof
+# wait for telnet to quit
+wait
