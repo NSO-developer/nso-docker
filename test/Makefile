@@ -367,7 +367,7 @@ test-python-dap:
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --name $(CNT_PREFIX)-$@ --label CNT_PREFIX=$(CNT_PREFIX) -e DEBUGPY=python-test-package $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'sleep 1 | telnet localhost 5678' | grep debugpy
+	NSO_IP=$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) expect expect-dap.script
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 
