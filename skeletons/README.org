@@ -59,3 +59,13 @@
    - rate of change
      - if you don't change your package very often, it could be a good idea to compile it once and then include the binary, i.e. cache the compilation
      - this is exacerbated by long compilation times, i.e. the longer compilation times and the lower rate of change, the stronger incentive to place the package in its own repository so that the build artifacts can be cached and reused
+
+** Example system composition
+   There are many ways to compose a system, this just shows one example. This shows how to build a system container for the mythical ACME Corporation.
+
+[[./nso-docker-composition.png]]
+
+   The nso-ned-* containers each contain a NED which is based on a Git repo of the same name. The Git repos are based on the [[./ned][ned]] skeleton.
+   The nso-docker container contains the NSO base software and is built from a local clone of this [[https://gitlab.com/nso-developer/nso-docker][nso-docker]] repo.
+
+   The acme-nso repo holds a set of local packages and it pulls in the base container as well as the two NEDs to create a final system container. The Git repo is based on the [[./system][system]] skeleton. This container can be used for testing and production.
