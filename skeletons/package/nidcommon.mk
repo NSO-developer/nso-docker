@@ -164,9 +164,9 @@ ensure-fresh-nid-available:
 		docker inspect $(NSO_IMAGE_PATH)cisco-nso-base:$(NSO_VERSION) >/dev/null 2>&1 \
 		|| (echo "ERROR: The docker image $(NSO_IMAGE_PATH)cisco-nso-base:$(NSO_VERSION) does not exist"; \
 			if [ -z "$(NSO_IMAGE_PATH)" ]; then \
-				docker image inspect $(NSO_IMAGE_PATH)cisco-nso-base:$(NSO_VERSION)-$(PNS) >/dev/null 2>&1 \
-					&& echo "HINT: You have a locally built image cisco-nso-base:$(NSO_VERSION)-$(PNS), use it for this build by setting NSO_VERSION=$(NSO_VERSION)-$(PNS) or retag it by using the 'tag-release' make target in the nso-docker repo where the image was built" && exit 1; \
-				docker image inspect $(NSO_IMAGE_PATH)cisco-nso-base:$(NSO_VERSION)-$(PNS) >/dev/null 2>&1 \
+				docker image inspect $(NSO_IMAGE_PATH)cisco-nso-base:$(DOCKER_TAG) >/dev/null 2>&1 \
+					&& echo "HINT: You have a locally built image cisco-nso-base:$(DOCKER_TAG), use it for this build by setting NSO_VERSION=$(DOCKER_TAG) or retag it by using the 'tag-release' make target in the nso-docker repo where the image was built" && exit 1; \
+				docker image inspect $(NSO_IMAGE_PATH)cisco-nso-base:$(DOCKER_TAG) >/dev/null 2>&1 \
 					|| echo "HINT: Set NSO_IMAGE_PATH to the registry path of the nso-docker repo, for example 'registry.gitlab.com/nso-developer/nso-docker/'" && false; \
 			else \
 				echo "Image not found locally, pulling from registry..."; \
