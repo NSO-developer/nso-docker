@@ -169,7 +169,7 @@ testenv-cli:
 
 testenv-runcmdC testenv-runcmdJ:
 	@if [ -z "$(CMD)" ]; then echo "CMD variable must be set"; false; fi
-	docker exec -t $(CNT_PREFIX)-nso$(NSO) bash -lc 'echo -e "$(CMD)" | ncs_cli --stop-on-error -$(subst testenv-runcmd,,$@)u admin'
+	docker exec -t $(CNT_PREFIX)-nso$(NSO) bash -lc 'echo -e "$(CMD)" | ncs_cli --noninteractive --stop-on-error -$(subst testenv-runcmd,,$@)u admin'
 
 # Wait for all NSO instances in testenv to start up, as determined by `ncs
 # --wait-started`, or display the docker log for the first failed NSO instance.
