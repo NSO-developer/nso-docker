@@ -17,4 +17,3 @@ push-5.4:
   extends: .push
   variables:
     NSO_VERSION: "5.4"
-
