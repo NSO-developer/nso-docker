@@ -110,7 +110,7 @@ testenv-debug-vscode:
 # testenv-build - incrementally recompile and load new packages in running NSO
 # See the nid/testenv-build script for more details.
 testenv-build:
-	for NSO in $$(docker ps --format '{{.Names}}' --filter label=$(CNT_PREFIX) --filter label=nidtype=nso); do \
+	for NSO in $$(docker ps --format '{{.Names}}' --filter label=com.cisco.nso.testenv.name=$(CNT_PREFIX) --filter label=com.cisco.nso.testenv.type=nso); do \
 		echo "-- Rebuilding for NSO: $${NSO}"; \
 		docker run -it --rm -v $(PWD):/src --volumes-from $${NSO} --network=container:$${NSO} -e NSO=$${NSO} -e PACKAGE_RELOAD=$(PACKAGE_RELOAD) -e SKIP_LINT=$(SKIP_LINT) -e PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) /src/nid/testenv-build; \
 	done
@@ -124,7 +124,7 @@ testenv-build:
 # /includes directory. We start up the build image and copy the included
 # packages to /var/opt/ncs/packages/ folder.
 testenv-clean-build:
-	for NSO in $$(docker ps --format '{{.Names}}' --filter label=$(CNT_PREFIX) --filter label=nidtype=nso); do \
+	for NSO in $$(docker ps --format '{{.Names}}' --filter label=com.cisco.nso.testenv.name=$(CNT_PREFIX) --filter label=com.cisco.nso.testenv.type=nso); do \
 		echo "-- Cleaning NSO: $${NSO}"; \
 		docker run -it --rm -v $(PWD):/src --volumes-from $${NSO} $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -lc 'rsync -aEim --delete /src/packages/. /src/test-packages/. /var/opt/ncs/packages/ >/dev/null'; \
 		echo "-- Copying in pristine included packages for NSO: $${NSO}"; \
@@ -140,7 +140,7 @@ testenv-clean-build:
 # labels for this to work correctly. Use the variables DOCKER_ARGS or
 # DOCKER_NSO_ARGS when running 'docker run', see testenv-start.
 testenv-stop:
-	docker ps -aq --filter label=$(CNT_PREFIX) | $(XARGS) docker rm -vf
+	docker ps -aq --filter label=com.cisco.nso.testenv.name=$(CNT_PREFIX) | $(XARGS) docker rm -vf
 	-docker network rm $(CNT_PREFIX)
 
 testenv-shell:
@@ -156,7 +156,7 @@ testenv-runcmdC testenv-runcmdJ:
 # Wait for all NSO instances in testenv to start up, as determined by `ncs
 # --wait-started`, or display the docker log for the first failed NSO instance.
 testenv-wait-started-nso:
-	@for NSO in $$(docker ps --format '{{.Names}}' --filter label=$(CNT_PREFIX) --filter label=nidtype=nso); do \
+	@for NSO in $$(docker ps --format '{{.Names}}' --filter label=com.cisco.nso.testenv.name=$(CNT_PREFIX) --filter label=com.cisco.nso.testenv.type=nso); do \
 		docker exec -t $${NSO} bash -lc 'ncs --wait-started 600' || (echo "NSO instance $${NSO} failed to start in 600 seconds, displaying logs:"; docker logs $${NSO}; exit 1); \
 		echo "NSO instance $${NSO} has started"; \
 	done; \
@@ -165,7 +165,7 @@ testenv-wait-started-nso:
 # Find all NSO containers using the nidtype=nso and CNT_PREFIX labels, then
 # save logs from /log. For all containers (NSO inclusive) save docker logs.
 testenv-save-logs:
-	@for nso in $$(docker ps -a --filter label=nidtype=nso --filter label=$(CNT_PREFIX) --format '{{.Names}}'); do \
+	@for nso in $$(docker ps -a --filter label=com.cisco.nso.testenv.type=nso --filter label=com.cisco.nso.testenv.name=$(CNT_PREFIX) --format '{{.Names}}'); do \
 		NSO_SUFFIX=$$(echo $${nso} | sed "s/$(CNT_PREFIX)-//"); \
 		echo "== Collecting NSO logs from $${NSO_SUFFIX}"; \
 		mkdir -p $${NSO_SUFFIX}-logs; \
@@ -173,7 +173,7 @@ testenv-save-logs:
 		docker exec $${nso} bash -lc 'ncs --printlog /log/ncserr.log > /log/ncserr.log.txt'; \
 		docker cp $${nso}:/log $${NSO_SUFFIX}-logs; \
 	done
-	@for c in $$(docker ps -a --filter label=$(CNT_PREFIX) --format '{{.Names}}'); do \
+	@for c in $$(docker ps -a --filter label=com.cisco.nso.testenv.name=$(CNT_PREFIX) --format '{{.Names}}'); do \
 		mkdir -p docker-logs; \
 		echo "== Collecting docker logs from $${c}"; \
 		docker logs $${c} > docker-logs/$${c} 2>&1; \
