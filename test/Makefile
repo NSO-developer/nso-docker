@@ -50,6 +50,7 @@ build-test-image:
 test:
 	$(MAKE) build-test-image
 	@echo "\n== Running single-version test cases"
+	$(MAKE) test-version-gen
 	$(MAKE) test-dev-entrypoint
 	$(MAKE) test-shutdown
 	$(MAKE) test-error-exit-code
@@ -84,6 +85,9 @@ test-multiver:
 	$(MAKE) test-persistent-ssh-key
 	$(MAKE) test-run-time-ssl-cert-gen
 	$(MAKE) test-persistent-ssl-cert
+
+test-version-gen:
+	python3 test_version-gen.py
 
 ########################
 # Single Version tests #

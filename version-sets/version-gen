@@ -38,8 +38,9 @@ from collections import namedtuple
 # 5.3.2_ps or 5.3.2_200407.032413.72dd81aef74b for a nightly, and then we have
 # tup which stores just the version number, like 5.3.2 or 5.4 and does that in
 # a tuple form which is easy to sort on. extra will keep the extra stuff, like
-# '_ps' or '_200407.032413.72dd81aef74b' in the above examples.
-NsoV = namedtuple('NSOv', ['version', 'tup', 'extra'])
+# '_ps' or '_200407.032413.72dd81aef74b' in the above examples. type is one
+# of "normal", "nightly" or "special".
+NsoV = namedtuple('NSOv', ['version', 'tup', 'extra', 'type'])
 
 flat_tmpl = "{version}\n"
 
@@ -72,9 +73,18 @@ def vsn_split(version):
     m = re.match(version_re, version)
     if not m:
         raise ValueError(f"Version '{version}' does not conform to NSO version format ({version_re})")
-    num_version = m.group(1)
-    extra_stuff = m.group(3) == '' and None or m.group(3)
-    v = NsoV(version, tup=tuple(map(lambda x: int(x), num_version.split("."))), extra=extra_stuff)
+    num_version = [int(x) for x in m.group(1).split(".")]
+    extra_stuff = m.group(3)
+    if extra_stuff == '':
+        type = 'normal'
+    else:
+        m = re.match("_([0-9]{6})\.([0-9]{9})\.[a-z0-9]{12}", extra_stuff)
+        if m:
+            type = 'nightly'
+            num_version = num_version + [int(m.group(1)), int(m.group(2))]
+        else:
+            type = 'special'
+    v = NsoV(version, tup=tuple(num_version), extra=extra_stuff, type=type)
     return v
 
 def f_major(interesting_version, versions):
@@ -113,21 +123,22 @@ def f_higher(ver, versions):
 
 def f_tot(versions):
     """Filter based on tip-of-train
-    Version numbers are major.minor.maintenance.path
-    Tip-of-train is considered to be the latest major.minor.maintenance combo
+    Version numbers are major.minor.maintenance.patch_extra
+    Tip-of-train is considered to be the latest release in a major.minor combo.
     This filter will only return the tip-of-train releases so for example, only
-    4.7.6 will be released if the input is 4.7.5 and 4.7.6
+    4.7.6 will be released if the input is 4.7.5 and 4.7.6.
+    If a version has extra characters, like 5.4_ps, it is considered its own
+    train.
     """
     tot = {}
     for version in versions:
-        mm = version.tup[0:2]
+        if version.type == 'nightly':
+            mm = version.tup[0:2] + ('nightly',)
+        else:
+            mm = version.tup[0:2] + (version.extra,)
         # if we have no matches at all for this major/minor, we insert
         if mm not in tot:
             tot[mm] = [version]
-        # if currently stored major/minor is equal (same maintenance version)
-        # as current version, we store both by appending
-        elif tot[mm][0].tup == version.tup:
-            tot[mm].append(version)
         # if currently stored major/minor is less (lower maintenance version),
         # we overwrite it
         elif tot[mm][0].tup < version.tup:
