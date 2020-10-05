@@ -72,6 +72,7 @@
        - any anonymous volumes associated with the containers will be removed as well
      - removes the Docker network
    - =testenv-shell=: Get an interactive =bash= shell in the =testnso= container
+   - =testenv-dev-shell=: Get an interactive =bash= shell in a container using the -dev image. The container is attached to the network namespace and volumes of the =testnso= container.
    - =testenv-cli=: Get an interactive NSO CLI (=ncs_cli=) in the =testnso= container
    - =testenv-runcmdC= / =testenv-runcmdJ=: Run a command with =ncs_cli=, provide the command through the environment variable =CMD=
      - the command is expected in the C-style CLI syntax for =testenv-runcmdC= or J-style CLI with =testenv-runcmdJ=
