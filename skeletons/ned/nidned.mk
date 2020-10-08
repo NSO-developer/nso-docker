@@ -164,6 +164,12 @@ testenv-stop:
 testenv-shell:
 	docker exec -it $(CNT_PREFIX)-nso$(NSO) bash -l
 
+# testenv-dev-shell: start a shell in the -dev container, but with the volumes
+# and network namespace of the testenv NSO container. This allows running tools,
+# script and even IPython with the ability to interface with running NSO.
+testenv-dev-shell:
+	docker run -it --rm -v $(PROJECT_DIR):/src --volumes-from $(CNT_PREFIX)-nso$(NSO) --network container:$(CNT_PREFIX)-nso$(NSO) $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION)
+
 testenv-cli:
 	docker exec -it $(CNT_PREFIX)-nso$(NSO) bash -lc 'ncs_cli -u admin'
 
@@ -197,4 +203,4 @@ testenv-save-logs:
 		docker logs $${c} > docker-logs/$${c} 2>&1; \
 	done
 
-.PHONY: all build dev-shell push push-release tag-release test testenv-build testenv-clean-build testenv-start testenv-stop testenv-test testenv-wait-started-nso testenv-save-logs
+.PHONY: all build dev-shell push push-release tag-release test testenv-build testenv-clean-build testenv-start testenv-stop testenv-test testenv-wait-started-nso testenv-save-logs testenv-shell testenv-dev-shell
