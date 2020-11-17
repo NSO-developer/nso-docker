@@ -20,14 +20,6 @@
 # This drastically reduces the length of the REPL loop and thus improves the
 # environment for the developer.
 
-# Determine our project name, either from CI_PROJECT_NAME which is normally set
-# by GitLab CI or by looking at the name of our directory (that we are in).
-ifneq ($(CI_PROJECT_NAME),)
-PROJECT_NAME=$(CI_PROJECT_NAME)
-else
-PROJECT_NAME:=$(shell basename $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST)))))
-endif
-
 include nidcommon.mk
 
 all:

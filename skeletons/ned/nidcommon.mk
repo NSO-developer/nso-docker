@@ -76,6 +76,14 @@ endif
 NSO_VERSION_MAJOR=$(word 1,$(subst ., ,$(NSO_VERSION)))
 NSO_VERSION_MINOR=$(word 2,$(subst ., ,$(NSO_VERSION)))
 
+# Determine our project name, either from CI_PROJECT_NAME which is normally set
+# by GitLab CI or by looking at the name of our directory (that we are in).
+ifneq ($(CI_PROJECT_NAME),)
+PROJECT_NAME=$(CI_PROJECT_NAME)
+else
+PROJECT_NAME:=$(shell basename $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST)))))
+endif
+
 # Set PNS - our pseudo-namespace or pipeline namespace. All containers running
 # within a CI pipeline will have the same namespace, which isn't a namespace
 # like what Linux supports but it's just a prefix used for the docker containers
