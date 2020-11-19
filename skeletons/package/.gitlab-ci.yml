@@ -67,12 +67,16 @@ before_script:
     - mark_section_end image-push
   after_script:
     - *helper_mark_section
+    - mark_section_start test-check-logs "Checking logs"
+    - make testenv-check-logs; check_logs=$?
+    - mark_section_end test-check-logs
     - mark_section_start test-save-logs "Saving logs"
     - make testenv-save-logs
     - mark_section_end test-save-logs
     - mark_section_start test-save-logs "Stopping testenv"
     - make testenv-stop
     - mark_section_end test-stop
+    - exit $check_logs
   artifacts:
     when: always
     paths:

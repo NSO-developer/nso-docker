@@ -171,4 +171,53 @@ testenv-save-logs:
 		docker logs $${c} > docker-logs/$${c} 2>&1; \
 	done
 
-.PHONY: all build dev-shell push push-release tag-release test testenv-build testenv-clean-build testenv-start testenv-stop testenv-test testenv-wait-started-nso testenv-save-logs testenv-shell testenv-dev-shell
+# The check-logs target can be executed at the end of a test run. The plan is
+# for it to fail in the presence of "errors" in various logs. This will catch
+# unhandled errors / bugs in NCS.
+#
+# What counts as an error:
+#  - restart of the python VM
+#  - tracebacks
+#  - critical errors
+#  - internal errors
+testenv-check-logs:
+# This multiline regex used in the perl script below matches lines that begin
+# with 'Traceback', then either:
+#  1. followed by text, followed by two empty lines,
+#  2. followed by text, followed by a line that ends with '- '
+#
+# For example 1:
+#	Traceback (most recent call last):
+#	  File "/var/opt/ncs/state/packages-in-use/1/terastream/python/terastream/device_monitor.py", line 437, in run
+#	    self._read_settings()
+#	  File "/var/opt/ncs/state/packages-in-use/1/terastream/python/terastream/device_monitor.py", line 486, in _read_settings
+#	    with self._maapi.start_read_trans() as t:
+#	  File "/opt/ncs/ncs-4.6.3.2/src/ncs/pyapi/ncs/maapi.py", line 542, in start_read_trans
+#	    product, version, client_id)
+#	  File "/opt/ncs/ncs-4.6.3.2/src/ncs/pyapi/ncs/maapi.py", line 530, in start_trans
+#	    vendor, product, version, client_id)
+#	_ncs.error.Error: operation in wrong state (17): node is in upgrade mode
+#
+# For example 2:
+#	Traceback (most recent call last):
+#	<ERROR> 05-Mar-2019::13:42:43.391 paramiko.transport Thread-347: -   File "/usr/local/lib/python3.5/dist-packages/paramiko/transport.py", line 2138, in _check_banner
+#	<ERROR> 05-Mar-2019::13:42:43.391 paramiko.transport Thread-347: -     buf = self.packetizer.readline(timeout)
+#	<ERROR> 05-Mar-2019::13:42:43.391 paramiko.transport Thread-347: -   File "/usr/local/lib/python3.5/dist-packages/paramiko/packet.py", line 367, in readline
+#	<ERROR> 05-Mar-2019::13:42:43.391 paramiko.transport Thread-347: -     buf += self._read_timeout(timeout)
+#	<ERROR> 05-Mar-2019::13:42:43.391 paramiko.transport Thread-347: -   File "/usr/local/lib/python3.5/dist-packages/paramiko/packet.py", line 563, in _read_timeout
+#	<ERROR> 05-Mar-2019::13:42:43.391 paramiko.transport Thread-347: -     raise EOFError()
+#	<ERROR> 05-Mar-2019::13:42:43.391 paramiko.transport Thread-347: - EOFError
+#	<ERROR> 05-Mar-2019::13:42:43.391 paramiko.transport Thread-347: -
+	@errors=0; \
+	for nso in $$(docker ps -a --filter label=com.cisco.nso.testenv.type=nso --filter label=com.cisco.nso.testenv.name=$(CNT_PREFIX) --format '{{.Names}}'); do \
+		echo "== Checking logs of $${nso}"; \
+		docker exec $${nso} sh -c 'grep --color "Restarted PyVM" /log/ncs-python-vm.log' && errors=$$(($$errors+1)); \
+		docker exec $${nso} sh -c 'perl -n0e "BEGIN {\$$e=1;} END {\$$?=\$$e;} \$$e=0, print \"\e[31m\$$1\n\e[39m\" while m/(Traceback.*?(\n\n|-\s+\n))/gs" /log/ncs-python-vm*' && errors=$$(($$errors+1)); \
+		docker exec $${nso} sh -c 'grep --color CRIT /log/*.log' && errors=$$(($$errors+1)); \
+		docker exec $${nso} bash -lc 'ncs --printlog /log/ncserr.log > /log/ncserr.log.txt'; [[ -s /log/ncserr.log.txt ]] && errors=$$(($$errors+1)); \
+		docker exec $${nso} bash -lc 'echo -ne "\e[31m"; head -200 /log/ncserr.log.txt; echo -ne "\e[39m"'; \
+	done; \
+	echo "== Found $$errors error messages"; \
+	if [[ $$errors -gt 0 ]]; then exit 1; fi
+
+.PHONY: all build dev-shell push push-release tag-release test testenv-build testenv-clean-build testenv-start testenv-stop testenv-test testenv-wait-started-nso testenv-save-logs testenv-check-logs testenv-shell testenv-dev-shell
