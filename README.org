@@ -384,6 +384,13 @@ Do note that the example image URLs used above would be the result of the defaul
 
    In other situations you want to run scripts that load or modify some configuration in NSO (CDB) somehow, which might be better suited to be placed in ~/etc/ncs/post-ncs-start.d~ (though don't mistake these capabilities for what CDB upgrade logic and similar offers). For example, it is possible to start another process in the same container and if that process is dependent upon NSO having started, placing the script in ~/etc/ncs/post-ncs-start-d/~ is a convenient approach as those scripts are only started after NSO have started up (as determined by ~ncs --wait-started~).
 
+* Alternative local package setup
+  The standard practice is to use the cisco-nso-base image as a base image and build your own Docker image that includes the packages you want. Thus the packages are part of the image and can readily be tested in CI and you have a certain guarantee on consistency: the same thing you tested in CI is also what you will run in production.
+
+  However, it is also possible to load packages by placing them in the =packages/= directory in the run directory. NSO has both =/var/opt/ncs/packages= and =/nso/run/packages= in the load path. In order to persist data across restarts of the container, a shared volume or similar is typically mounted to =/nso= and since the run directory is =/nso/run=, it will reside on this shared volume. Simply places your packages there and they will be loaded by NSO on startup.
+
+  Do however note that you now have to ensure that the packages in that directory are compiled for the version of NSO that you are running. Since they are locally loaded packages, this can no longer be ensured through CI.
+
 * Healthcheck
   The production-base image comes with a basic Docker healthcheck. It is using ncs_cmd to get the phase that NCS is currently in. Only the result status, i.e. if ncs_cmd was able to communicate with the ~ncs~ process or not, is actually observed. This tells us whether the ~ncs~ process is responding to IPC requests.
 
