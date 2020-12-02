@@ -3,6 +3,13 @@
 SSH_PORT=${SSH_PORT:-22}
 CONF_FILE=/etc/ncs/ncs.conf
 
+# Add run-dir packages to load-path - this allows users to load packages from
+# the persistent shared volume mounted on /nso.. specifically by placing them in
+# /nso/run/packages
+xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
+    -s '/x:ncs-config/x:load-path' -t elem -n dir -v '${NCS_RUN_DIR}/packages' \
+    $CONF_FILE
+
 # switch to local auth per default, allow to override through environment variable PAM
 if [ "$PAM" != "true" ]; then
     xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
