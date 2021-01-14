@@ -23,6 +23,11 @@ build-5.1.5:
   variables:
     NSO_VERSION: "5.1.5"
 
+build-5.1.6:
+  extends: .build
+  variables:
+    NSO_VERSION: "5.1.6"
+
 build-5.2:
   extends: .build
   variables:
@@ -43,6 +48,11 @@ build-5.2.3:
   variables:
     NSO_VERSION: "5.2.3"
 
+build-5.2.4:
+  extends: .build
+  variables:
+    NSO_VERSION: "5.2.4"
+
 build-5.3:
   extends: .build
   variables:
@@ -58,6 +68,11 @@ build-5.3.2:
   variables:
     NSO_VERSION: "5.3.2"
 
+build-5.3.3:
+  extends: .build
+  variables:
+    NSO_VERSION: "5.3.3"
+
 build-5.4:
   extends: .build
   variables:
@@ -67,6 +82,11 @@ build-5.4.1:
   extends: .build
   variables:
     NSO_VERSION: "5.4.1"
+
+build-5.4.2:
+  extends: .build
+  variables:
+    NSO_VERSION: "5.4.2"
 
 build-5.5:
   extends: .build
