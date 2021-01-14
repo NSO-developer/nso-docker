@@ -54,6 +54,13 @@ test-5.1.5:
   needs:
     - build-5.1.5
 
+test-5.1.6:
+  extends: .test
+  variables:
+    NSO_VERSION: "5.1.6"
+  needs:
+    - build-5.1.6
+
 test-5.2:
   extends: .test
   variables:
@@ -82,6 +89,13 @@ test-5.2.3:
   needs:
     - build-5.2.3
 
+test-5.2.4:
+  extends: .test
+  variables:
+    NSO_VERSION: "5.2.4"
+  needs:
+    - build-5.2.4
+
 test-5.3:
   extends: .test
   variables:
@@ -103,6 +117,13 @@ test-5.3.2:
   needs:
     - build-5.3.2
 
+test-5.3.3:
+  extends: .test
+  variables:
+    NSO_VERSION: "5.3.3"
+  needs:
+    - build-5.3.3
+
 test-5.4:
   extends: .test
   variables:
@@ -116,6 +137,13 @@ test-5.4.1:
     NSO_VERSION: "5.4.1"
   needs:
     - build-5.4.1
+
+test-5.4.2:
+  extends: .test
+  variables:
+    NSO_VERSION: "5.4.2"
+  needs:
+    - build-5.4.2
 
 test-5.5:
   extends: .test
