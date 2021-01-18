@@ -77,6 +77,7 @@ if [[ ! -e /netsim/dev/dev ]]; then
     mkdir -p /netsim/dev
     mv /netsim/$(hostname)/$(hostname) /netsim/dev/dev
     rmdir /netsim/$(hostname)
+    sed -i "s/$(hostname)\/$(hostname)/dev\/dev/" /netsim/.netsiminfo
 fi
 
 # start confd in the background
