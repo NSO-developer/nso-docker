@@ -87,6 +87,7 @@ RUN echo "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sou
   && apt-get install -qy \
      ant \
      curl \
+     expect \
      gawk \
      git \
      iputils-tracepath \
