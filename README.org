@@ -63,7 +63,7 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
       - drastically shorten time from branching feature branch to writing and testing first lines of code
       - leverage same topology for development and testing
 
-  See the [[skeletons/][NID skeletons]] for how to get started developing in the NID ecosystem.
+  See the [[./skeletons/][NID skeletons]] for how to get started developing in the NID ecosystem.
 
 * Prerequisites
   NSO in Docker runs on:
