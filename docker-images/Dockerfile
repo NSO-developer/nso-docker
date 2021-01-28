@@ -109,10 +109,10 @@ RUN echo "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sou
      sshpass \
      vim-tiny \
      xsltproc \
+     ipython3 \
   && apt-get install -qy -t buster-backports \
      # paramiko is required by netconf-console
      python3-paramiko \
-  && pip3 install ipython \
   && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 3 \
   && update-alternatives --install /usr/bin/python python /usr/bin/python3.7 3 \
   && update-alternatives --install /usr/bin/pylint pylint /usr/bin/pylint3 1 \
