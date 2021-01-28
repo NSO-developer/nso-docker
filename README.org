@@ -68,8 +68,8 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
 * Prerequisites
   NSO in Docker runs on:
   - Linux
-  - Mac OS X, see [[Mac OS X support]] for more information
-  - Windows, see [[Windows support]] for more information
+  - Mac OS X, see [[Mac OS X support][Mac OS X support]] for more information
+  - Windows, see [[Windows support][Windows Support]] for more information
 
   To build these images, you need:
   - Docker

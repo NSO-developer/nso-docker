@@ -127,8 +127,8 @@ See the [NID skeletons](./skeletons/) for how to get started developing in the N
 NSO in Docker runs on:
 
 -   Linux
--   Mac OS X, see [24](#org3cd20b6) for more information
--   Windows, see [25](#orgbe01ed8) for more information
+-   Mac OS X, see [Mac OS X support](#org1141c7c) for more information
+-   Windows, see [Windows Support](#org5a5ca06) for more information
 
 To build these images, you need:
 
