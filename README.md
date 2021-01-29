@@ -1,62 +1,11 @@
-- [NSO in Docker](#sec-1)
-- [NSO in Docker for development and production](#sec-2)
-- [How and why?](#sec-3)
-- [Use cases & guides](#sec-4)
-- [Prerequisites](#sec-5)
-- [Usage](#sec-6)
-  - [Building](#sec-6-1)
-    - [Manually building Docker images on your local machine](#sec-6-1-1)
-    - [Automatically building Docker images using Gitlab CI](#sec-6-1-2)
-    - [Alternative for providing NSO install files into CI runner](#sec-6-1-3)
-  - [Running](#sec-6-2)
-    - [Run standalone for testing](#sec-6-2-1)
-    - [Run for development](#sec-6-2-2)
-    - [Run for production](#sec-6-2-3)
-  - [Configuration options](#sec-6-3)
-- [Docker image tags](#sec-7)
-- [Exposed ports](#sec-8)
-- [Admin user](#sec-9)
-- [Python VM version](#sec-10)
-- [Backup](#sec-11)
-  - [Taking a backup](#sec-11-1)
-  - [Restoring from a backup](#sec-11-2)
-- [SSH host key](#sec-12)
-- [HTTPS TLS certificate](#sec-13)
-- [NSO upgrades, downgrades, YANG model changes and package modifications](#sec-14)
-  - [(Destructive) YANG model changes](#sec-14-1)
-  - [NSO version 4 to 5 upgrade](#sec-14-2)
-- [Modifying the NSO configuration file ncs.conf](#sec-15)
-- [Extending the Docker image](#sec-16)
-  - [Default CDB data](#sec-16-1)
-  - [Running scripts on startup](#sec-16-2)
-- [Alternative local package setup](#sec-17)
-- [Healthcheck](#sec-18)
-- [Make targets](#sec-19)
-  - [Based on NSO version](#sec-19-1)
-  - [Based on complete path to NSO installer file](#sec-19-2)
-  - [For all NSO installer files in NSO<sub>INSTALL</sub><sub>FILES</sub><sub>DIR</sub>](#sec-19-3)
-- [GitLab CI runner](#sec-20)
-  - [Security](#sec-20-1)
-- [Version sets for inclusion in CI configuration](#sec-21)
-  - [Create new version set](#sec-21-1)
-- [Continuous mirroring](#sec-22)
-  - [Avoiding merge conflicts](#sec-22-1)
-  - [Manually resolving merge conflicts](#sec-22-2)
-- [Contribution guidelines](#sec-23)
-  - [Merge requests and CI](#sec-23-1)
-- [Mac OS X support](#sec-24)
-- [Windows support](#sec-25)
-- [FAQ / Questions and answers](#sec-26)
-  - [Q: Why are these images not based on alpine or some other minimal container friendly image](#sec-26-1)
-  - [Q: Why use special entrypoints?](#sec-26-2)
 
-# NSO in Docker<a id="sec-1"></a>
+# NSO in Docker
 
 ![img](./nso-in-docker-logo.png)
 
 NSO in Docker is a project created by Cisco to enable users of NSO to easily run NSO in Docker.
 
-# NSO in Docker for development and production<a id="sec-2"></a>
+# NSO in Docker for development and production
 
 This repository contains all you need to build Docker images out of Cisco NSO. It produces two Docker images;
 
@@ -70,7 +19,7 @@ This repository contains all you need to build Docker images out of Cisco NSO. I
 
 The development image can be used immediately, for example as the image for a CI docker container runner to use for running CI jobs that involve compilation of NSO packages and similar. The production image is intended to be used as a base image on which you add your own packages, like NEDs and your service packages, to produce a final image for your environment.
 
-# How and why?<a id="sec-3"></a>
+# How and why?
 
 There are many reasons for why Docker and containers in general might be good for you. The main drivers for using Docker with NSO lies around packaging, ensuring consistency in testing and production as well as making it simple and convenient to create test environments.
 
@@ -96,7 +45,7 @@ It's also worth noting that using Docker does not mean you have to replace all o
 
 Yet another alternative is to use Docker for development and CI and when it's time to deploy to production you use something entirely different. Docker images are glorified tar files so it is possible to extract the relevant files from them and deploy by other means.
 
-# Use cases & guides<a id="sec-4"></a>
+# Use cases & guides
 
 NSO in Docker is not just two Docker container images but rather an ecosystem - the NID (Nso In Docker) ecosystem, which is about a way of working and approaching problems. The NID ecosystem defines the concept of common development and test environments. It uses the base NSO images as the foundation to allow building:
 
@@ -122,13 +71,13 @@ NSO in Docker is not just two Docker container images but rather an ecosystem - 
 
 See the [NID skeletons](./skeletons/) for how to get started developing in the NID ecosystem.
 
-# Prerequisites<a id="sec-5"></a>
+# Prerequisites
 
 NSO in Docker runs on:
 
 -   Linux
--   Mac OS X, see [Mac OS X support](#org1141c7c) for more information
--   Windows, see [Windows Support](#org5a5ca06) for more information
+-   Mac OS X, see [Mac OS X support](#org1b93b94) for more information
+-   Windows, see [Windows Support](#org1f78a92) for more information
 
 To build these images, you need:
 
@@ -147,13 +96,13 @@ If you want to run the test suite you also need:
 -   expect
 -   sshpass
 
-# Usage<a id="sec-6"></a>
+# Usage
 
 The ideal scenario would be to ship prebuilt Docker images containing NSO but as legal requirements prevent that, this is the second best option. This repository contains recipes that you can use to produce Docker images yourself. Just add ~~water~~ Cisco NSO ;)
 
-## Building<a id="sec-6-1"></a>
+## Building
 
-### Manually building Docker images on your local machine<a id="sec-6-1-1"></a>
+### Manually building Docker images on your local machine
 
 -   Clone this repository to your local machine
     -   `git clone https://gitlab.com/nso-developer/nso-docker.git`
@@ -207,7 +156,7 @@ cisco-nso-dev                5.3-kll             d94c42ccd65f        16 hours ag
 debian                       buster              b5d2d9b1597b        11 days ago         114MB
 ```
 
-### Automatically building Docker images using Gitlab CI<a id="sec-6-1-2"></a>
+### Automatically building Docker images using Gitlab CI
 
 -   Clone this repository to your local machine
     -   `git clone https://gitlab.com/nso-developer/nso-docker.git`
@@ -227,7 +176,7 @@ debian                       buster              b5d2d9b1597b        11 days ago
     -   the docker tag for built images consists of the NSO version number and the CI pipeline id, for example `cisco-nso-base:5.3-7583729` for NSO version `5.3` and pipeline id `7583729`
     -   CI builds on the `master` branch will in addition be tagged with just the NSO version, that is `cisco-nso-base:5.3`, after passing tests
 
-### Alternative for providing NSO install files into CI runner<a id="sec-6-1-3"></a>
+### Alternative for providing NSO install files into CI runner
 
 The above method involves committing the NSO install files to this git repository (your clone of it). This means the repository must be private so that you don't leak the NSO install files nor the produced Docker images. There are a number of reasons for why this setup might not be ideal;
 
@@ -256,9 +205,9 @@ There is an alternative. The path in which the build process looks for the NSO i
 
 The path `/data/nso-install-files` on the host machine becomes available as `/nso-install-files/` in the CI build docker containers and by specifying that path (`/nso-install-files`) using the CI variable settings, the job will now pick up the NSO images from there. This is how the public repo at <https://gitlab.com/nso-developer/nso-docker> works. It allows us to host all code in public, run CI tests in public yet not reveal the NSO install file as required by its EULA.
 
-## Running<a id="sec-6-2"></a>
+## Running
 
-### Run standalone for testing<a id="sec-6-2-1"></a>
+### Run standalone for testing
 
 -   if you built a production image, i.e. using base image from this repo and adding in your own packages
 -   run a standalone container
@@ -269,7 +218,7 @@ The path `/data/nso-install-files` on the host machine becomes available as `/ns
 docker run -itd --name nso-dev1 my-prod-image:12345
 ```
 
-### Run for development<a id="sec-6-2-2"></a>
+### Run for development
 
 -   mount the source code directory into the container
 -   makes it possible to use compiler etc in the container
@@ -279,7 +228,7 @@ docker run -itd --name nso-dev1 my-prod-image:12345
 docker run -itd --name nso-dev1 -v $(pwd):/src cisco-nso-dev:5.2
 ```
 
-### Run for production<a id="sec-6-2-3"></a>
+### Run for production
 
 -   with a production image, i.e. using the base image from this repo and adding in your own packages
 -   use shared volume to persist data across restarts
@@ -300,18 +249,18 @@ This uses the `--net=host` option to let the container live in the hosts network
 docker run -itd --name nso -v /data/nso:/nso -v /data/nso-logs:/log --net=host -e SSH_PORT=2024 my-prod-image:12345
 ```
 
-## Configuration options<a id="sec-6-3"></a>
+## Configuration options
 
 The ncs.conf configuration file for NSO is written at run time of the container. It is generated (modified to be precise) at startup of the container. It is possible to influence the configuration through a number of variables. These can be fed into the container through environment variables.
 
-| Environment variable   | Type    | Default | Description                                   |
-|---------------------- |------- |------- |--------------------------------------------- |
-| PAM                    | boolean | false   | Enable PAM instead of local auth in NSO (AAA) |
-| HTTP<sub>ENABLE</sub>  | boolean | false   | Enable HTTP web UI                            |
-| HTTPS<sub>ENABLE</sub> | boolean | false   | Enable HTTPS (TLS) web UI                     |
-| SSH<sub>PORT</sub>     | uint16  | 22      | Set port for SSH to listen on                 |
+| Environment variable | Type    | Default | Description                                   |
+|-------------------- |------- |------- |--------------------------------------------- |
+| `PAM`                | boolean | false   | Enable PAM instead of local auth in NSO (AAA) |
+| `HTTP_ENABLE`        | boolean | false   | Enable HTTP web UI                            |
+| `HTTPS_ENABLE`       | boolean | false   | Enable HTTPS (TLS) web UI                     |
+| `SSH_PORT`           | uint16  | 22      | Set port for SSH to listen on                 |
 
-# Docker image tags<a id="sec-7"></a>
+# Docker image tags
 
 The Docker images produced by this repo per default carry a unique tag based on the CI<sub>JOB</sub><sub>ID</sub> variable set by Gitlab CI, for example `registry.gitlab.com/nso-developer/nso-docker/cisco-nso-dev:31337` where `31337` is the value from `CI_JOB_ID`.
 
@@ -323,19 +272,19 @@ It is recommended to use a nightly job to produce new images every night that in
 
 For a truly deterministic environment, downstream repositories that rely on these Docker images should be based on the unique tag and consequently be updated with the same cadence as new images are built.
 
-# Exposed ports<a id="sec-8"></a>
+# Exposed ports
 
-| Protocol | Port | Use               | Config var         |
-|-------- |---- |----------------- |------------------ |
-| TCP      | 22   | SSH               | SSH<sub>PORT</sub> |
-| TCP      | 80   | HTTP              |                    |
-| TCP      | 443  | HTTPS             |                    |
-| TCP      | 830  | NETCONF           |                    |
-| TCP      | 4334 | NETCONF call-home |                    |
+| Protocol | Port | Use               | Config var |
+|-------- |---- |----------------- |---------- |
+| TCP      | 22   | SSH               | `SSH_PORT` |
+| TCP      | 80   | HTTP              |            |
+| TCP      | 443  | HTTPS             |            |
+| TCP      | 830  | NETCONF           |            |
+| TCP      | 4334 | NETCONF call-home |            |
 
-It is possible to reconfigure the port that SSH uses by setting the SSH<sub>PORT</sub> variable to the wanted value.
+It is possible to reconfigure the port that SSH uses by setting the `SSH_PORT` variable to the wanted value.
 
-# Admin user<a id="sec-9"></a>
+# Admin user
 
 An admin user can be created on startup by the run script in the container. There are three environment variables that control the addition of an admin user;
 
@@ -353,23 +302,23 @@ This can be very useful when starting up a container in CI for testing or when d
 
 Also note how this only adds a user. If you are using a permanent volume for CDB etc and start the NSO container multiple times with different `ADMIN_PASSWORD` then the last run will effectively overwrite the older password. However, if you change `ADMIN_USERNAME` between invocations then you will create multiple users! An admin user account created during the last run of NSO will **not** be removed just because `ADMIN_USERNAME` is set to a different value.
 
-# Python VM version<a id="sec-10"></a>
+# Python VM version
 
 These docker images default to using python3.
 
 In NSO v5.3 and later, the python VM to use is probed by first looking for `python3`, if not found `python2` will be tried and finally it will fall back to running `python`. In earlier versions of NSO, `python` is executed, which on most systems means python2. As python2 is soon end of life, these docker images default to using `python3`.
 
-# Backup<a id="sec-11"></a>
+# Backup
 
 **NOTE**: SSH keys and SSL certificates are not included in backups produced by `ncs-backup`. Backup and restore largely behaves as it normally does with `ncs-backup` as run outside of Docker, with some exceptions.
 
 Normally, the ncs-backup script includes the NCS<sub>CONFIG</sub><sub>DIR</sub> (defaults to /etc/ncs). SSH keys and SSL certificates are normally placed in /etc/ncs/ssh and /etc/ncs/ssl respectively. This means that the SSH keys and SSL certificates are part of the produced backup file. This is NOT the case for when NSO is run in a container as SSH keys and SSL certificates are not in the default configuration path.
 
-## Taking a backup<a id="sec-11-1"></a>
+## Taking a backup
 
 To take a backup, simply run `ncs-backup`. The backup file will be written to `/nso/run/backups`.
 
-## Restoring from a backup<a id="sec-11-2"></a>
+## Restoring from a backup
 
 To restore a backup, NSO must not be running. As you likely only have access to the `ncs-backup` tool and the volume containing CDB and other run time state from inside of the NSO container, this poses a slight challenge. Additionally, shutting down NSO will terminate the NSO container.
 
@@ -399,7 +348,7 @@ docker exec -it nso bash -lc 'ncs-backup restore /nso/run/backups/ncs-4.7.5@2019
 
 Restoring a NSO backup should move the current run directory (`/nso/run` to `/nso/run.old`) and restore the run directory from the backup to the main run directory (`/nso/run`). After this is done, shut down your temporary container and start the normal NSO container again as usual.
 
-# SSH host key<a id="sec-12"></a>
+# SSH host key
 
 NSO looks for the SSH host key in the directory `/nso/ssh`. The filename differs based on the configured host key algorithm. NSO in Docker will use the RSA algorithm for host keys.
 
@@ -407,7 +356,7 @@ If no SSH host key exists, one will be generated. As it is stored in `/nso` whic
 
 NSO version 5.3 and newer supports ed25519 and will in fact default to using ed25519 as server host key on new installations but this behavior is suppressed for NSO in Docker and instead RSA is used as it is supported by all currently existing versions of NSO.
 
-# HTTPS TLS certificate<a id="sec-13"></a>
+# HTTPS TLS certificate
 
 NSO expects to find a TLS certificate and key at `/nso/ssl/cert/host.cert` and `/nso/ssl/cert/host.key` respectively. Since the `/nso` path is usually on persistent shared volume for production setups, the certificate remains the same across restarts or upgrades.
 
@@ -419,11 +368,11 @@ openssl req -new -newkey rsa:4096 -x509 -sha256 -days 30 -nodes \
         -subj "/C=SE/ST=NA/L=/O=NSO/OU=WebUI/CN=Mr. Self-Signed"
 ```
 
-# NSO upgrades, downgrades, YANG model changes and package modifications<a id="sec-14"></a>
+# NSO upgrades, downgrades, YANG model changes and package modifications
 
 As the produced Docker image contains both NSO itself and a given version of all included packages, any changes to said components will result in a new Docker image. Deploying any change, however small, means building and deploying a new Docker image. Upgrading and downgrading of NSO itself, with the packages kept static, is also based on deploying another Docker image.
 
-## (Destructive) YANG model changes<a id="sec-14-1"></a>
+## (Destructive) YANG model changes
 
 The database in NSO, called CDB, is using YANG models as the schema for the database. It is only possible to store data in CDB according to the YANG models that define the schema.
 
@@ -431,7 +380,7 @@ If the YANG models are changed, in particular if nodes are removed or renamed (r
 
 NSO in Docker will automatically reload packages on startup, using the `--with-packages-reload-force` argument to `ncs` on startup. This means that destructive model changes will be accepted without warning. It is expected that NSO in Docker is developed in an environment where there are other safe guards, such as CI testing, to catch accidental destructive model changes.
 
-## NSO version 4 to 5 upgrade<a id="sec-14-2"></a>
+## NSO version 4 to 5 upgrade
 
 The major new feature in NSO version 5 is what's known as Common Data Models or CDM, which is based on the YANG schema-mount standard (RFC8528). With it, there are changes to the CDB database files on disk. The migration from a CDB written by NSO version 4 to NSO version 5 happens automatically but first the old CDB written by NSO version 4 must be compacted, which is a manual step. However, with NSO in Docker, the startup script takes care of this for you by automatically determining at startup if NSO version 5 is being started on a CDB written by NSO version 4. If this is the case, the CDB on disk is compacted.
 
@@ -452,7 +401,7 @@ Multiple attempts might be necessary to get everything to load and upgrade corre
 
 In a production setting with a structured approach to development and operations, the recommendation would be to take a backup of CDB from production and move to a development machine where the above steps can be executed. Preferably also incorporating not just the NED / package changes into CI but also including testing of the CDB upgrade. The upgrade is thus tested in development & CI before being attempted on the production deployment machines. While we might use a compacted CDB to speed up the development and testing of the upgrade, as outlined above, the actual upgrade of the production system will only happen once inside of an NSO container in an unsupervised fashion, which is why startup script of NSO in Docker will automatically determine the CDB version + NSO version and, if deemed necessary, perform CDB compaction.
 
-# Modifying the NSO configuration file ncs.conf<a id="sec-15"></a>
+# Modifying the NSO configuration file ncs.conf
 
 The `ncs.conf` used in the docker images produced by this repository is not checked into git but rather originates from the NSO install itself. This means that if we build a Docker image based on NSO 5.2 we will get the default `ncs.conf` that comes with `5.2`. Any updates to the `ncs.conf` shipped with NSO will find its way into the Docker image. Since modifications are necessary, partly for NSO to fit into a Docker environment but also to apply instance specific configuration, like the administrator password, the `ncs.conf` configuration file is modified on startup. This is achieved by a startup script executed before NSO is started.
 
@@ -460,21 +409,21 @@ The standard Docker run script (`run-nso.sh`) looks for files that ends with `.s
 
 You can further modify the `ncs.conf` configuration file by adding your own startup script in `/etc/ncs.pre-ncs-start.d/`. Since the configuration file is an XML document, modification is best done through an XML aware tool. The previously mentioned standard `mangle-config.sh` script modifies the `ncs.conf` configuration file using `xmlstarlet` which understands XML and offers XML aware editing capabilities.
 
-# Extending the Docker image<a id="sec-16"></a>
+# Extending the Docker image
 
 There are multiple approaches to extending the functionality of the NSO docker image.
 
-## Default CDB data<a id="sec-16-1"></a>
+## Default CDB data
 
 When NSO starts up with no pre-existing CDB, it will load the files placed in `/nid/cdb-default/` in the container image. Simple place an XML file in `/nid/cdb-default/` to have its content loaded on first startup.
 
-## Running scripts on startup<a id="sec-16-2"></a>
+## Running scripts on startup
 
 The standard Docker run script (`run-nso.sh`) looks for files that ends with `.sh` in `/etc/ncs/pre-ncs-start.d/` and `/etc/ncs/post-ncs-start.d/` and will run any scripts found before or after starting NSO. `ncs --wait-started` is used to wait for NSO to start. If you want to modify the configuration file, produce some XML files to be read into CDB on startup or similar, you can write a script for that and place it in the relevant startup directory (typically before NSO is started).
 
 In other situations you want to run scripts that load or modify some configuration in NSO (CDB) somehow, which might be better suited to be placed in `/etc/ncs/post-ncs-start.d` (though don't mistake these capabilities for what CDB upgrade logic and similar offers). For example, it is possible to start another process in the same container and if that process is dependent upon NSO having started, placing the script in `/etc/ncs/post-ncs-start-d/` is a convenient approach as those scripts are only started after NSO have started up (as determined by `ncs --wait-started`).
 
-# Alternative local package setup<a id="sec-17"></a>
+# Alternative local package setup
 
 The standard practice is to use the cisco-nso-base image as a base image and build your own Docker image that includes the packages you want. Thus the packages are part of the image and can readily be tested in CI and you have a certain guarantee on consistency: the same thing you tested in CI is also what you will run in production.
 
@@ -482,7 +431,7 @@ However, it is also possible to load packages by placing them in the `packages/`
 
 Do however note that you now have to ensure that the packages in that directory are compiled for the version of NSO that you are running. Since they are locally loaded packages, this can no longer be ensured through CI.
 
-# Healthcheck<a id="sec-18"></a>
+# Healthcheck
 
 The production-base image comes with a basic Docker healthcheck. It is using ncs<sub>cmd</sub> to get the phase that NCS is currently in. Only the result status, i.e. if ncs<sub>cmd</sub> was able to communicate with the `ncs` process or not, is actually observed. This tells us whether the `ncs` process is responding to IPC requests.
 
@@ -492,11 +441,11 @@ More advanced and deeper looking healthchecks could be conceived, for example by
 
 We really want to measure some form of progress, even if that progress is just internal. A five hours transaction is fine as long as we are continuously making progress. However, there are currently no such indicators available and so the healthcheck observes the rather basic operation of the IPC listener.
 
-# Make targets<a id="sec-19"></a>
+# Make targets
 
 There are multiple make targets for building an NSO docker image.
 
-## Based on NSO version<a id="sec-19-1"></a>
+## Based on NSO version
 
 Assuming the NSO install file has been placed in the `NSO_INSTALL_FILES_DIR` (per default `nso-install-files/`), you can run:
 
@@ -506,7 +455,7 @@ make NSO_VERSION=5.2.1 build
 
 To produce a docker image based on NSO 5.2.1. It requires that the corresponding installer file is present, i.e. `nso-install-files/nso-5.2.1.linux.x86_64.installer.bin`.
 
-## Based on complete path to NSO installer file<a id="sec-19-2"></a>
+## Based on complete path to NSO installer file
 
 You can use the `build` target to build a Docker image out of an NSO installer. It requires that you specify the complete path to the NSO installer file, for example:
 
@@ -514,7 +463,7 @@ You can use the `build` target to build a Docker image out of an NSO installer. 
 make FILE=/home/foo/nso-docker/nso-install-files/nso-5.2.1.linux.x86_64.installer.bin build-file
 ```
 
-## For all NSO installer files in NSO<sub>INSTALL</sub><sub>FILES</sub><sub>DIR</sub><a id="sec-19-3"></a>
+## For all NSO installer files in NSO<sub>INSTALL</sub><sub>FILES</sub><sub>DIR</sub>
 
 To build docker images for all the NSO installer files present in the NSO installer directory, (specified by `NSO_INSTALL_FILES_DIR`), you can run:
 
@@ -530,7 +479,7 @@ There are targets to run tests that correspond with the above;
 
 They require the same variables to be set as their corresponding build target described above.
 
-# GitLab CI runner<a id="sec-20"></a>
+# GitLab CI runner
 
 **NOTE**: Using a Gitlab CI runner as described in this section has different security implications than what is normally associated with using containers for CI. See the Security sub-heading.
 
@@ -563,11 +512,11 @@ Here's a configuration file for gitlab ci runner. Note the `volumes` setting whi
 
 You naturally need to use your token and not literally `s3cr3t`. The token is written when you do the runner registration per the guide referenced above.
 
-## Security<a id="sec-20-1"></a>
+## Security
 
 Note that exposing the Docker control socket has security implications. Containers as run by the CI runner normally provide isolation such that CI jobs are contained within the container and are unable to access anything outside of the container. By exposing the docker control socket, the CI jobs can start new containers, including starting a privileged one, which means it has root access on the host machine and enables escaping the container entirely. Do not grant access to your project or CI runner to anyone you do not trust. For example, someone that is able to create a branch on your repository can write a Gitlab CI configuration file that instructs the CI runner to run a privileged container and then gain access to the CI runner machine itself.
 
-# Version sets for inclusion in CI configuration<a id="sec-21"></a>
+# Version sets for inclusion in CI configuration
 
 The versions of NSO to build and test for will vary per environment. To handle this, the concept of "version sets" are used. A list of NSO versions is used to compute a number of CI configuration files that can be included from the main CI configuration (`.gitlab-ci.yml`) and different lists can be used for different environments.
 
@@ -606,7 +555,7 @@ include:
 
 This will work for any repository hosted on the same GitLab instance as the `nso-developer/nso-docker` repo. Once you clone the `nso-docker` repository to your own environment, as you are encouraged to do, you are likely to place it in another namespace (not `nso-developer`) and so you must update the include statements for the dependent repositories accordingly. For example, if you place your clone of `nso-docker` in the `foobar` group on your `gitlab.example.com` instance, then the version-set referenced should be `foobar/nso-docker`. You can also reference a version-set on a remote Gitlab instance by specifying a complete URL instead, like `https://gitlab.com/nso-developer/nso-docker/-/raw/master/version-sets/supported-nso/build-tot.yaml`.
 
-## Create new version set<a id="sec-21-1"></a>
+## Create new version set
 
 Merely copy an existing version set, modify the `versions.json` file and regenerate the files. For example;
 
@@ -619,7 +568,7 @@ make generate
 
 Include it in your nso-docker build or build of other packages in the NSO in Docker ecosystem.
 
-# Continuous mirroring<a id="sec-22"></a>
+# Continuous mirroring
 
 You are encouraged to mirror any components in the NSO-in-Docker (NID) ecosystem that you use.
 
@@ -649,7 +598,7 @@ Set `CI_MODE=mirror` in the CI schedule (since this should only apply for that j
 
 The mirroring functionality is quite simple. It will run `git clone` to get a copy of its own repository (which is why it needs SSH host keys and deploy keys), then add the upstream repository as a HTTP mirror (presuming it is a public repository and does not require any credentials). It will then pull in changes, allowing merge conflicts, and finally push the result to its own repository, thus functionally achieving a mirror. It uses the user name and email of the user who initiated the CI build as the git commit author (for merge commits).
 
-## Avoiding merge conflicts<a id="sec-22-1"></a>
+## Avoiding merge conflicts
 
 A merge will be performed by the mirroring if necessary (when fast-forward isn't possible). As only automatic conflict resolution is possible, it is important to write changes in such a way that we reduce the likelihood of conflicts arising in the first place.
 
@@ -663,7 +612,7 @@ include:
 
 Note how we are merely appending to the already existing include statement. It is a YAML dict and adding a new `include:` line would effectively overwrite the old one.
 
-## Manually resolving merge conflicts<a id="sec-22-2"></a>
+## Manually resolving merge conflicts
 
 If you get a merge conflict, you will need to resolve it manually. Do this by cloning your repository, then adding the upstream repo as a git remote and pulling in from that:
 
@@ -680,19 +629,19 @@ During the pull, if automatic merging is not possible, the merge will abort and 
 git push origin master
 ```
 
-# Contribution guidelines<a id="sec-23"></a>
+# Contribution guidelines
 
 Contributions are welcome, however before you start writing code, please open an issue to discuss your idea or bug fix to make sure your ideas or intended solution align with the goals or ideals of the project.
 
 New functionality should be covered by new test cases that proves the new functionality works.
 
-## Merge requests and CI<a id="sec-23-1"></a>
+## Merge requests and CI
 
 The typical workflow for submitting code involves forking this git repository, creating a branch and committing some code which will then be tested in CI. However, this project has a specialized CI runner that carries the NSO install files required to successfully build this project and this CI runner is only available for the origin repository, i.e. `gitlab.com/nso-developer/nso-docker`. A branch on your own private fork of this repository will not have access to the CI runner and thus will not be able to successfully execute the CI tests.
 
 In order to run the tests, a maintainer will need to do a coarse review of the changes to verify there is no hostile code, after which your private branch can be copied to the `nso-developer/nso-docker` repository, which then allows it to be tested with the specialized CI runner. A shadow MR can then be setup to merge the commits to master. The commits still maintain the author, preserving credit for the changes.
 
-# Mac OS X support<a id="sec-24"></a>
+# Mac OS X support
 
 The intention is for Mac OS X to be a generally supported platform for NSO in Docker. Docker on Mac is using a Linux VM to run the Docker engine and as such, it is compatible with normal Docker images built for Linux. You don't need to recompile your NSO in Docker images when moving between a Linux machine Docker on Mac as they are both really running Docker on Linux.
 
@@ -713,7 +662,7 @@ To build, make sure you have `realpath` installed, which comes with `coreutils` 
 
 If you notice any issues, please open an issue.
 
-# Windows support<a id="sec-25"></a>
+# Windows support
 
 Running NSO in Docker on Windows is supported, with some caveats. With a recent version of Windows 10 (May 2020 - version 2004), Docker is using a lightweight Linux VM using WSL2 (Windows Subsystem for Linux v2). As such, it is compatible with normal Docker images built for Linux. You don't need to recompile your NSO in Docker images when moving between a Linux machine and Docker in WSL2 as they are both really running Docker on Linux.
 
@@ -738,9 +687,9 @@ To build, you need `make` and Docker executable available in your preferred WSL2
 
 If you notice any issues, please open an issue.
 
-# FAQ / Questions and answers<a id="sec-26"></a>
+# FAQ / Questions and answers
 
-## Q: Why are these images not based on alpine or some other minimal container friendly image<a id="sec-26-1"></a>
+## Q: Why are these images not based on alpine or some other minimal container friendly image
 
 **A**: The larger the final container image is, the less impact the base image size typically has. Picking a 5MB or 50MB base image is not crucial when the final image is an order of magnitude larger.
 
@@ -748,7 +697,7 @@ Debian was chosen as it is a well working proven distribution with a long track 
 
 minideb, which is a minimal build of a debian base image, was not only considered but actually used in early phases of this repository. It does provide a smaller image. Measured at the time of the switch from minideb to stock debian, the difference was about 10%. minideb weighed in at 471MB while debian:buster came in at 525MB. The proven track record of Debian ultimately made it the winner.
 
-## Q: Why use special entrypoints?<a id="sec-26-2"></a>
+## Q: Why use special entrypoints?
 
 **A**: A delightful question with a less than delightful answer! It is a combination of multiple factors:
 
