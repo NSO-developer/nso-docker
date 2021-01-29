@@ -113,7 +113,7 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
    #+END_SRC
 
    #+RESULTS[3ff05549238600a48eb05c5a59c1d17b6d78738b]:
-   #+begin_src shell
+   #+BEGIN_SRC shell
    REPOSITORY                   TAG                 IMAGE ID            CREATED             SIZE
    kll-test-cisco-nso-5.3-kll   latest              999b88b099ed        16 hours ago        550MB
    <none>                       <none>              14806a997e24        16 hours ago        1.15GB
@@ -121,7 +121,7 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
    <none>                       <none>              1c332a6ffb25        16 hours ago        505MB
    cisco-nso-dev                5.3-kll             d94c42ccd65f        16 hours ago        1.15GB
    debian                       buster              b5d2d9b1597b        11 days ago         114MB
-   #+end_src
+   #+END_SRC
 
    Run ~make tag-release~ and provide the version to tag using the variable =NSO_VERSION=:
 
@@ -131,7 +131,7 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
    #+END_SRC
 
    #+RESULTS[e4db0280029c988c9d279cab68425484f77831c0]:
-   #+begin_src shell
+   #+BEGIN_SRC shell
    docker tag cisco-nso-dev:5.3-kll cisco-nso-dev:5.3
    docker tag cisco-nso-base:5.3-kll cisco-nso-base:5.3
    REPOSITORY                   TAG                 IMAGE ID            CREATED             SIZE
@@ -143,7 +143,7 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
    cisco-nso-dev                5.3                 d94c42ccd65f        16 hours ago        1.15GB
    cisco-nso-dev                5.3-kll             d94c42ccd65f        16 hours ago        1.15GB
    debian                       buster              b5d2d9b1597b        11 days ago         114MB
-   #+end_src
+   #+END_SRC
 
 *** Automatically building Docker images using Gitlab CI
    - Clone this repository to your local machine
@@ -235,10 +235,10 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
 
    | Environment variable | Type    | Default | Description                                   |
    |----------------------+---------+---------+-----------------------------------------------|
-   | PAM                  | boolean | false   | Enable PAM instead of local auth in NSO (AAA) |
-   | HTTP_ENABLE          | boolean | false   | Enable HTTP web UI                            |
-   | HTTPS_ENABLE         | boolean | false   | Enable HTTPS (TLS) web UI                     |
-   | SSH_PORT             | uint16  | 22      | Set port for SSH to listen on                 |
+   | =PAM=                | boolean | false   | Enable PAM instead of local auth in NSO (AAA) |
+   | =HTTP_ENABLE=        | boolean | false   | Enable HTTP web UI                            |
+   | =HTTPS_ENABLE=       | boolean | false   | Enable HTTPS (TLS) web UI                     |
+   | =SSH_PORT=           | uint16  | 22      | Set port for SSH to listen on                 |
 
 * Docker image tags
   The Docker images produced by this repo per default carry a unique tag based on the CI_JOB_ID variable set by Gitlab CI, for example ~registry.gitlab.com/nso-developer/nso-docker/cisco-nso-dev:31337~ where =31337= is the value from =CI_JOB_ID=.
@@ -254,13 +254,13 @@ Do note that the example image URLs used above would be the result of the defaul
 * Exposed ports
  | Protocol | Port | Use               | Config var |
  |----------+------+-------------------+------------|
- | TCP      |   22 | SSH               | SSH_PORT   |
+ | TCP      |   22 | SSH               | =SSH_PORT= |
  | TCP      |   80 | HTTP              |            |
  | TCP      |  443 | HTTPS             |            |
  | TCP      |  830 | NETCONF           |            |
  | TCP      | 4334 | NETCONF call-home |            |
 
- It is possible to reconfigure the port that SSH uses by setting the SSH_PORT variable to the wanted value.
+ It is possible to reconfigure the port that SSH uses by setting the =SSH_PORT= variable to the wanted value.
 
 * Admin user
   An admin user can be created on startup by the run script in the container. There are three environment variables that control the addition of an admin user;
