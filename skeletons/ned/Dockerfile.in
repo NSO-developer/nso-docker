@@ -62,7 +62,7 @@ RUN for PKG_SRC in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth
   deactivate >/dev/null 2>&1; \
   rm -rf ${PKG_SRC}/pyvenv-dev; \
   make -f /src/nid/bmd.mk -C ${PKG_SRC} build-meta-data.xml; \
-  make -C ${PKG_SRC}/src strip; \
+  make --dry-run -C ${PKG_SRC}/src strip >/dev/null 2>&1 && make -C ${PKG_SRC}/src strip || exit 1; \
   if [ -d ${PKG}/netsim ]; then make -C ${PKG}/netsim || exit 1; fi; \
   done
 
