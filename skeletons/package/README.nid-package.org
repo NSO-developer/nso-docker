@@ -47,6 +47,12 @@
      - a Docker network specific to this testenv is used
        - this makes it possible to have network localized names, like a netsim can be called and accessed via the name =dev1= and Docker handles name resolution to the actual IP address
          - running multiple =testenv= in parallel won't collide as we have a network (namespace) per =testenv=
+       - IPv4 and IPv6 is enabled per default
+         - IPv6 uses ULA addressing (essentially a random IPv6 prefix)
+           - only local connectivity (no default route)
+         - manually specify the IPv6 prefix by setting =IPV6_NET=, for example ~IPV6_NET=2001:db8:1234:4567:~
+           - if you use a public prefix, there will be a default route for public connectivity
+         - disable IPv6 by setting ~IPV6=false~
      - it is possible to start up more containers, like netsims, which should be achieved by adding them to the =testenv-start-extra= target in =Makefile=
        - ensure that you have ~$(DOCKER_ARGS)~ in the argument list to =docker=
          - it starts the container in the correct Docker network and sets the correct label, which is a prerequisite for the =testenv-stop= target to work
