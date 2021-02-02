@@ -55,7 +55,7 @@ RUN for PKG_SRC in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth
 # includes.
 # Each package may implement the strip target to clean up extra files generated
 # by ncsc, pylint and mypy. For example, ncsc-out, .mypy_cache, .pylint.d.
-RUN for PKG_SRC in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth 1 -type d | xargs -n1 basename | awk '{ print "/var/opt/ncs/packages/"$1 }'); do\
+RUN for PKG_SRC in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth 1 -type d | xargs -n1 basename | awk '{ print "/var/opt/ncs/packages/"$1 }'); do \
   if [ -f "${PKG_SRC}/pyvenv-dev/bin/activate" ]; then . ${PKG_SRC}/pyvenv-dev/bin/activate; \
   elif [ -f "${PKG_SRC}/pyvenv/bin/activate" ]; then . ${PKG_SRC}/pyvenv/bin/activate; \
   fi; \
@@ -63,7 +63,7 @@ RUN for PKG_SRC in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth
   deactivate >/dev/null 2>&1; \
   rm -rf ${PKG_SRC}/pyvenv-dev; \
   make -f /src/nid/bmd.mk -C ${PKG_SRC} build-meta-data.xml; \
-  make --dry-run -C ${PKG_SRC}/src strip >/dev/null 2>&1 && make -C ${PKG_SRC}/src strip || exit 1; \
+  make --dry-run -C ${PKG_SRC}/src strip >/dev/null 2>&1 && (make -C ${PKG_SRC}/src strip || exit 1); \
   if [ -d ${PKG}/netsim ]; then make -C ${PKG}/netsim || exit 1; fi; \
   done
 
