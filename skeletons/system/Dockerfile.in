@@ -61,7 +61,7 @@ RUN for PKG_SRC in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth
   make -C ${PKG_SRC}/src || exit 1; \
   deactivate >/dev/null 2>&1;  \
   rm -rf ${PKG_SRC}/pyvenv-dev; \
-  make --dry-run -C ${PKG_SRC}/src strip >/dev/null 2>&1 && make -C ${PKG_SRC}/src strip || exit 1; \
+  make --dry-run -C ${PKG_SRC}/src strip >/dev/null 2>&1 && (make -C ${PKG_SRC}/src strip || exit 1); \
   make -f /src/nid/bmd.mk -C ${PKG_SRC} build-meta-data.xml; \
   done
 
