@@ -83,13 +83,23 @@ dev-shell:
 
 # Test environment targets
 
+# Enable IPv6 per default, set to false to disable (in Makefile, not here)
+IPV6?=true
 # testenv-start: start the test environment in a configuration that allows
 # Python Remote Debugging. Exposes port 5678 on a random port on localhost.
+# Per default, the IPv6 prefix is a randomly generated IPv6 network prefix in
+# the ULA address space. Override by setting IPV6_NET variable to e.g.:
+# IPV6_NET=2001:db8:1234:456:  # which becomes 2001:db8:1234:456::/64
+testenv-start: export IPV6_NET:=$(shell echo $${IPV6_NET:-fd00:$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):})
+testenv-start: export DOCKER_IPV6_NET_ARG:=--ipv6 --subnet $(IPV6_NET):/64
 testenv-start:
-	docker network inspect $(CNT_PREFIX) >/dev/null 2>&1 || docker network create $(CNT_PREFIX)
+	if [ "$(IPV6)" = "true" ]; then echo "Using IPv6 prefix $(IPV6_NET):/64"; \
+		else echo "IPv6 is disabled"; export DOCKER_IPV6_NET_ARG=; fi; \
+		docker network inspect $(CNT_PREFIX) >/dev/null 2>&1 || docker network create $(CNT_PREFIX) $(DOCKER_IPV6_NET_ARG)
 	docker run -td --name $(CNT_PREFIX)-nso --network-alias nso $(DOCKER_NSO_ARGS) -e ADMIN_PASSWORD=NsoDocker1337 $${NSO_EXTRA_ARGS} $(IMAGE_PATH)$(PROJECT_NAME)/testnso:$(DOCKER_TAG)
 	docker run -td --name $(CNT_PREFIX)-netsim --network-alias dev1 --hostname dev1 $(DOCKER_ARGS) $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(DOCKER_TAG)
 	$(MAKE) testenv-start-extra
+	-@echo $(IPV6_NET) | egrep "^[23]...:" || echo "Removing IPv6 default route" && docker ps -aq --filter label=com.cisco.nso.testenv.name=$(CNT_PREFIX) | $(XARGS) --replace=CNT -n1 docker run --rm --net=container:CNT --cap-add=NET_ADMIN cisco-nso-base:$(NSO_VERSION) ip -6 route del default >/dev/null 2>&1
 	$(MAKE) testenv-wait-started-nso
 
 # testenv-dap-port: get the host port mapping for the DAP daemon in the container
