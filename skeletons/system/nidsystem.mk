@@ -208,16 +208,16 @@ testenv-check-logs:
 #	<ERROR> 05-Mar-2019::13:42:43.391 paramiko.transport Thread-347: -     raise EOFError()
 #	<ERROR> 05-Mar-2019::13:42:43.391 paramiko.transport Thread-347: - EOFError
 #	<ERROR> 05-Mar-2019::13:42:43.391 paramiko.transport Thread-347: -
-	@errors=0; \
+	@ERRORS=0; \
 	for nso in $$(docker ps -a --filter label=com.cisco.nso.testenv.type=nso --filter label=com.cisco.nso.testenv.name=$(CNT_PREFIX) --format '{{.Names}}'); do \
 		echo "== Checking logs of $${nso}"; \
-		docker exec $${nso} sh -c 'grep --color "Restarted PyVM" /log/ncs-python-vm.log' && errors=$$(($$errors+1)); \
-		docker exec $${nso} sh -c 'perl -n0e "BEGIN {\$$e=1;} END {\$$?=\$$e;} \$$e=0, print \"\e[31m\$$1\n\e[39m\" while m/(Traceback.*?(\n\n|-\s+\n))/gs" /log/ncs-python-vm*' && errors=$$(($$errors+1)); \
-		docker exec $${nso} sh -c 'grep --color CRIT /log/*.log' && errors=$$(($$errors+1)); \
-		docker exec $${nso} bash -lc 'ncs --printlog /log/ncserr.log > /log/ncserr.log.txt'; [[ -s /log/ncserr.log.txt ]] && errors=$$(($$errors+1)); \
+		docker exec $${nso} sh -c 'grep --color "Restarted PyVM" /log/ncs-python-vm.log' && ERRORS=$$(($${ERRORS}+1)); \
+		docker exec $${nso} sh -c 'perl -n0e "BEGIN {\$$e=1;} END {\$$?=\$$e;} \$$e=0, print \"\e[31m\$$1\n\e[39m\" while m/(Traceback.*?(\n\n|-\s+\n))/gs" /log/ncs-python-vm*' && ERRORS=$$(($${ERRORS}+1)); \
+		docker exec $${nso} sh -c 'grep --color CRIT /log/*.log' && ERRORS=$$(($${ERRORS}+1)); \
+		docker exec $${nso} bash -lc 'ncs --printlog /log/ncserr.log > /log/ncserr.log.txt'; [ -s /log/ncserr.log.txt ] && ERRORS=$$(($${ERRORS}+1)); \
 		docker exec $${nso} bash -lc 'echo -ne "\e[31m"; head -200 /log/ncserr.log.txt; echo -ne "\e[39m"'; \
 	done; \
-	echo "== Found $$errors error messages"; \
-	if [[ $$errors -gt 0 ]]; then exit 1; fi
+	echo "== Found $${ERRORS} error messages"; \
+	if [ $${ERRORS} -gt 0 ]; then exit 1; fi
 
 .PHONY: all build dev-shell push push-release tag-release test testenv-build testenv-clean-build testenv-start testenv-stop testenv-test testenv-wait-started-nso testenv-save-logs testenv-check-logs testenv-shell testenv-dev-shell
