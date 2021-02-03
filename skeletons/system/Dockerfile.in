@@ -60,9 +60,16 @@ RUN for PKG_SRC in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth
   elif [ -f "${PKG_SRC}/pyvenv/bin/activate" ]; then . ${PKG_SRC}/pyvenv/bin/activate; \
   fi; \
   make -C ${PKG_SRC}/src || exit 1; \
+  if make -C ${PKG_SRC}/src -n test >/dev/null 2>&1; then \
+    echo "Found 'test' target, running tests..."; \
+    make -C ${PKG_SRC}/src test || exit 1; \
+  fi; \
   deactivate >/dev/null 2>&1; \
   rm -rf ${PKG_SRC}/pyvenv-dev; \
-  make --dry-run -C ${PKG_SRC}/src strip >/dev/null 2>&1 && (make -C ${PKG_SRC}/src strip || exit 1); \
+  if make -C ${PKG_SRC}/src -n strip >/dev/null 2>&1; then \
+    echo "Found 'strip' target, stripping..."; \
+    make -C ${PKG_SRC}/src strip || exit 1; \
+  fi; \
   make -f /src/nid/bmd.mk -C ${PKG_SRC} build-meta-data.xml; \
   done
 
