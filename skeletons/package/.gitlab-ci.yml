@@ -58,6 +58,9 @@ before_script:
     - mark_section_start test-run "Running tests"
     - make testenv-test
     - mark_section_end test-run
+    - mark_section_start test-check-logs "Checking logs"
+    - make testenv-check-logs
+    - mark_section_end test-check-logs
     - mark_section_start image-push "Pushing images"
     - echo "Using Gitlab CI token to authenticate with Docker registry for pushing image"
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
@@ -68,7 +71,7 @@ before_script:
   after_script:
     - *helper_mark_section
     - mark_section_start test-check-logs "Checking logs"
-    - make testenv-check-logs; check_logs=$?
+    - make testenv-check-logs || true
     - mark_section_end test-check-logs
     - mark_section_start test-save-logs "Saving logs"
     - make testenv-save-logs
@@ -76,7 +79,6 @@ before_script:
     - mark_section_start test-save-logs "Stopping testenv"
     - make testenv-stop
     - mark_section_end test-stop
-    - exit $check_logs
   artifacts:
     when: always
     paths:
