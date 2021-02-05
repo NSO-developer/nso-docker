@@ -4,7 +4,7 @@
 # /proc/self/cgroup which only exists inside of a container.
 #
 
-set timeout 5
+set timeout 10
 spawn docker run -it $::env(NSO_IMAGE)
 expect -re "root@.*:/# \r.*Kroot@.*:/# "
 send -- "ls /proc/self/cgroup\r"
