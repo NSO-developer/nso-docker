@@ -1,17 +1,27 @@
 #!/usr/bin/expect -f
 #
-
 set timeout 10
-spawn telnet $::env(NSO_IP) 5678
-expect {
-    -re "debugpy" {}
-    timeout { exit 1 }
-}
+set loop 1
+while { $loop < 5 } {
+    spawn telnet $::env(NSO_IP) 5678
+    expect  {
+        -re "debugpy" {
+            set loop 10
 # escape sequence in telnet
-send "\x1d"
-expect "telnet>"
+            send "\x1d"
+            expect "telnet>"
 # Tell Telnet to quit.
-send "quit\r"
-expect eof
+            send "quit\r"
+            expect eof
 # wait for telnet to quit
-wait
+            wait
+            exit 0
+        }    
+        -re "Connection refused|Connection timed out" { 
+            sleep 2 
+            incr loop
+        }
+        timeout { exit 1 }
+    }
+}
+exit 1
