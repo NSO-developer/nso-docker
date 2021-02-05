@@ -120,7 +120,8 @@ endif
 # the test environment.
 # DOCKER_NSO_ARGS contains additional arguments specific to an NSO container.
 # This includes exposing tcp/5678 for Python Remote Debugging using debugpy.
-DOCKER_ARGS=--network $(CNT_PREFIX) --label com.cisco.nso.testenv.name=$(CNT_PREFIX)
+DOCKER_LABEL_ARG?=--label com.cisco.nso.testenv.name=$(CNT_PREFIX)
+DOCKER_ARGS=--network $(CNT_PREFIX) $(DOCKER_LABEL_ARG)
 # DEBUGPY?=$(PROJECT_NAME)
 DOCKER_NSO_ARGS=$(DOCKER_ARGS) --label com.cisco.nso.testenv.type=nso --volume /var/opt/ncs/packages -e DEBUGPY=$(DEBUGPY) --expose 5678 --publish-all
 
