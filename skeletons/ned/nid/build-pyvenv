@@ -28,6 +28,9 @@ if [ -f "src/requirements-dev.txt" ]; then
     # - we fix that with sed...
     sed -e 's,/src/\(test-\)\?packages/,/var/opt/ncs/packages/,' -i pyvenv-dev/bin/activate
     . pyvenv-dev/bin/activate
+    # upgrade pip to latest version (in the venv) to deal with correct
+    # downloading of wheel packages
+    pip3 install --upgrade pip
     # we ignore-installed to installed things even thought they are already
     # installed in the system as otherwise we depend on the system packages and
     # as those can shift between the -dev container and the -base container we
@@ -47,6 +50,9 @@ if [ -f "src/requirements.txt" ]; then
     # - we fix that with sed...
     sed -e 's,/src/\(test-\)\?packages/,/var/opt/ncs/packages/,' -i pyvenv/bin/activate
     . pyvenv/bin/activate
+    # upgrade pip to latest version (in the venv) to deal with correct
+    # downloading of wheel packages
+    pip3 install --upgrade pip
     # we ignore-installed to installed things even thought they are already
     # installed in the system as otherwise we depend on the system packages and
     # as those can shift between the -dev container and the -base container we
