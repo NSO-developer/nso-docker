@@ -59,6 +59,7 @@ RUN for PKG_SRC in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth
   if [ -f "${PKG_SRC}/pyvenv-dev/bin/activate" ]; then . ${PKG_SRC}/pyvenv-dev/bin/activate; \
   elif [ -f "${PKG_SRC}/pyvenv/bin/activate" ]; then . ${PKG_SRC}/pyvenv/bin/activate; \
   fi; \
+  make -C ${PKG_SRC}/src clean; \
   make -C ${PKG_SRC}/src || exit 1; \
   if make -C ${PKG_SRC}/src -n test >/dev/null 2>&1; then \
     echo "Found 'test' target, running tests..."; \
