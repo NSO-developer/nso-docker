@@ -3,7 +3,7 @@
         <groups>
             <group>
                 <name>ncsadmin</name>
-                <user-name>banan</user-name>
+                <user-name></user-name>
             </group>
         </groups>
     </nacm>
