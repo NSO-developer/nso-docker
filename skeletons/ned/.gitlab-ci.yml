@@ -127,6 +127,14 @@ include: 'https://gitlab.com/nso-developer/nso-docker/-/raw/master/version-sets/
 # Or if it is hosted on the same GitLab instance as this repo, you can use a
 # relative link:
 # include: 'foo/nso-docker/-/raw/master/version-sets/bar/build-tot.yaml'
+# 
+# An alternative to a relative link for a project on the same GitLab instance
+# uses the project/ref/file notation for inclusion. This is handy for repos 
+# that require authentication.
+# include: 
+#   - project: foo/nso-docker
+#     ref: master 
+#     file: /version-sets/bar/build-tot.yaml
 #
 # An alternative is to specify the build jobs manually, like so:
 #
