@@ -81,6 +81,7 @@ test-multiver:
 	@echo "\n== Running multi-version test cases"
 	$(MAKE) test-cdb-persistence
 	$(MAKE) test-backup-restore
+	$(MAKE) test-backup-restore-nonempty-volume
 	$(MAKE) test-run-time-ssh-key-gen
 	$(MAKE) test-persistent-ssh-key
 	$(MAKE) test-run-time-ssl-cert-gen
@@ -454,6 +455,9 @@ test-cdb-persistence:
 	-docker volume rm -f $(CNT_PREFIX)-$@
 
 
+test-backup-restore-nonempty-volume:
+	$(MAKE) test-backup-restore NONEMPTY_VOLUME=true
+
 test-backup-restore:
 	@echo "\n== Verify that ncs-backup and restore works properly"
 	rm -rf tmp
@@ -463,6 +467,8 @@ test-backup-restore:
 	@echo "-- Creating volume for cisco-nso test container --------------------------------"
 	-docker volume rm -f $(CNT_PREFIX)-$@
 	docker volume create $(CNT_PREFIX)-$@
+	@echo "-- If NONEMPTY_VOLUME=true, create a file in volume, so the volume is non-empty --------------------------------"
+	[ "$(NONEMPTY_VOLUME)" = "true" ] && docker run -t --rm --name $(CNT_PREFIX)-$@-helper --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/vol $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) touch /vol/foo || true
 	@echo "-- Starting cisco-nso test container -------------------------------------------"
 	docker run -td --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(OLD_DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
