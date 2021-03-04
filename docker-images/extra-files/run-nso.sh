@@ -35,7 +35,7 @@ mkdir -p /log /nso/coredumps
 echo '/nso/coredumps/core.%e.%t' > /proc/sys/kernel/core_pattern
 
 # create required directories
-mkdir -p /nso/run/cdb /nso/run/rollbacks /nso/run/scripts /nso/run/streams /nso/run/state /nso/run/backups
+mkdir -p /nso/run/cdb /nso/run/rollbacks /nso/run/scripts /nso/run/streams /nso/run/state /nso/run/backups /nso/run/packages
 mkdir -p /log/traces
 
 # generate SSH key if one doesn't exist
