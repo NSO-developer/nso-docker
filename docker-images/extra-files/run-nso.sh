@@ -88,7 +88,7 @@ set +m
 # this doesn't slow down startup since we wait for ncs to start as the next step
 # anyway and that wait is much longer
 sleep 3
-ncs --wait-started
+ncs --wait-started 600
 
 # post-start scripts
 for FILE in $(ls /etc/ncs/post-ncs-start.d/*.sh 2>/dev/null); do
