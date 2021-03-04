@@ -243,7 +243,7 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
 * Docker image tags
   The Docker images produced by this repo per default carry a unique tag based on the CI_JOB_ID variable set by Gitlab CI, for example ~registry.gitlab.com/nso-developer/nso-docker/cisco-nso-dev:31337~ where =31337= is the value from =CI_JOB_ID=.
 
-  In addition, if the job is built on the =master= branch, it will also receive a tag based on the NSO version it contains, for example if the previously mentioned image is based on NSO 5.2.1, if it was built from the =master= branch it would also get the tag ~registry.gitlab.com/nso-developer/nso-docker/cisco-nso-dev:5.2.1~. This makes it possible for other repositories to use the ~5.2.1~ tag to always refer to the latest build of ~5.2.1~.
+  In addition, if the job is built on the default branch (typically =main= or =master=), it will also receive a tag based on the NSO version it contains. For example, if the previously mentioned image is based on NSO 5.2.1 and was built from the default =main= branch it would also get the tag ~registry.gitlab.com/nso-developer/nso-docker/cisco-nso-dev:5.2.1~. This makes it possible for other repositories to use the ~5.2.1~ tag to always refer to the latest build of ~5.2.1~.
 
 Do note that the example image URLs used above would be the result of the default configuration for the official origin repository for the =nso-docker= project. However, as the official repo CI builds happen in a public environment, the resulting images can't be pushed as it would effectively publish this is per the default configuration and although the example URL follows that for the official origin repo for the nso-docker project.
 

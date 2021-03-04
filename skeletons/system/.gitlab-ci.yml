@@ -110,8 +110,8 @@ mirror:
     - "git clone git@${CI_SERVER_HOST}:${CI_PROJECT_PATH}.git"
     - cd "${CI_PROJECT_NAME}"
     - git remote add upstream "${MIRROR_REMOTE}"
-    - if [ "${MIRROR_PULL_MODE}" = "rebase" ]; then git pull --rebase upstream master; else git pull upstream master; fi
-    - if [ "${MIRROR_PULL_MODE}" = "rebase" ]; then git push --force origin master; else git push origin master; fi
+    - if [ "${MIRROR_PULL_MODE}" = "rebase" ]; then git pull --rebase upstream ${CI_DEFAULT_BRANCH}; else git pull upstream ${CI_DEFAULT_BRANCH}; fi
+    - if [ "${MIRROR_PULL_MODE}" = "rebase" ]; then git push --force origin ${CI_DEFAULT_BRANCH}; else git push origin ${CI_DEFAULT_BRANCH}; fi
 
 
 # Version set to include. These file contain the actual jobs that instantiate
