@@ -113,6 +113,11 @@ build-5.5:
   variables:
     NSO_VERSION: "5.5"
 
+build-5.5.1:
+  extends: .build
+  variables:
+    NSO_VERSION: "5.5.1"
+
 multiver-test_4.7.5_4.7.6:
   extends: .multiver_test
   variables:
@@ -671,6 +676,60 @@ multiver-test_5.4.2_5.5:
     - build-5.4.2
     - build-5.5
 
+multiver-test_4.7.8_5.5.1:
+  extends: .multiver_test
+  variables:
+    OLD_NSO_VERSION: "4.7.8"
+    NSO_VERSION: "5.5.1"
+  needs:
+    - build-4.7.8
+    - build-5.5.1
+
+multiver-test_5.1.6_5.5.1:
+  extends: .multiver_test
+  variables:
+    OLD_NSO_VERSION: "5.1.6"
+    NSO_VERSION: "5.5.1"
+  needs:
+    - build-5.1.6
+    - build-5.5.1
+
+multiver-test_5.2.4_5.5.1:
+  extends: .multiver_test
+  variables:
+    OLD_NSO_VERSION: "5.2.4"
+    NSO_VERSION: "5.5.1"
+  needs:
+    - build-5.2.4
+    - build-5.5.1
+
+multiver-test_5.3.3_5.5.1:
+  extends: .multiver_test
+  variables:
+    OLD_NSO_VERSION: "5.3.3"
+    NSO_VERSION: "5.5.1"
+  needs:
+    - build-5.3.3
+    - build-5.5.1
+
+multiver-test_5.4.2_5.5.1:
+  extends: .multiver_test
+  variables:
+    OLD_NSO_VERSION: "5.4.2"
+    NSO_VERSION: "5.5.1"
+  needs:
+    - build-5.4.2
+    - build-5.5.1
+
+multiver-test_5.5_5.5.1:
+  extends: .multiver_test
+  variables:
+    OLD_NSO_VERSION: "5.5"
+    NSO_VERSION: "5.5.1"
+  needs:
+    - build-5.5
+    - build-5.5.1
+
 push-4.7.5:
   extends: .push
   variables:
@@ -785,6 +844,11 @@ push-5.5:
   extends: .push
   variables:
     NSO_VERSION: "5.5"
+
+push-5.5.1:
+  extends: .push
+  variables:
+    NSO_VERSION: "5.5.1"
 
 test-version-set:
   extends: .test-version-set
