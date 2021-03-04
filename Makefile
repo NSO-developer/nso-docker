@@ -25,7 +25,7 @@ DOCKER_TAG?=$(NSO_VERSION)-$(shell whoami | sed 's/[^[:alnum:]._-]\+/_/g')
 endif
 endif
 
-# If we are running in CI and on the default branch (typically 'master'),
+# If we are running in CI and on the default branch (like 'main' or 'master'),
 # disable the build cache for docker builds. We do this with ?= operator in make
 # so we only set DOCKER_BUILD_CACHE_ARG if it is not already set, this makes it
 # possible to still use the cache if explicitly set through environment

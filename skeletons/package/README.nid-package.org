@@ -80,7 +80,7 @@
 ** Docker tags and prefixes
    Built images are tagged with the NSO version and "PNS" ("Pipeline NameSpace", when in a CI context, or "Pseudo NameSpace", when running locally, outside of CI), like ~$(NSO_VERSION)-$(PNS)~. For local builds, PNS is set to your username (modulo some mangling as some characters are forbidden in Docker image tags), e.g. =5.3-kll= (for username =kll=). In CI, PNS is set to the CI pipeline ID, like =5.3-12345=. The PNS part means we don't immediately overwrite the previously built images with the version tag like =5.3=, which might be included by other repositories. We don't want a development version to overwrite the released one.
 
-   Use the =tag-release= target to set the release tags on the image, e.g. go from =5.3-kll= to =5.3=. The CI configuration automatically does this for CI jobs run on the =master= branch. You might have to do it locally in case you wish to retag images so they can be tested with other repositories.
+   Use the =tag-release= target to set the release tags on the image, e.g. go from =5.3-kll= to =5.3=. The CI configuration automatically does this for CI jobs run on the default branch (like =main= or =master=). You might have to do it locally in case you wish to retag images so they can be tested with other repositories.
 
    In the =testenv=, the started containers have a name prefix to avoid collisions with other repositories that make use of the NID skeletons. The prefix is available in the Makefiles under the ~$(CNT_PREFIX)~ variable and is set to ~testenv-$(PROJECT_NAME)-$(NSO_VERSION)-$(PNS)~. It is also possible to override by manually setting the environment variable =CNT_PREFIX=.
 

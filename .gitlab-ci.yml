@@ -86,8 +86,8 @@ before_script:
     - if [ "${DOCKER_PUSH}" != "false" ]; then make pull; fi
     - mark_section_end image-pull
     - mark_section_start image-push "Pushing images"
-    - if [ "${CI_COMMIT_REF_NAME}" = "master" ]; then make tag-release; fi
-    - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-release; fi
+    - if [ "${CI_COMMIT_REF_NAME}" = "${CI_DEFAULT_BRANCH}" ]; then make tag-release; fi
+    - if [ "${CI_COMMIT_REF_NAME}" = "${CI_DEFAULT_BRANCH}" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-release; fi
     - mark_section_end image-push
 
 
@@ -114,8 +114,8 @@ mirror:
     - "git clone git@${CI_SERVER_HOST}:${CI_PROJECT_PATH}.git"
     - cd "${CI_PROJECT_NAME}"
     - git remote add upstream "${MIRROR_REMOTE}"
-    - if [ "${MIRROR_PULL_MODE}" = "rebase" ]; then git pull --rebase upstream master; else git pull upstream master; fi
-    - if [ "${MIRROR_PULL_MODE}" = "rebase" ]; then git push --force origin master; else git push origin master; fi
+    - if [ "${MIRROR_PULL_MODE}" = "rebase" ]; then git pull --rebase upstream ${CI_DEFAULT_BRANCH}; else git pull upstream ${CI_DEFAULT_BRANCH}; fi
+    - if [ "${MIRROR_PULL_MODE}" = "rebase" ]; then git push --force origin ${CI_DEFAULT_BRANCH}; else git push origin ${CI_DEFAULT_BRANCH}; fi
 
 
 # Make sure the computed version set files are up to date with the source by
