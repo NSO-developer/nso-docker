@@ -86,8 +86,8 @@ before_script:
     - if [ "${DOCKER_PUSH}" != "false" ]; then make pull; fi
     - mark_section_end image-pull
     - mark_section_start image-push "Pushing images"
-    - if [ "${CI_COMMIT_REF_NAME}" = "master" ]; then make tag-release; fi
-    - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-release; fi
+    - if [ "${CI_COMMIT_REF_NAME}" = "${CI_DEFAULT_BRANCH}" ]; then make tag-release; fi
+    - if [ "${CI_COMMIT_REF_NAME}" = "${CI_DEFAULT_BRANCH}" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-release; fi
     - mark_section_end image-push
 
 

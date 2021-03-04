@@ -65,8 +65,8 @@ before_script:
     - echo "Using Gitlab CI token to authenticate with Docker registry for pushing image"
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
     - if [ "${DOCKER_PUSH}" != "false" ]; then make push; fi
-    - if [ "${CI_COMMIT_REF_NAME}" = "master" ]; then make tag-release; fi
-    - if [ "${CI_COMMIT_REF_NAME}" = "master" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-release; fi
+    - if [ "${CI_COMMIT_REF_NAME}" = "${CI_DEFAULT_BRANCH}" ]; then make tag-release; fi
+    - if [ "${CI_COMMIT_REF_NAME}" = "${CI_DEFAULT_BRANCH}" ] && [ "${DOCKER_PUSH}" != "false" ]; then make push-release; fi
     - mark_section_end image-push
   after_script:
     - *helper_mark_section
