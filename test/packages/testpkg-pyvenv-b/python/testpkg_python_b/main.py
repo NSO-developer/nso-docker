@@ -4,6 +4,9 @@ from ncs.dp import Action
 
 import bar
 
+def test():
+    return bar.test()
+
 class TestAction(Action):
     @Action.action
     def cb_action(self, uinfo, name, kp, action_input, action_output):

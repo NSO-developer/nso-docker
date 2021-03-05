@@ -1,8 +1,8 @@
-module testpkg-python {
+module testpkg-pyvenv-a {
   yang-version 1.1;
 
-  namespace "http://example.com/testpkg-python";
-  prefix testpkg-python;
+  namespace "http://example.com/testpkg-pyvenv-a";
+  prefix testpkg-pyvenv-a;
 
   import ietf-inet-types {
     prefix inet;

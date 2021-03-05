@@ -6,6 +6,7 @@ COPY packages /packages
 RUN make -C /packages/testpkg/src
 RUN make -C /packages/testpkg-java/src
 RUN make -C /packages/testpkg-python/src
+RUN make -C /packages/testpkg-pyvenv-a/src
 
 FROM $BASE_IMAGE
 

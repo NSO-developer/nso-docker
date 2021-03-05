@@ -2,13 +2,13 @@
 import ncs
 from ncs.dp import Action
 
-import testpkg_python_b
+from testpkg_python_b import main as tpb
 import foo
 
 class TestAction(Action):
     @Action.action
     def cb_action(self, uinfo, name, kp, action_input, action_output):
-        action_output.message = "Hello world from Python pyvenv-a"
+        action_output.message = f"Hello world from Python pyvenv-a: {tpb.test()}"
 
 
 class Main(ncs.application.Application):
