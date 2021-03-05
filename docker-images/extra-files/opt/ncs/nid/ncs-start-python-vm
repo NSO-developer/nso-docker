@@ -23,11 +23,16 @@ PYVER=$(${PYTHON} -c 'import sys; print(str(sys.version_info[0])+"."+str(sys.ver
 # packages we depend on, defined as 'required-packages' in package-meta-data.xml
 # Packages listed as 'required-packages' are added after the first element in
 # PYTHONPATH (with a trailing /python as it points to the Python directory of
-# the package). Iterate over rest of PYTHONPATH, searching each element
-# directory for a virtualenv and append its site-packages to our PYTHONPATH.
-# Note how the virtualenv of another package could be built for a different
-# version of Python, in which case there is nothing we can do.
-for DEP_PATH in $(dirname $(echo ${PYTHONPATH} | cut -d: -f1- | tr ':' ' ')); do
+# the package). Strip the first element and iterate over rest of PYTHONPATH,
+# searching each element directory for a virtualenv and append its site-packages
+# to our PYTHONPATH. Note how the virtualenv of another package could be built
+# for a different version of Python, in which case things will fail.
+DEP_PY_PATHS=$(echo ${PYTHONPATH} | cut -d: -f1-)
+# Set IFS to deal with white space in path names
+OLD_IFS=$IFS
+IFS=:
+for DEP_PY_PATH in ${DEP_PY_PATHS}; do
+    DEP_PATH=$(dirname "$DEP_PY_PATH")
     if [ -d "${DEP_PATH}/pyvenv" ]; then
         if [ -d "${DEP_PATH}/pyvenv/lib/python${PYVER}/site-packages" ]; then
             echo "Adding virtualenv to path for dependency package at ${DEP_PATH}";
@@ -37,6 +42,7 @@ for DEP_PATH in $(dirname $(echo ${PYTHONPATH} | cut -d: -f1- | tr ':' ' ')); do
         fi
     fi
 done
+IFS=$OLD_IFS
 
 pypath="${NCS_DIR}/src/ncs/pyapi"
 
