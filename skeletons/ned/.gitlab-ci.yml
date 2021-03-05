@@ -120,17 +120,12 @@ mirror:
 # nso-docker repository. It is normal to build your own version set for the NSO
 # versions you are interested in and include that here.
 include: 'https://gitlab.com/nso-developer/nso-docker/-/raw/master/version-sets/supported-nso/build-tot.yaml'
-# For example, replace it with the URL to your mirror of the nso-docker repo and
-# the version-set you use;
-# include: 'https://example.com/foo/nso-docker/-/raw/master/version-sets/bar/build-tot.yaml'
+# For example, having mirrored the nso-docker repository and created your own
+# version-set, you could reference that, as long as it is hosted on the same
+# GitLab instance as this repo. Here we are using a structured notation which
+# automatically handles authentication, in case that is required (for non-public
+# repositories):
 #
-# Or if it is hosted on the same GitLab instance as this repo, you can use a
-# relative link:
-# include: 'foo/nso-docker/-/raw/master/version-sets/bar/build-tot.yaml'
-# 
-# An alternative to a relative link for a project on the same GitLab instance
-# uses the project/ref/file notation for inclusion. This is handy for repos 
-# that require authentication.
 # include: 
 #   - project: foo/nso-docker
 #     ref: master 
