@@ -360,8 +360,9 @@ test-python:
 	docker run -td --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin'
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin' | grep oper-status.up | wc -l | grep '^\s*4$$'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin' | grep oper-status.up | wc -l | grep '^\s*5$$'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-python python-test" | ncs_cli -u admin' | grep "Hello world from Python"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-pyvenv-a python-test" | ncs_cli -u admin' | grep "Lorum"
 	@echo "\n== Verify that Python remote debugging is disabled"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'sleep 1 | telnet localhost 5678' | grep 'Unable to connect to remote host'
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1

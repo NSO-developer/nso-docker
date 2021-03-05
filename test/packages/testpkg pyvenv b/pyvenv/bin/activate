@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/var/opt/ncs/packages/testpkg-pyvenv/pyvenv"
+VIRTUAL_ENV="/var/opt/ncs/packages/testpkg-pyvenv-b/pyvenv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

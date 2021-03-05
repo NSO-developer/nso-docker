@@ -1,8 +1,8 @@
-module testpkg-python {
+module testpkg-pyvenv-a {
   yang-version 1.1;
 
-  namespace "http://example.com/testpkg-python";
-  prefix testpkg-python;
+  namespace "http://example.com/testpkg-pyvenv-a";
+  prefix testpkg-pyvenv-a;
 
   import ietf-inet-types {
     prefix inet;
@@ -22,12 +22,12 @@ module testpkg-python {
       "Initial revision.";
   }
 
-  container testpkg-python {
+  container testpkg-pyvenv-a {
     description "Python test package";
 
     // replace with your own stuff here
     action python-test {
-      tailf:actionpoint "test-python-actionpoint";
+      tailf:actionpoint "test-pyvenv-a-actionpoint";
       description "A Python action";
       output {
         leaf message {
