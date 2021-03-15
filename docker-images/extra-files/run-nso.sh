@@ -51,10 +51,14 @@ if [ ! -f /nso/ssl/cert/host.cert ]; then
             -subj "/C=SE/ST=NA/L=/O=NSO/OU=WebUI/CN=Mr. Self-Signed"
 fi
 
-# if necessary, i.e. if starting NSO 5 on a CDB written by NSO 4, compact CDB
-# if there is no CDB on disk, ncs --cdb-debug-dump will return "Error..." and we
-# won't match that, thus such an error is handled correctly.
-CDB_MAJVER=$(ncs --cdb-debug-dump /nso/run/cdb | awk '/^Version:.*from.*version/ { printf($2) }')
+# If necessary, i.e. if starting NSO 5 on a CDB written by NSO 4, compact CDB.
+# If there is no CDB on disk, ncs --cdb-debug-dump will return "Error..." and we
+# won't match that, thus such an error is handled correctly. Running
+# --cdb-debug-dump on a large CDB takes a considereable amount of time,
+# potentially hours for multi GB size. By using head, we exit early, leaving a
+# broken pipe to ncs, which will in turn exit. This works since the interesting
+# data is in the header that is printed first.
+CDB_MAJVER=$(ncs --cdb-debug-dump /nso/run/cdb | head | awk '/^Version:.*from.*version/ { printf($2) }')
 NSO_MAJVER=$(ncs --version | head -c 1)
 if [ -n "${CDB_MAJVER}" ] && [ "${CDB_MAJVER}" -eq 4 ] && [ "${NSO_MAJVER}" -eq 5 ]; then
     echo "run-nso.sh: CDB written by NSO version 4 but now running version 5. Will attempt to compact CDB"
