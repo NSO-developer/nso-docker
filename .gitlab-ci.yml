@@ -49,6 +49,9 @@ before_script:
     - mark_section_start test "Testing images"
     - make test
     - mark_section_end test
+    - mark_section_start test-skel "Testing skeletons"
+    - make test-skeletons
+    - mark_section_end test-skel
     - mark_section_start image-push "Pushing images"
     - if [ "${DOCKER_PUSH}" != "false" ]; then make push; fi
     - mark_section_end image-push
