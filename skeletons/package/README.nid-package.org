@@ -41,6 +41,10 @@
    Then the tests, defined in the =testenv-test= target of the repository specific =Makefile=, are run. The skeleton contains some examples for how to run basic tests in NSO. The actual tests need to be adopted to the functionality of the NSO package in question.
 
 ** The test environment - testenv
+   A =testenv= is a standardized test environment that contains recipes for
+   creating and tearing down all the containers, as well as configuration for
+   the test. Every project implementing the NID structure contains at least one
+   =testenv=.
    There are a number of make targets related to the control of =testenv=:
    - =testenv-start=: Start the test environment
      - the standard topology, which consists of a single test NSO instance (of the =testnso= image) is defined in the standard form package skeleton
@@ -74,6 +78,17 @@
      - the runcmd targets can be called to run a command, from an interactive shell like ~make testenv-runcmdJ CMD="show ncs-state version"~
      - it can also be called from other make targets, for example to run commands from tests
        - ~$(MAKE) testenv-runcmdJ CMD="show ncs-state version"~
+
+   The environments are placed in the =testenvs= directory as subdirectories.
+   Typically the default =testenv= is a quick / simple test environment that is
+   fast to start and complete a basic test. If a project contains multiple
+   environments you can choose the =testenv= to start in two ways:
+   1. Set the =TESTENV= environment variable when executing the =testenv= make
+      targets from the project directory, like ~TESTENV=quick make
+      testenv-start~. All =testenv-%= targets are proxied to
+      the currently selected =testenv=.
+   2. Execute the =testenv-%= targets in the =testenv= directory, like ~make -C
+      testenvs/quick testenv-start~
 
    To access NSO via one of its northbound interfaces, like NETCONF or RESTCONF, use the credentials =admin= / =NsoDocker1337=.
 
