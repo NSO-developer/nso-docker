@@ -69,4 +69,4 @@ dev-shell:
 
 # Proxy target for running (legacy) default testenv
 testenv-%:
-	$(MAKE) -C testenvs/$(DEFAULT_TESTENV) $@
+	$(MAKE) -C testenvs/$(DEFAULT_TESTENV) $*
