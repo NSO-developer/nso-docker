@@ -1,0 +1,20 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+  <devices xmlns="http://tail-f.com/ns/ncs">
+    <device>
+      <!--
+          Select the devices from some data structure in the service
+          model. In this skeleton the devices are specified in a leaf-list.
+          Select all devices in that leaf-list:
+      -->
+      <name>{/device}</name>
+      <config>
+        <!--
+            Add device-specific parameters here.
+            In this skeleton the, java code sets a variable DUMMY, use it
+            to set something on the device e.g.:
+            <ip-address-on-device>{$DUMMY}</ip-address-on-device>
+        -->
+      </config>
+    </device>
+  </devices>
+</config-template>

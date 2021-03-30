@@ -1,0 +1,65 @@
+<project name="package" basedir="." default="all">
+  <property environment="env"/>
+  <property name="build.dir" value="build"/>
+  <property name="classes.dir" value="${build.dir}/classes"/>
+  <property name="src.dir" value="src"/>
+  <property name="rsc.dir" value="src/resources"/>
+  <property name="doc.dir" value="${build.dir}/javadoc"/>
+  <property name="ncs.dir" value="${env.NCS_DIR}/java/jar"/>
+  <property name="ncs.topdir" value="${env.NCS_DIR}"/>
+  <property name="sharedjar.dir" value="../../shared-jar"/>
+  <property name="privatejar.dir" value="../../private-jar"/>
+  <property name="package" value="ietfned"/>
+
+  <!-- Retrieving compilation compability parameters from NCS
+       Remove the following row if this is not desired  -->
+  <property file="${env.NCS_DIR}/etc/ncs/java.properties" />
+  <!-- Set defaults if not set, if the above directive is removed
+       or the property file us missing these values will be used -->
+  <property name="ncs_java_source_ver" value="1.6"/>
+  <property name="ncs_java_target_ver" value="1.6"/>
+
+
+  <path id="core-libs">
+    <fileset dir="${ncs.dir}">
+      <include name="*.jar"/>
+    </fileset>
+  </path>
+
+  <target name="all" depends="package" />
+
+  <target name="package" depends="compile">
+    <jar destfile="${sharedjar.dir}/${package}-ns.jar"
+         basedir="${classes.dir}"
+         includes="**/namespaces/*.class"/>
+    <jar destfile="${privatejar.dir}/${package}.jar"
+         basedir="${classes.dir}"
+         excludes="**/namespaces/*.class"
+         includes="**/*.class"/>
+    <jar update="true" destfile="${privatejar.dir}/${package}.jar"
+         basedir="../.."
+         includes="package-meta-data.xml"/>
+  </target>
+
+  <target name="clean">
+    <delete dir="${build.dir}"/>
+    <delete file="${sharedjar.dir}/${package}-ns.jar"/>
+    <delete file="${privatejar.dir}/${package}.jar"/>
+  </target>
+
+  <target name="compile">
+    <mkdir dir="${classes.dir}"/>
+    <javac srcdir="${src.dir}"
+           destdir="${classes.dir}"
+           source="${ncs_java_source_ver}"
+           target="${ncs_java_target_ver}"
+           debug="on"
+           includeantruntime="false"
+           debuglevel="lines,vars,source"  >
+      <compilerarg value="-Xlint:unchecked"/>
+      <compilerarg value="-Xlint:deprecation"/>
+      <classpath refid="core-libs" />
+    </javac>
+  </target>
+</project>
+
