@@ -38,7 +38,7 @@ endif
 export DOCKER_BUILD_CACHE_ARG
 
 
-.PHONY: all build build-all build-file build-version test test-file test-version test-file-multiver test-version-multiver tag-release push-release $(NSO_BUILD) $(NSO_TEST)
+.PHONY: all build build-all build-file test test-file test-file-multiver tag-release push-release $(NSO_BUILD) $(NSO_TEST)
 
 all:
 	@echo "The default make target will build Docker images out of all the NSO"
@@ -50,28 +50,22 @@ all:
 # run like: make NSO_VERSION=5.2.1 build
 # assumes the corresponding NSO install file is located in the directory
 # specified by NSO_INSTALL_FILES_DIR
-# TODO: build-version is deprecated, remove it at some point
-build build-version: export FILE=$(shell realpath -q -e $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin $(NSO_INSTALL_FILES_DIR)/ncs-$(NSO_VERSION).linux.x86_64.installer.bin)
-build build-version:
-	@if [ "$@" = "build-version" ]; then echo "WARNING: the make target 'build-version' is deprecated, please use 'build' instead"; fi
+build: export FILE=$(shell realpath -q -e $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin $(NSO_INSTALL_FILES_DIR)/ncs-$(NSO_VERSION).linux.x86_64.installer.bin)
+build:
 	@if [ -z "$(NSO_VERSION)" ]; then echo "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin"; false; fi
 	$(MAKE) build-file
 
 # test target based on NSO version as input
-# run like: make NSO_VERSION=5.2.1 test-version
+# run like: make NSO_VERSION=5.2.1 test
 # assumes the corresponding NSO install file is located in the directory
 # specified by NSO_INSTALL_FILES_DIR
-# TODO: test-version is deprecated, remove it at some point
-test test-version:
-	@if [ "$@" = "test-version" ]; then echo "WARNING: the make target 'test-version' is deprecated, please use 'test' instead"; fi
+test:
 	@if [ -z "$(NSO_VERSION)" ]; then echo "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to run tests based on $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin"; false; fi
 	$(MAKE) -C test NSO_VERSION=$(NSO_VERSION) DOCKER_TAG=$(DOCKER_TAG) test
 
 # test target based on NSO version as input, just for the multi-version test
-# run like: make OLD_NSO_VERSION=5.2.1 NSO_VERSION=5.3 test-version-multiver
-# TODO: test-version-multiver is deprecated, remove it at some point
-test-multiver test-version-multiver:
-	@if [ "$@" = "test-version-multiver" ]; then echo "WARNING: the make target 'test-version-multiver' is deprecated, please use 'test-multiver' instead"; fi
+# run like: make OLD_NSO_VERSION=5.2.1 NSO_VERSION=5.3 test-multiver
+test-multiver:
 	@if [ -z "$(OLD_NSO_VERSION)" ]; then echo "ERROR: variable OLD_NSO_VERSION must be set, for example to '5.2.1' to run multi-version tests between OLD_NSO_VERSION and NSO_VERSION"; false; fi
 	@if [ -z "$(NSO_VERSION)" ]; then echo "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin"; false; fi
 	$(MAKE) -C test NSO_VERSION=$(NSO_VERSION) DOCKER_TAG=$(DOCKER_TAG) test-multiver
