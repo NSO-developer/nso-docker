@@ -57,15 +57,15 @@ debug-vscode:
 		echo "== Updated .vscode/launch.json for Python remote debugging"; \
 	fi
 
-# build - incrementally recompile and load new packages in running NSO
+# rebuild - incrementally recompile and load new packages in running NSO
 # See the nid/testenv-build script for more details.
-build:
+rebuild:
 	for NSO in $$(docker ps --format '{{.Names}}' --filter label=com.cisco.nso.testenv.name=$(CNT_PREFIX) --filter label=com.cisco.nso.testenv.type=nso); do \
 		echo "-- Rebuilding for NSO: $${NSO}"; \
 		docker run -it --rm -v $(PROJECT_DIR):/src --volumes-from $${NSO} --network=container:$${NSO} -e NSO=$${NSO} -e PACKAGE_RELOAD=$(PACKAGE_RELOAD) -e SKIP_LINT=$(SKIP_LINT) -e PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) /src/nid/testenv-build; \
 	done
 
-# clean-build - clean and rebuild from scratch
+# clean-rebuild - clean and rebuild from scratch
 # We rsync (with --delete) in sources, which effectively is a superset of 'make
 # clean' per package, as this will delete any built packages as well as removing
 # old sources files that no longer exist. It also removes included packages and
@@ -73,7 +73,7 @@ build:
 # the build container image where we previously pulled them in into the
 # /includes directory. We start up the build image and copy the included
 # packages to /var/opt/ncs/packages/ folder.
-clean-build:
+clean-rebuild:
 	for NSO in $$(docker ps --format '{{.Names}}' --filter label=com.cisco.nso.testenv.name=$(CNT_PREFIX) --filter label=com.cisco.nso.testenv.type=nso); do \
 		echo "-- Cleaning NSO: $${NSO}"; \
 		docker run -it --rm -v $(PROJECT_DIR):/src --volumes-from $${NSO} $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -lc 'rsync -aEim --delete /src/packages/. /src/test-packages/. /var/opt/ncs/packages/ >/dev/null'; \

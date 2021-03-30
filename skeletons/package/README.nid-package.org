@@ -60,11 +60,11 @@
      - it is possible to start up more containers, like netsims or virtual routers, which should be achieved by adding them to the =start= target
        - ensure that you have ~$(DOCKER_ARGS)~ in the argument list to =docker=
          - it starts the container in the correct Docker network and sets the correct label, which is a prerequisite for the =stop= target to work
-   - =build=: recompile packages and run ~request packages reload~ in all NSO containers
+   - =rebuild=: recompile packages and run ~request packages reload~ in all NSO containers
      - only packages in =packages/= will be rebuilt
      - included packages that are specified through manifests in the =includes/= directory, are not rebuilt
        - as they might not ship with their source code, it might not even be possible
-   - =clean-build=: for the running NSO container, clean out and rebuild all packages in =packages/= and =test-packages/= from scratch
+   - =clean-rebuild=: for the running NSO container, clean out and rebuild all packages in =packages/= and =test-packages/= from scratch
    - =stop=: Stop the test environment
      - it removes all containers labeled with ~$(CNT_PREFIX)~
        - make sure any extra containers you start have this label by adding ~$(DOCKER_ARGS)~ to the argument list
