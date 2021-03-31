@@ -103,6 +103,7 @@ props/ietf-ned:
 	mkdir -p props
 	$(DEVRUN) 'cd /src/props && ncs-make-package --netconf-ned ietf-yang-models ietf-ned && chown -R 1000:1000 . && xmlstarlet edit --inplace -N x=http://tail-f.com/ns/ncs-packages --update "/x:ncs-package/x:ncs-min-version" --value 4.7 ietf-ned/src/package-meta-data.xml.in'
 	sed -i -e '/^\s\+--fail-on-warnings/d' -e 's/ --fail-on-warnings//' $@/src/Makefile
+	sed -i -e '/<AES256CFB128>/,+2d' $@/netsim/confd.conf.netsim
 
 
 %-build-test-ietf-ned:
