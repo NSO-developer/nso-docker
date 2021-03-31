@@ -43,8 +43,7 @@ DOCKER_BASE_IMAGE=$(NSO_IMAGE_PATH)cisco-nso-base:$(DOCKER_TAG)
 DOCKER_DEV_IMAGE=$(NSO_IMAGE_PATH)cisco-nso-dev:$(DOCKER_TAG)
 
 # run all tests
-# TODO: add test-ned, currently disabled due to some problem
-all: test-package test-system
+all: test-ned test-package test-system
 
 # same as above but run in parallel
 test-parallel:
