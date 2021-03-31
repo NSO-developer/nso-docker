@@ -78,6 +78,13 @@ if [[ ! -e /netsim/dev/dev ]]; then
     mv /netsim/$(hostname)/$(hostname) /netsim/dev/dev
     rmdir /netsim/$(hostname)
     sed -i "s/$(hostname)\/$(hostname)/dev\/dev/" /netsim/.netsiminfo
+
+    # workaround for NSO 5.1.1 not being able to read newer PKCS key files, so we
+    # generate a new one in the older PEM format, which is supported
+    if [[ "$(ncs --version)" = "5.1.1" ]]; then
+        rm -f /netsim/dev/dev/ssh/*
+        ssh-keygen -t rsa -b 4096 -m PEM -f /netsim/dev/dev/ssh/ssh_host_rsa_key -N ''
+    fi
 fi
 
 # start confd in the background
