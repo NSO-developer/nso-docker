@@ -2,7 +2,7 @@ include ../testenv-common.mk
 
 # Enable IPv6 per default, set to false to disable (in Makefile, not here)
 IPV6?=true
-# testenv-start: start the test environment in a configuration that allows
+# start: start the test environment in a configuration that allows
 # Python Remote Debugging. Exposes port 5678 on a random port on localhost.
 # Per default, the IPv6 prefix is a randomly generated IPv6 network prefix in
 # the ULA address space. Override by setting IPV6_NET variable to e.g.:
@@ -12,13 +12,13 @@ IPV6?=true
 # connectivity within the network, yet not slow down attempts to reach Internet
 # resources (where IPv6 would normally be tried first, and fail due to
 # non-public addresses).
-testenv-start:
+start:
 	docker network inspect $(CNT_PREFIX) >/dev/null 2>&1 || docker network create $(CNT_PREFIX) $(shell [ "$(IPV6)" = "true" ] && LC_ALL=C && echo --ipv6 --subnet $${IPV6_NET:-fd00:$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):}:/64)
 	docker run -td --name $(CNT_PREFIX)-nso --network-alias nso $(DOCKER_NSO_ARGS) $(IMAGE_PATH)$(PROJECT_NAME)/testnso:$(DOCKER_TAG)
 	docker run -td --name $(CNT_PREFIX)-netsim --network-alias dev1 --hostname dev1 $(DOCKER_ARGS) $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(DOCKER_TAG)
 	-[ "$(IPV6)" = "true" ] && echo $$(docker network inspect --format '{{range .IPAM.Config}}{{- if (gt (split .Subnet ":"|len) 1) -}}{{.Subnet}}{{- end}}{{end}}' $(CNT_PREFIX)) | egrep "^[23]...:" || (echo "Removing IPv6 default route" && docker ps -aq --filter label=com.cisco.nso.testenv.name=$(CNT_PREFIX) | $(XARGS) -I CNT -n1 docker run --rm --net=container:CNT --cap-add=NET_ADMIN $(NSO_IMAGE_PATH)cisco-nso-base:$(NSO_VERSION) ip -6 route del default >/dev/null 2>&1 || true)
 
-	$(MAKE) testenv-wait-started-nso
+	$(MAKE) wait-started-nso
 # The following is an example (but a working example) of how to add the netsim
 # device started per default in the NED skeleton to NSO. Feel free to use it,
 # remove or modify as you see fit for your environment.
@@ -37,32 +37,32 @@ add-device:
 	@echo "   Fill in the device-type in add-device.xml by extracting the relevant part from the package-meta-data of the NED"
 	xmlstarlet sel -t -c "//*[_:ned-id] | //_:ned/_:netconf | //_:ned/_:cli | //_:ned/_:snmp | //_:ned/_:generic" tmp/package-meta-data.xml | xmlstarlet edit --subnode '_:*[not(_:ned-id)]' --type elem -n ned-id -v dummy | xmlstarlet sel -R -t -c '/' -c "document('test/add-device.xml')" | xmlstarlet edit -O -N x=http://tail-f.com/ns/ncs-packages -N y=http://tail-f.com/ns/ncs -d "/x:xsl-select/*[x:ned-id]/*[not(self::x:ned-id)]" -m "/x:xsl-select/*[x:ned-id]" "/x:xsl-select/y:devices/y:device/y:device-type" $(STRIP_NED) | tail -n +2 | sed '$$d' | cut -c 3- > tmp/add-device.xml
 	docker cp tmp/add-device.xml $(CNT_PREFIX)-nso:/add-device.xml
-	$(MAKE) testenv-runcmdJ CMD="configure\nload merge /add-device.xml\ncommit\nexit"
-	$(MAKE) testenv-runcmdJ CMD="show devices brief"
-	$(MAKE) testenv-runcmdJ CMD="request devices device dev1 ssh fetch-host-keys"
+	$(MAKE) runcmdJ CMD="configure\nload merge /add-device.xml\ncommit\nexit"
+	$(MAKE) runcmdJ CMD="show devices brief"
+	$(MAKE) runcmdJ CMD="request devices device dev1 ssh fetch-host-keys"
 
-# Place your tests in testenv-test. Feel free to define a target per test case
-# and call them from testenv-test in case you have more than a handful of cases.
+# Place your tests in test. Feel free to define a target per test case
+# and call them from test in case you have more than a handful of cases.
 # Sometimes when there is a "setup" or "preparation" part of a test, it can be
 # useful to separate into its own target as to make it possible to run that
 # prepare phase and then manually inspect the state of the system. You can
 # achieve this by further refining the make targets you have.
-testenv-test:
+test:
 	@echo "\n== Running tests"
 	@echo "-- Verify packages are operationally up"
-	$(MAKE) testenv-runcmdJ CMD="show packages" | docker run -i --rm $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -c '! grep -P "oper-status (?!up)" >/dev/null' || (echo "ERROR: packages not operationally up:" && $(MAKE) testenv-runcmdJ CMD="show packages" && false)
+	$(MAKE) runcmdJ CMD="show packages" | docker run -i --rm $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) bash -c '! grep -P "oper-status (?!up)" >/dev/null' || (echo "ERROR: packages not operationally up:" && $(MAKE) runcmdJ CMD="show packages" && false)
 	@echo "TODO: Fill in your tests here"
 # Some examples for how to run commands in the ncs_cli:
-#	$(MAKE) testenv-runcmdJ CMD="show packages"
-#	$(MAKE) testenv-runcmdJ CMD="request packages reload"
+#	$(MAKE) runcmdJ CMD="show packages"
+#	$(MAKE) runcmdJ CMD="request packages reload"
 # Multiple commands in a single session also works - great for configuring stuff:
-#	$(MAKE) testenv-runcmdJ CMD="configure\n set foo bar\n commit"
+#	$(MAKE) runcmdJ CMD="configure\n set foo bar\n commit"
 # We can test for certain output by combining show commands in the CLI with for
 # example grep:
-#	$(MAKE) testenv-runcmdJ CMD="show configuration foo" | grep bar
+#	$(MAKE) runcmdJ CMD="show configuration foo" | grep bar
 
 # Included below is an example test that covers the basics for a working NED and
-# netsim. The standard testenv-start target, defined in nidned.mk, will set up
+# netsim. The standard start target, defined in nidned.mk, will set up
 # the test environment by starting:
 # - a netsim container based on the NED YANG models
 # - an NSO container with the NED loaded
@@ -72,7 +72,7 @@ testenv-test:
 # constraints in the YANG model that require certain data to be present (and
 # it's not when we start up as CDB is empty).
 #
-# As part of the testenv startup, in testenv-start-extra, we:
+# As part of the testenv startup, in start-extra, we:
 # - add the netsim container as a device to the test NSO
 # - fetch SSH host-keys
 # - run sync-from
@@ -89,11 +89,11 @@ testenv-test:
 # test/device-config-hostname.xml
 #
 
-	$(MAKE) testenv-runcmdJ CMD="request devices device dev1 sync-from"
+	$(MAKE) runcmdJ CMD="request devices device dev1 sync-from"
 
 	@echo "Configure hostname on device through NSO"
 	docker cp test/device-config-hostname.xml $(CNT_PREFIX)-nso:/device-config-hostname.xml
-	$(MAKE) testenv-runcmdJ CMD="configure\nload merge /device-config-hostname.xml\ncommit\nexit"
-	$(MAKE) testenv-runcmdJ CMD="show configuration devices device dev1 config" | grep foobarhostname
-	$(MAKE) testenv-runcmdJ CMD="request devices device dev1 sync-from"
-	$(MAKE) testenv-runcmdJ CMD="show configuration devices device dev1 config" | grep foobarhostname
+	$(MAKE) runcmdJ CMD="configure\nload merge /device-config-hostname.xml\ncommit\nexit"
+	$(MAKE) runcmdJ CMD="show configuration devices device dev1 config" | grep foobarhostname
+	$(MAKE) runcmdJ CMD="request devices device dev1 sync-from"
+	$(MAKE) runcmdJ CMD="show configuration devices device dev1 config" | grep foobarhostname
