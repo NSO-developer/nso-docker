@@ -259,6 +259,7 @@ The ncs.conf configuration file for NSO is written at run time of the container.
 | `HTTP_ENABLE`        | boolean | false   | Enable HTTP web UI                            |
 | `HTTPS_ENABLE`       | boolean | false   | Enable HTTPS (TLS) web UI                     |
 | `SSH_PORT`           | uint16  | 22      | Set port for SSH to listen on                 |
+| `AUTO_WIZARD`        | boolean | true    | Disable CLI auto-wizard by setting to 'false' |
 
 # Docker image tags
 

@@ -142,6 +142,19 @@ xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
            -s '/x:ncs-config/x:webui/x:transport/x:ssl/extra-listen[not(x:port)]' -t elem -n port -v '443' \
            $CONF_FILE
 
+# conditionally disable autowizard if environment variable provided 
+if [ "$AUTO_WIZARD" == "false" ]; then 
+    echo "SETTING WIZARD FALSE"
+    xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
+                --subnode '/x:ncs-config/x:cli[not(/x:ncs-config/x:cli/x:auto-wizard)]' --type elem -n 'auto-wizard' \
+                $CONF_FILE
+    xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
+                --update '/x:ncs-config/x:cli/x:auto-wizard/x:enabled' --value "false" \
+                --subnode '/x:ncs-config/x:cli/x:auto-wizard[not(/x:ncs-config/x:cli/x:auto-wizard/x:enabled)]' --type elem -n 'enabled' --value "false" \
+                $CONF_FILE
+
+fi
+
 # enable unhiding the two common groups 'debug' and 'full'
 # This might be a little trickier to understand - we first add two new subnodes
 # (-s option) under /ncs-config. They will just be placed at the end, then we
