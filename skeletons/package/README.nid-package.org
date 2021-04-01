@@ -172,7 +172,7 @@
   - =nidcommon.mk=: Makefile with definitions common across the NID skeletons
   - =nidpackage.mk=: Makefile with common targets for the NID package skeleton
   - =Makefile=: repository specific Makefile, while it comes with the skeleton, this is meant to be customized for each project
-  - =test/=: Directory containing test related files
+  - =testenvs/=: Directory containing the testenvs, with subdirectories for each testenv. While a "quick" testenv comes with the skeleton, this is meant to be customized for each project
   - =packages/=: Standard location for placing the NSO package itself
   - =test-packages/=: Standard location for placing NSO packages for testing. These are included in the =testnso= container that can be used to test the package but aren't included in the final output.
   - =includes/=: Standard location for placing manifests for including externally built packages
