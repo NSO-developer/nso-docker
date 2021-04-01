@@ -56,13 +56,21 @@ testenv-start-extra:
 # The following is an example (but a working example) of how to add the netsim
 # device started per default in the NED skeleton to NSO. Feel free to use it,
 # remove or modify as you see fit for your environment.
+	$(MAKE) add-device
+
+
+
+ifeq ($(NSO_VERSION_MAJOR),4)
+STRIP_NED:=--delete "//x:ned-id"
+endif
+
+add-device:
 	@echo "-- Add device to NSO"
 	@echo "   Get the package-meta-data.xml file from the compiled NED (we grab it from the netsim build)"
 	mkdir -p tmp
 	docker cp $(CNT_PREFIX)-netsim:/var/opt/ncs/packages/$(NED_NAME)/package-meta-data.xml tmp/package-meta-data.xml
 	@echo "   Fill in the device-type in add-device.xml by extracting the relevant part from the package-meta-data of the NED"
-	echo $(NSO_VERSION) | grep "^4" && xmlstarlet sel -N x=http://tail-f.com/ns/ncs-packages -t -c "//x:ned-id" tmp/package-meta-data.xml | grep cli && STRIP_NED=' -d "//x:ned-id" '; \
-		xmlstarlet sel -R -N x=http://tail-f.com/ns/ncs-packages -t -c "//*[x:ned-id]" -c "document('test/add-device.xml')" tmp/package-meta-data.xml | xmlstarlet edit -O -N x=http://tail-f.com/ns/ncs-packages -N y=http://tail-f.com/ns/ncs -d "/x:xsl-select/*[x:ned-id]/*[not(self::x:ned-id)]" -m "/x:xsl-select/*[x:ned-id]" "/x:xsl-select/y:devices/y:device/y:device-type" $${STRIP_NED} | tail -n +2 | sed '$$d' | cut -c 3- > tmp/add-device.xml
+	xmlstarlet sel -t -c "//*[_:ned-id] | //_:ned/_:netconf | //_:ned/_:cli | //_:ned/_:snmp | //_:ned/_:generic" tmp/package-meta-data.xml | xmlstarlet edit --subnode '_:*[not(_:ned-id)]' --type elem -n ned-id -v dummy | xmlstarlet sel -R -t -c '/' -c "document('test/add-device.xml')" | xmlstarlet edit -O -N x=http://tail-f.com/ns/ncs-packages -N y=http://tail-f.com/ns/ncs -d "/x:xsl-select/*[x:ned-id]/*[not(self::x:ned-id)]" -m "/x:xsl-select/*[x:ned-id]" "/x:xsl-select/y:devices/y:device/y:device-type" $(STRIP_NED) | tail -n +2 | sed '$$d' | cut -c 3- > tmp/add-device.xml
 	docker cp tmp/add-device.xml $(CNT_PREFIX)-nso:/add-device.xml
 	$(MAKE) testenv-runcmdJ CMD="configure\nload merge /add-device.xml\ncommit\nexit"
 	$(MAKE) testenv-runcmdJ CMD="show devices brief"
