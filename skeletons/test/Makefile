@@ -43,8 +43,7 @@ DOCKER_BASE_IMAGE=$(NSO_IMAGE_PATH)cisco-nso-base:$(DOCKER_TAG)
 DOCKER_DEV_IMAGE=$(NSO_IMAGE_PATH)cisco-nso-dev:$(DOCKER_TAG)
 
 # run all tests
-# TODO: add test-ned, currently disabled due to some problem
-all: test-package test-system
+all: test-ned test-package test-system
 
 # same as above but run in parallel
 test-parallel:
@@ -103,6 +102,7 @@ props/ietf-ned:
 	mkdir -p props
 	$(DEVRUN) 'cd /src/props && ncs-make-package --netconf-ned ietf-yang-models ietf-ned && chown -R 1000:1000 . && xmlstarlet edit --inplace -N x=http://tail-f.com/ns/ncs-packages --update "/x:ncs-package/x:ncs-min-version" --value 4.7 ietf-ned/src/package-meta-data.xml.in'
 	sed -i -e '/^\s\+--fail-on-warnings/d' -e 's/ --fail-on-warnings//' $@/src/Makefile
+	sed -i -e '/<AES256CFB128>/,+2d' $@/netsim/confd.conf.netsim
 
 
 %-build-test-ietf-ned:

@@ -30,9 +30,6 @@
       <key>0123456789abcdef0123456789abcdef</key>
       <initVector>0123456789abcdef0123456789abcdef</initVector>
     </AESCFB128>
-    <AES256CFB128>
-      <key>0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef</key>
-    </AES256CFB128>
   </encryptedStrings>
   <logs>
     <syslogConfig>
