@@ -29,6 +29,20 @@ ifeq ($(NSO_VERSION_MAJOR),4)
 STRIP_NED:=--delete "//x:ned-id"
 endif
 
+# determine the package name of the NED, which is assumed to be a sub-directory
+# of the packages directory. We look for packages/*/src/package-meta-data.xml*
+# which is then assumed to be the NED package we are looking for
+ifeq ($(NED_NAME),)
+ifeq ($(shell ls $(PROJECT_DIR)/packages/*/src/package-meta-data.xml* | wc -l | tr -d ' '),0)
+$(warning Could not determine NED package name automatically. No directory found based on glob packages/*/src/package-meta-data.xml*)
+else ifeq ($(shell ls $(PROJECT_DIR)/packages/*/src/package-meta-data.xml* | wc -l | tr -d ' '),1)
+NED_NAME=$(shell basename $(shell dirname $(shell dirname $(shell ls $(PROJECT_DIR)/packages/*/src/package-meta-data.xml*))))
+else
+$(warning Could not determine NED package name automatically. Multiple directories found based on glob packages/*/src/package-meta-data.xml*)
+endif
+endif
+
+
 add-device:
 	@echo "-- Add device to NSO"
 	@echo "   Get the package-meta-data.xml file from the compiled NED (we grab it from the netsim build)"

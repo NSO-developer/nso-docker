@@ -20,19 +20,6 @@
 # This drastically reduces the length of the REPL loop and thus improves the
 # environment for the developer.
 
-# determine the package name of the NED, which is assumed to be a sub-directory
-# of the packages directory. We look for packages/*/src/package-meta-data.xml*
-# which is then assumed to be the NED package we are looking for
-ifeq ($(NED_NAME),)
-ifeq ($(shell ls packages/*/src/package-meta-data.xml* | wc -l | tr -d ' '),0)
-$(warning Could not determine NED package name automatically. No directory found based on glob packages/*/src/package-meta-data.xml*)
-else ifeq ($(shell ls packages/*/src/package-meta-data.xml* | wc -l | tr -d ' '),1)
-NED_NAME=$(shell basename $(shell dirname $(shell dirname $(shell ls packages/*/src/package-meta-data.xml*))))
-else
-$(warning Could not determine NED package name automatically. Multiple directories found based on glob packages/*/src/package-meta-data.xml*)
-endif
-endif
-
 include nidcommon.mk
 
 all:
