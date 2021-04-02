@@ -67,6 +67,8 @@ dev-shell:
 
 .PHONY: all build push push-release tag-release dev-shell test
 
-# Proxy target for running (legacy) default testenv
+# Proxy target for running (legacy) default testenv. We explicitly list the
+# "common" targets here to enable tab autocompletion.
+testenv-start testenv-test testenv-test testenv-rebuild:
 testenv-%:
-	$(MAKE) -C testenvs/$(DEFAULT_TESTENV) $*
+	$(MAKE) -C testenvs/$(DEFAULT_TESTENV) $(subst testenv-,,$@)
