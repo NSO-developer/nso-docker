@@ -149,7 +149,7 @@ fi
 # pre-start scripts
 for FILE in $(ls /etc/ncs/pre-ncs-start.d/*.sh 2>/dev/null); do
     echo "run-nso.sh: running pre start script ${FILE}"
-    . ${FILE}
+    ${FILE}
 done
 
 # -- start NSO in the background
@@ -177,7 +177,7 @@ ncs --wait-started 600
 # post-start scripts
 for FILE in $(ls /etc/ncs/post-ncs-start.d/*.sh 2>/dev/null); do
     echo "run-nso.sh: running post start script ${FILE}"
-    . ${FILE}
+    ${FILE}
 done
 
 # wait forever on the ncs process, we run ncs in background and wait on it like
