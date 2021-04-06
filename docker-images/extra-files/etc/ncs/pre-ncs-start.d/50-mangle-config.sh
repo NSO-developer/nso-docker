@@ -62,11 +62,12 @@ xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
            --update '/x:ncs-config/x:netconf-north-bound/x:transport/x:ssh/x:port' --value '830' \
            $CONF_FILE
 
-# enable SSH CLI, NETCONF over SSH northbound and NETCONF call-home
+# enable SSH CLI, NETCONF over SSH northbound, NETCONF call-home and RESTCONF
 xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
            --update '/x:ncs-config/x:cli/x:ssh/x:enabled' --value 'true' \
            --update '/x:ncs-config/x:netconf-north-bound/x:transport/x:ssh/x:enabled' --value 'true' \
            --update '/x:ncs-config/x:netconf-call-home/x:enabled' --value 'true' \
+           --update '/x:ncs-config/x:restconf/x:enabled' --value 'true' \
            $CONF_FILE
 
 # conditionally enable webUI with no TLS on port 80
@@ -84,6 +85,41 @@ if [ "$HTTPS_ENABLE" == "true" ]; then
                --update '/x:ncs-config/x:webui/x:transport/x:ssl/x:cert-file' --value '/nso/ssl/cert/host.cert' \
                $CONF_FILE
 fi
+
+# enable IPv6 for NETCONF northbound
+xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
+           -s '/x:ncs-config/x:netconf-north-bound/x:transport/x:ssh' -t elem -n extra-listen \
+           -s '/x:ncs-config/x:netconf-north-bound/x:transport/x:ssh/extra-listen' -t elem -n ip -v '::' \
+           -s '/x:ncs-config/x:netconf-north-bound/x:transport/x:ssh/extra-listen' -t elem -n port -v '830' \
+           $CONF_FILE
+
+# enable IPv6 for NETCONF Call Home northbound
+xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
+           -s '/x:ncs-config/x:netconf-call-home/x:transport/x:tcp' -t elem -n extra-listen \
+           -s '/x:ncs-config/x:netconf-call-home/x:transport/x:tcp/extra-listen' -t elem -n ip -v '::' \
+           -s '/x:ncs-config/x:netconf-call-home/x:transport/x:tcp/extra-listen' -t elem -n port -v '4334' \
+           $CONF_FILE
+
+# enable IPv6 for SSH northbound
+xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
+           -s '/x:ncs-config/x:cli/x:ssh' -t elem -n extra-listen \
+           -s '/x:ncs-config/x:cli/x:ssh/extra-listen' -t elem -n ip -v '::' \
+           -s '/x:ncs-config/x:cli/x:ssh/extra-listen' -t elem -n port -v "${SSH_PORT}" \
+           $CONF_FILE
+
+# enable IPv6 for webUI (no TLS) northbound
+xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
+           -s '/x:ncs-config/x:webui/x:transport/x:tcp' -t elem -n extra-listen \
+           -s '/x:ncs-config/x:webui/x:transport/x:tcp/extra-listen' -t elem -n ip -v '::' \
+           -s '/x:ncs-config/x:webui/x:transport/x:tcp/extra-listen' -t elem -n port -v '80' \
+           $CONF_FILE
+
+# enable IPv6 for webUI (with TLS) northbound
+xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
+           -s '/x:ncs-config/x:webui/x:transport/x:ssl' -t elem -n extra-listen \
+           -s '/x:ncs-config/x:webui/x:transport/x:ssl/extra-listen' -t elem -n ip -v '::' \
+           -s '/x:ncs-config/x:webui/x:transport/x:ssl/extra-listen' -t elem -n port -v '443' \
+           $CONF_FILE
 
 # enable unhiding the two common groups 'debug' and 'full'
 # This might be a little trickier to understand - we first add two new subnodes
@@ -105,3 +141,15 @@ xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
            -s '/x:ncs-config/hide-group[1]' -t elem -n name -v debug \
            -s '/x:ncs-config/hide-group[2]' -t elem -n name -v full \
            $CONF_FILE
+
+# Use the Python VM startup script shipped with NSO in Docker
+xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
+           --update '/x:ncs-config/x:python-vm/x:start-command' --value '/opt/ncs/nid/ncs-start-python-vm' \
+           $CONF_FILE
+
+# enable XPath trace log
+if [ "$XPATH_TRACE" = "true" ]; then
+    xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
+               --update '/x:ncs-config/x:logs/x:xpath-trace-log/x:enabled' --value 'true' \
+               $CONF_FILE
+fi
