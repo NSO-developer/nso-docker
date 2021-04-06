@@ -81,8 +81,12 @@ NSO_VERSION_MINOR=$(word 2,$(subst ., ,$(NSO_VERSION)))
 ifneq ($(CI_PROJECT_NAME),)
 PROJECT_NAME=$(CI_PROJECT_NAME)
 else
-PROJECT_NAME:=$(shell basename $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST)))))
+PROJECT_NAME:=$(shell basename $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST)))))
 endif
+
+# Determine our project directory by taking the absolute path of the last
+# makefile in $(MAKEFILE_LIST) - this makefile ("nidcommon.mk").
+PROJECT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 # Set PNS - our pseudo-namespace or pipeline namespace. All containers running
 # within a CI pipeline will have the same namespace, which isn't a namespace
@@ -98,7 +102,7 @@ endif
 
 # set the docker tag to use, if not already set
 DOCKER_TAG?=$(NSO_VERSION)-$(PNS)
-CNT_PREFIX?=testenv-$(PROJECT_NAME)-$(NSO_VERSION)-$(PNS)
+CNT_PREFIX?=testenv-$(PROJECT_NAME)-$(TESTENV)-$(NSO_VERSION)-$(PNS)
 
 # There are three important paths that we provide:
 # - NSO_IMAGE_PATH is the path to where we can find the standard nso-docker images
