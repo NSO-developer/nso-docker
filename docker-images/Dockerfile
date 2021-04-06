@@ -16,8 +16,11 @@ RUN sh /tmp/nso --system-install --non-interactive --run-dir /nso/run --log-dir 
 
 FROM nso_install AS nso_stripped
 
+RUN \
+  # wipe crypto_keys
+  rm -f /etc/ncs/ncs.crypto_keys \
   # wipe SSH keys
-RUN rm -f /etc/ncs/ssh/* \
+  rm -f /etc/ncs/ssh/* \
   # save the default aaa_init for later
   && mkdir -p /nid/cdb-default \
   && mv /nso/run/cdb/aaa_init.xml /nid/cdb-default/ \
