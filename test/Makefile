@@ -71,6 +71,7 @@ test:
 	$(MAKE) test-docker-healthcheck
 	$(MAKE) test-cdb-default
 	$(MAKE) test-config-on-volume
+	$(MAKE) test-mounted-config
 
 	$(MAKE) test-multiver
 
@@ -470,6 +471,42 @@ test-config-on-volume:
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	-docker network rm $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	-docker volume rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
+test-mounted-config:
+	@echo "\n== Verify mounted configuration is used"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker network rm $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Create network"
+	docker network inspect $(CNT_PREFIX)-$@ >/dev/null 2>&1 || docker network create $(CNT_PREFIX)-$@ $(shell [ "$(IPV6)" = "true" ] && LC_ALL=C && echo --ipv6 --subnet $${IPV6_NET:-fd00:$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):}:/64)
+	@echo "-- Start NSO to let it generate an ncs.conf with HTTP enabled"
+	docker run -td --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env HTTP_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	@echo "-- Wait for NSO in container to start"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Verify HTTP is enabled"
+	docker run --rm --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) >/dev/null
+	@echo "-- Copy the config file to our temp dir"
+	mkdir -p tmp-$@
+	docker cp $(CNT_PREFIX)-$@:/etc/ncs/ncs.conf tmp-$@/ncs.conf
+	@echo "-- Stopping cisco-nso test container -------------------------------------------"
+	-docker rm -f $(CNT_PREFIX)-$@
+	@echo "-- Start NSO, without enabling HTTP (but it should be enabled since we now use a mounted config)"
+	docker run -td --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ -v $$(pwd)/tmp-$@/ncs.conf:/etc/ncs/ncs.conf $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	@echo "-- Wait for NSO in container to start"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Verify HTTP is enabled"
+	docker run --rm --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) >/dev/null
+	@echo "-- Stopping cisco-nso test container -------------------------------------------"
+	-docker rm -f $(CNT_PREFIX)-$@
+	@echo "-- Start NSO, forcing config mangling and explicitly disable HTTP"
+	docker run -td --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ -v $$(pwd)/tmp-$@/ncs.conf:/etc/ncs/ncs.conf --env MANGLE_CONFIG=true --env HTTP_ENABLE=false $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	@echo "-- Wait for NSO in container to start"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Verify HTTP is disabled"
+	docker run --rm --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	-docker network rm $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	rm -rf tmp-$@
 
 
 #######################
