@@ -1,4 +1,13 @@
 #!/bin/sh
+# NSO in Docker takes a container centric approach to dealing with ncs.conf.
+# Instead of manually editing ncs.conf and persisting it over time, we generate
+# a new one on every startup. We base it on the ncs.conf that is shipped in the
+# base image and apply a number of "patches", essentially by running xmlstarlet
+# on it (although other tools could be used of course). Configurable things can
+# be exposed via environment variables.
+
+# These patches are not idempotent and do not need to be idempotent as we always
+# start over with the default ncs.conf on every startup.
 
 SSH_PORT=${SSH_PORT:-22}
 CONF_FILE=/etc/ncs/ncs.conf
