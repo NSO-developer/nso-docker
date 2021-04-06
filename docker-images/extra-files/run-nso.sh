@@ -56,7 +56,15 @@ mkdir -p /nso/etc /nso/run/cdb /nso/run/rollbacks /nso/run/scripts /nso/run/stre
 # persisted. Similarly, it is possible to completely disable configuration
 # mangling by explicitly setting MANGLE_CONFIG=false, although that is likely
 # not very useful.
-if [ -f /nso/etc/ncs.conf ]; then
+if [ -f /etc/ncs/ncs.conf ]; then
+    export MANGLE_CONFIG=${MANGLE_CONFIG:-false}
+    if [ "${MANGLE_CONFIG}" = "false" ]; then
+        echo "NSO configuration found mounted at /etc/ncs/ncs.conf, using it verbatim"
+    else
+        echo "NSO configuration found mounted at /etc/ncs/ncs.conf, using it and will mangle it"
+    fi
+    cp /etc/ncs/ncs.conf /etc/ncs/ncs.conf
+elif [ -f /nso/etc/ncs.conf ]; then
     export MANGLE_CONFIG=${MANGLE_CONFIG:-false}
     if [ "${MANGLE_CONFIG}" = "false" ]; then
         echo "NSO configuration found in volume at /nso/etc/ncs.conf, using it verbatim"
@@ -66,10 +74,11 @@ if [ -f /nso/etc/ncs.conf ]; then
     cp /nso/etc/ncs.conf /etc/ncs/ncs.conf
 else
     export MANGLE_CONFIG=${MANGLE_CONFIG:-true}
+    cp /etc/ncs/ncs.conf.in /etc/ncs/ncs.conf
     if [ "${MANGLE_CONFIG}" = "false" ]; then
-        echo "No NSO configuration found in volume, using /etc/ncs/ncs.conf verbatim"
+        echo "No NSO configuration found in volume, using /etc/ncs/ncs.conf.in verbatim"
     else
-        echo "No NSO configuration found in volume, using /etc/ncs/ncs.conf and will mangle it"
+        echo "No NSO configuration found in volume, using /etc/ncs/ncs.conf.in and will mangle it"
     fi
 fi
 
