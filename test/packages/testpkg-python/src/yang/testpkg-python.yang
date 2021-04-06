@@ -25,6 +25,25 @@ module testpkg-python {
   container testpkg-python {
     description "Python test package";
 
+    leaf a-value {
+      type string;
+    }
+
+    leaf encrypted-value {
+      type tailf:aes-cfb-128-encrypted-string;
+    }
+
+    // replace with your own stuff here
+    action decrypt {
+      tailf:actionpoint "python-decrypt-actionpoint";
+      description "Decrypted the encrypted-value leaf";
+      output {
+        leaf message {
+          type string;
+        }
+      }
+    }
+
     // replace with your own stuff here
     action python-test {
       tailf:actionpoint "test-python-actionpoint";

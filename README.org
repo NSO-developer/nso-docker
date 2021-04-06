@@ -231,7 +231,7 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
     #+END_SRC
 
 ** Configuration options
-   The ncs.conf configuration file for NSO is written at run time of the container. It is generated (modified to be precise) at startup of the container. It is possible to influence the configuration through a number of variables. These can be fed into the container through environment variables.
+   The ~ncs.conf~ configuration file for NSO is written at run time of the container. It is generated at startup of the container by taking the ~ncs.conf~ that is shipped with current NSO version and modifying it. It is possible to influence the configuration through a number of variables. These can be fed into the container through environment variables.
 
    | Environment variable | Type    | Default | Description                                   |
    |----------------------+---------+---------+-----------------------------------------------|
