@@ -450,7 +450,7 @@ test-config-on-volume:
 	@echo "-- Verify HTTP is enabled"
 	docker run --rm --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) >/dev/null
 	@echo "-- Copy the config file to the persistent volume"
-	docker exec -it $(CNT_PREFIX)-$@ bash -lc 'cp /etc/ncs/ncs.conf /nso/etc/ncs.conf'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'cp /etc/ncs/ncs.conf /nso/etc/ncs.conf'
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@
 	@echo "-- Start NSO, without enabling HTTP (but it should be enabled since we now use config from volume)"
