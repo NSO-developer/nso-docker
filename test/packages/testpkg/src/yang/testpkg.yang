@@ -3,6 +3,10 @@ module testpkg {
   namespace "http://example.com/testpkg";
   prefix testpkg;
 
+  import tailf-common {
+    prefix tailf;
+  }
+
   import tailf-ncs {
     prefix ncs;
   }

@@ -447,14 +447,25 @@ test-cdb-persistence:
 	docker run -td --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(OLD_DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin'
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg a-value 1337\ncommit\nexit" | ncs_cli -u admin'
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin'
+	@echo "-- Store a value ---------------------------------------------------------------"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg-python a-value 1337\ncommit\nexit" | ncs_cli -u admin'
+	@echo "-- Store an encrypted value ---------------------------------------------------------------"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg-python encrypted-value 1338\ncommit\nexit" | ncs_cli -u admin'
+	@echo "-- Ensure we can decrypt encrypted value --------------------------------------------------"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-python decrypt" | ncs_cli -u admin'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-python decrypt" | ncs_cli -u admin' | grep "cleartext: 1338"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg-python" | ncs_cli -u admin'
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container (second time) -----------------------------"
 	docker run -td --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin' | grep "a-value 1337;"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg-python" | ncs_cli -u admin'
+	@echo "-- Validate stored value -------------------------------------------------------"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg-python a-value" | ncs_cli -u admin' | grep "a-value 1337;"
+	@echo "-- Validate encrypted value ----------------------------------------------------"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-python decrypt" | ncs_cli -u admin'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-python decrypt" | ncs_cli -u admin' | grep "cleartext: 1338"
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@
 	@echo "-- Removing volume for cisco-nso test container --------------------------------"
