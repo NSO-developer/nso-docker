@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # NSO in Docker takes a container centric approach to dealing with ncs.conf.
 # Instead of manually editing ncs.conf and persisting it over time, we generate
 # a new one on every startup. We base it on the ncs.conf that is shipped in the
