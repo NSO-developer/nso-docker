@@ -491,7 +491,10 @@ test-mounted-config:
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@
 	@echo "-- Start NSO, without enabling HTTP (but it should be enabled since we now use a mounted config)"
-	docker run -td --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ -v $$(pwd)/tmp-$@/ncs.conf:/etc/ncs/ncs.conf $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	@echo "Fakes using a volume like -v tmp-$@/ncs.conf:/etc/ncs/ncs.conf by running create & start "
+	docker create -t --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker cp tmp-$@/ncs.conf $(CNT_PREFIX)-$@:/etc/ncs/ncs.conf
+	docker start $(CNT_PREFIX)-$@
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Verify HTTP is enabled"
@@ -499,7 +502,10 @@ test-mounted-config:
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@
 	@echo "-- Start NSO, forcing config mangling and explicitly disable HTTP"
-	docker run -td --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ -v $$(pwd)/tmp-$@/ncs.conf:/etc/ncs/ncs.conf --env MANGLE_CONFIG=true --env HTTP_ENABLE=false $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	@echo "Fakes using a volume like -v tmp-$@/ncs.conf:/etc/ncs/ncs.conf by running create & start "
+	docker create -t --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ --env MANGLE_CONFIG=true --env HTTP_ENABLE=false $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker cp tmp-$@/ncs.conf $(CNT_PREFIX)-$@:/etc/ncs/ncs.conf
+	docker start $(CNT_PREFIX)-$@
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Verify HTTP is disabled"
