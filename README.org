@@ -272,10 +272,10 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
       docker run -itd --name nso -v /data/nso:/nso -v /data/nso-logs:/log --net=host my-prod-image:12345
     #+END_SRC
 
-    The normal configuration mangling will NOT be applied to the mounted ~/etc/ncs/ncs.conf~. It can be enabled to run by setting ~MANGLE_CONFIG=true~, for example:
+    The normal configuration mangling will NOT be applied to ~ncs.conf~ injected though a persistent volume. It can be enabled to run by setting ~MANGLE_CONFIG=true~, for example:
 
     #+BEGIN_SRC shell
-      docker run -itd --name nso --env MANGLE_CONFIG=true -- -v /data/nso-config/my-nso-config.conf:/etc/ncs/ncs.conf -v /data/nso:/nso -v /data/nso-logs:/log --net=host my-prod-image:12345
+      docker run -itd --name nso --env MANGLE_CONFIG=true -- -v /data/nso:/nso -v /data/nso-logs:/log --net=host my-prod-image:12345
     #+END_SRC
 
     Unlike for a directly mounted ~ncs.conf~, the mangling will not be persisted as ~/nso/etc/ncs.conf~ is first copied to ~/etc/ncs/ncs.conf~ before being mangled. As per the above example, it can be persisted by manually copying the file, or select sections of it.
@@ -300,7 +300,7 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
 *** Writing your own ncs.conf
     If you write your own ~ncs.conf~ from scratch, you should pay extra attention to certain aspects that are somewhat different in NSO in Docker compared to a classic install;
     - load packages from ~/var/opt/ncs/packages~ (in the container image) rather than from the run-dir (which is at ~/nso/run~)
-    - use of customer Python-VM startup script that supports Python virtualenvs
+    - use of custom Python-VM startup script that supports Python virtualenvs
     - ensure you refer to the persisted "support" files in the ~/nso~ volume
       - ~ncs.crypto_keys~
       - SSH keys
