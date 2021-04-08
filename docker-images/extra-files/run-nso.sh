@@ -46,6 +46,42 @@ mkdir -p /log/traces
 # thinks this is not a valid run-dir
 mkdir -p /nso/etc /nso/run/cdb /nso/run/rollbacks /nso/run/scripts /nso/run/streams /nso/run/state /nso/run/backups /nso/run/packages
 
+# Determine which ncs.conf to use and whether to mangle it
+# If /nso/etc/ncs.conf exists, we will use it. Per default we do not mangle it
+# and thus set MANGLE_CONFIG=false. If /nso/etc/ncs.conf does NOT exist, we
+# instead default to mangling it by setting MANGLE_CONFIG=true. In either case,
+# it is possible to override and force mangling of /nso/etc/ncs.conf by
+# specifically setting MANGLE_CONFIG=true when starting up the container. Note
+# how this is done on a copy of the configuration file, i.e. the mangling is not
+# persisted. Similarly, it is possible to completely disable configuration
+# mangling by explicitly setting MANGLE_CONFIG=false, although that is likely
+# not very useful.
+if [ -f /etc/ncs/ncs.conf ]; then
+    export MANGLE_CONFIG=${MANGLE_CONFIG:-false}
+    if [ "${MANGLE_CONFIG}" = "false" ]; then
+        echo "NSO configuration found mounted at /etc/ncs/ncs.conf, using it verbatim"
+    else
+        echo "NSO configuration found mounted at /etc/ncs/ncs.conf, using it and will mangle it"
+    fi
+    cp /etc/ncs/ncs.conf /etc/ncs/ncs.conf
+elif [ -f /nso/etc/ncs.conf ]; then
+    export MANGLE_CONFIG=${MANGLE_CONFIG:-false}
+    if [ "${MANGLE_CONFIG}" = "false" ]; then
+        echo "NSO configuration found in volume at /nso/etc/ncs.conf, using it verbatim"
+    else
+        echo "NSO configuration found in volume at /nso/etc/ncs.conf, using it and will mangle it"
+    fi
+    cp /nso/etc/ncs.conf /etc/ncs/ncs.conf
+else
+    export MANGLE_CONFIG=${MANGLE_CONFIG:-true}
+    cp /etc/ncs/ncs.conf.in /etc/ncs/ncs.conf
+    if [ "${MANGLE_CONFIG}" = "false" ]; then
+        echo "No NSO configuration found in volume, using /etc/ncs/ncs.conf.in verbatim"
+    else
+        echo "No NSO configuration found in volume, using /etc/ncs/ncs.conf.in and will mangle it"
+    fi
+fi
+
 # Handle CDB crypto keys
 # This generates the file, as it looks in newer version of NSO, with the AES256
 # key. NSO version 5.2 and earlier (though not 4.x) do not support AES256 and
@@ -149,7 +185,7 @@ fi
 # pre-start scripts
 for FILE in $(ls /etc/ncs/pre-ncs-start.d/*.sh 2>/dev/null); do
     echo "run-nso.sh: running pre start script ${FILE}"
-    . ${FILE}
+    ${FILE}
 done
 
 # -- start NSO in the background
@@ -177,7 +213,7 @@ ncs --wait-started 600
 # post-start scripts
 for FILE in $(ls /etc/ncs/post-ncs-start.d/*.sh 2>/dev/null); do
     echo "run-nso.sh: running post start script ${FILE}"
-    . ${FILE}
+    ${FILE}
 done
 
 # wait forever on the ncs process, we run ncs in background and wait on it like

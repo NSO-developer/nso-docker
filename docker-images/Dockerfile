@@ -12,6 +12,7 @@ ARG NSO_INSTALL_FILE
 COPY $NSO_INSTALL_FILE /tmp/nso
 
 RUN sh /tmp/nso --system-install --non-interactive --run-dir /nso/run --log-dir /log \
+  && mv /etc/ncs/ncs.conf /etc/ncs/ncs.conf.in \
   && sed -i -e 's/exec python -u/exec python3 -u/' /opt/ncs/current/bin/ncs-start-python-vm
 
 FROM nso_install AS nso_stripped
@@ -53,7 +54,7 @@ RUN \
        /opt/ncs/current/support \
   && sed -i \
      -e 's,<dir>${NCS_RUN_DIR}/packages</dir>,<dir>/var/opt/ncs/packages</dir>,' \
-     /etc/ncs/ncs.conf
+     /etc/ncs/ncs.conf.in
 
 
 FROM debian:buster AS deb_base

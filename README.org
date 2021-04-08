@@ -230,16 +230,86 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
       docker run -itd --name nso -v /data/nso:/nso -v /data/nso-logs:/log --net=host -e SSH_PORT=2024 my-prod-image:12345
     #+END_SRC
 
-** Configuration options
-   The ~ncs.conf~ configuration file for NSO is written at run time of the container. It is generated at startup of the container by taking the ~ncs.conf~ that is shipped with current NSO version and modifying it. It is possible to influence the configuration through a number of variables. These can be fed into the container through environment variables.
+** NCS configuration management
+   There are multiple approaches for how to deal with ~ncs.conf~ in NSO in Docker;
+   1. idiomatic container approach with select options being configurable via environment variables
+   2. feed in existing ~ncs.conf~ using one of two approaches
+      1. directly mount ~ncs.conf~ to ~/etc/ncs/ncs.conf~ in the container
+      2. place ~ncs.conf~ on the volume mounted to ~/nso~ in the container, under ~/nso/etc/ncs.conf~
 
-   | Environment variable | Type    | Default | Description                                   |
-   |----------------------+---------+---------+-----------------------------------------------|
-   | =PAM=                | boolean | false   | Enable PAM instead of local auth in NSO (AAA) |
-   | =HTTP_ENABLE=        | boolean | false   | Enable HTTP web UI                            |
-   | =HTTPS_ENABLE=       | boolean | false   | Enable HTTPS (TLS) web UI                     |
-   | =SSH_PORT=           | uint16  | 22      | Set port for SSH to listen on                 |
-   | =CLI_STYLE=          | enum    | j       | Configure the default CLI style to 'j' or 'c' |
+*** Injecting ncs.conf as a directly mounted file at /etc/ncs/ncs.conf
+    This approach is quite straight forward. Simply mount up a configuration file to ~/etc/ncs/ncs.conf~.
+
+    #+BEGIN_SRC shell
+      docker run -itd --name nso -v /data/nso-config/my-nso-config.conf:/etc/ncs/ncs.conf -v /data/nso:/nso -v /data/nso-logs:/log --net=host my-prod-image:12345
+    #+END_SRC
+
+    The normal configuration mangling will NOT be applied to the mounted ~/etc/ncs/ncs.conf~. It is not recommended to enable mangling a directly mounted ~ncs.conf~. It can be forced to run by setting ~MANGLE_CONFIG=true~, for example:
+
+    #+BEGIN_SRC shell
+      docker run -itd --name nso --env MANGLE_CONFIG=true -- -v /data/nso-config/my-nso-config.conf:/etc/ncs/ncs.conf -v /data/nso:/nso -v /data/nso-logs:/log --net=host my-prod-image:12345
+    #+END_SRC
+
+    NOTE: the mangling will be directly applied to the mounted file and modify it. Many of the mangling operations are not idempotently implemented, so this will likely break things. If you want to supply a configuration file and mangle it on startup, you probably want to mount it to ~/etc/ncs/ncs.conf.in~.
+
+    It is entirely up to you to manage your ~ncs.conf~ and make sure that it is correct. See the section [[*** Writing your own ncs.conf]].
+
+*** Injecting ncs.conf through a persistent volume
+    Place your ~ncs.conf~ in a ~etc~ directory on the volume that is mounted to ~/nso~ on the NSO container. From inside the container, the path should be ~/nso/etc/ncs.conf~.
+
+    Here is en example where we start NSO with no ~ncs.conf~, so that one will be generated. We then copy this file over, edit it and restart NSO to use the new ~ncs.conf~ from our volume.
+
+    #+BEGIN_SRC shell
+      # start NSO, which will generate a ncs.conf
+      docker run -itd --name nso -v /data/nso:/nso -v /data/nso-logs:/log --net=host my-prod-image:12345
+      # copy over ncs.conf to the volume
+      docker exec -it nso bash -lc 'cp /etc/ncs/ncs.conf /nso/etc/ncs.conf'
+      # manually edit /data/nso/etc/ncs.conf (path that is bind mounted to the container)
+      #
+      # stop NSO
+      docker rm -f nso
+      # start NSO again, this time the config from /data/nso/etc/ncs.conf will be used
+      docker run -itd --name nso -v /data/nso:/nso -v /data/nso-logs:/log --net=host my-prod-image:12345
+    #+END_SRC
+
+    The normal configuration mangling will NOT be applied to ~ncs.conf~ injected though a persistent volume. It can be enabled to run by setting ~MANGLE_CONFIG=true~, for example:
+
+    #+BEGIN_SRC shell
+      docker run -itd --name nso --env MANGLE_CONFIG=true -- -v /data/nso:/nso -v /data/nso-logs:/log --net=host my-prod-image:12345
+    #+END_SRC
+
+    Unlike for a directly mounted ~ncs.conf~, the mangling will not be persisted as ~/nso/etc/ncs.conf~ is first copied to ~/etc/ncs/ncs.conf~ before being mangled. As per the above example, it can be persisted by manually copying the file, or select sections of it.
+
+*** Idiomatic container handling of ncs.conf
+    On startup, when neither ~/etc/ncs/ncs.conf~ (a directly mounted config) or ~/nso/etc/ncs.conf~ exists, NSO in Docker will default to starting from the stock config from the installed NSO version, which is stored in the container image at ~/etc/ncs/ncs.conf.in~. This configuration is copied to ~/etc/ncs/ncs.conf~ and then mangled - applying a number of modifications to the configuration, before NSO is started. These modifications are performed by the startup script ~/etc/ncs/pre-ncs-start.d/50-mangle-config.sh~, which in turn takes options through the following environment variables:
+
+    | Environment variable | Type    | Default | Description                                    |
+    |----------------------+---------+---------+------------------------------------------------|
+    | =MANGLE_CONFIG=      | boolean | -       | Force enabling or disabling of config mangling |
+    | =PAM=                | boolean | false   | Enable PAM instead of local auth in NSO (AAA)  |
+    | =HTTP_ENABLE=        | boolean | false   | Enable HTTP web UI                             |
+    | =HTTPS_ENABLE=       | boolean | false   | Enable HTTPS (TLS) web UI                      |
+    | =SSH_PORT=           | uint16  | 22      | Set port for SSH to listen on                  |
+    | =CLI_STYLE=          | enum    | j       | Configure the default CLI style to 'j' or 'c'  |
+    | =XPATH_TRACE=        | boolean | false   | Enable XPath tracing                           |
+
+    Injecting a ~ncs.conf~ and enabling configuration mangling will also accept the same environment variables as input.
+
+    As we start with the ~/etc/ncs/ncs.conf.in~ as provided by the NSO version installed in our image, our starting point will look somewhat different. For example, if we build a container image based on NSO 5.2 we will get the default ~ncs.conf~ that comes with ~5.2~. Any updates to the ~ncs.conf~ shipped with NSO will find its way into the container image. 
+
+*** Writing your own ncs.conf
+    If you write your own ~ncs.conf~ from scratch, you should pay extra attention to certain aspects that are somewhat different in NSO in Docker compared to a classic install;
+    - load packages from ~/var/opt/ncs/packages~ (in the container image) rather than from the run-dir (which is at ~/nso/run~)
+    - use of custom Python-VM startup script that supports Python virtualenvs
+    - ensure you refer to the persisted "support" files in the ~/nso~ volume
+      - ~ncs.crypto_keys~
+      - SSH keys
+      - SSL cert
+
+*** Modifying the NSO configuration file ncs.conf
+    The standard Docker run script (~run-nso.sh~) looks for files that ends with ~.sh~ in ~/etc/ncs/pre-ncs-start.d/~ and ~/etc/ncs/post-ncs-start.d/~ and will run any scripts found before or after starting NSO. This facility is used to modify the ~ncs.conf~ configuration file before NSO is started. ~/etc/ncs/pre-ncs-start.d/50-mangle-config.sh~ performs the necessary modifications. Since ~ncs.conf~ is a structured XML document, it primarily uses ~xmlstarlet~ to perform modification operations on the configuration file.
+
+    You can further modify the ~ncs.conf~ configuration file by adding your own startup script in ~/etc/ncs.pre-ncs-start.d/~ or potentially modifying ~/etc/ncs/pre-ncs-start.d/50-mangle-config.sh~. Since the configuration file is an XML document, modification is best done through an XML aware tool. If you write your own script, be sure to honor that when the =MANGLE_CONFIG= variable is set to false, you should not modify the configuration.
 
 * Docker image tags
   The Docker images produced by this repo per default carry a unique tag based on the CI_JOB_ID variable set by Gitlab CI, for example ~registry.gitlab.com/nso-developer/nso-docker/cisco-nso-dev:31337~ where =31337= is the value from =CI_JOB_ID=.
@@ -367,13 +437,6 @@ Do note that the example image URLs used above would be the result of the defaul
    Multiple attempts might be necessary to get everything to load and upgrade correctly. CDB compaction can take some time (depending on the size of CDB). By restoring from a backup of a compacted CDB, we avoid having to compact CDB for every retry.
 
    In a production setting with a structured approach to development and operations, the recommendation would be to take a backup of CDB from production and move to a development machine where the above steps can be executed. Preferably also incorporating not just the NED / package changes into CI but also including testing of the CDB upgrade. The upgrade is thus tested in development & CI before being attempted on the production deployment machines. While we might use a compacted CDB to speed up the development and testing of the upgrade, as outlined above, the actual upgrade of the production system will only happen once inside of an NSO container in an unsupervised fashion, which is why startup script of NSO in Docker will automatically determine the CDB version + NSO version and, if deemed necessary, perform CDB compaction.
-
-* Modifying the NSO configuration file ncs.conf
-  The ~ncs.conf~ used in the docker images produced by this repository is not checked into git but rather originates from the NSO install itself. This means that if we build a Docker image based on NSO 5.2 we will get the default ~ncs.conf~ that comes with ~5.2~. Any updates to the ~ncs.conf~ shipped with NSO will find its way into the Docker image. Since modifications are necessary, partly for NSO to fit into a Docker environment but also to apply instance specific configuration, like the administrator password, the ~ncs.conf~ configuration file is modified on startup. This is achieved by a startup script executed before NSO is started.
-
-  The standard Docker run script (~run-nso.sh~) looks for files that ends with ~.sh~ in ~/etc/ncs/pre-ncs-start.d/~ and ~/etc/ncs/post-ncs-start.d/~ and will run any scripts found before or after starting NSO. This facility is used to modify the ~ncs.conf~ configuration file before NSO is started. ~/etc/ncs/pre-ncs-start.d/50-mangle-config.sh~ performs the necessary modifications. Since ~ncs.conf~ is a structured XML document, it primarily uses ~xmlstarlet~ to perform modification operations on the configuration file.
-
-  You can further modify the ~ncs.conf~ configuration file by adding your own startup script in ~/etc/ncs.pre-ncs-start.d/~. Since the configuration file is an XML document, modification is best done through an XML aware tool. The previously mentioned standard ~mangle-config.sh~ script modifies the ~ncs.conf~ configuration file using ~xmlstarlet~  which understands XML and offers XML aware editing capabilities.
 
 * Extending the Docker image
   There are multiple approaches to extending the functionality of the NSO docker image.
