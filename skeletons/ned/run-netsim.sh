@@ -85,6 +85,12 @@ if [[ ! -e /netsim/dev/dev ]]; then
         rm -f /netsim/dev/dev/ssh/*
         ssh-keygen -t rsa -b 4096 -m PEM -f /netsim/dev/dev/ssh/ssh_host_rsa_key -N ''
     fi
+    xmlstarlet edit --inplace \
+               --subnode '/_:confdConfig/_:cli/_:ssh[not(_:extraIpPorts)]' \
+               -t elem -n 'extraIpPorts' -v '[::]' \
+               --subnode '/_:confdConfig/_:netconf/_:transport/_:ssh[not(_:extraIpPorts)]' \
+               -t elem -n 'extraIpPorts' -v '[::]' \
+               /netsim/dev/dev/confd.conf
 fi
 
 # start confd in the background
