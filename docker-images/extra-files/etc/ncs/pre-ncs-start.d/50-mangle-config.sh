@@ -10,6 +10,23 @@
 # ncs.conf on every startup and thus we do not need to implement modification in
 # an idempotent manner. However, all the current modifications here are
 # implemented in an idempotent fashion.
+#
+# Directly setting values is always idempotent, like this:
+#
+#   xmlstarlet edit --inplace --update '/_:ncs-config/_:a-leaf' --value 'something'
+#
+# Where we add new nodes, like here adding 'foo' under 'ncs-config':
+#
+#   xmlstarlet edit --inplace --subnode '/_:ncs-config' -t elem -n 'foo'
+#
+# We can make this idempotent by ensuring that 'foo' does not currently exist
+# under 'ncs-config'. To do this, we use an XPath predicate on the subnode
+# select, like so:
+#
+#   xmlstarlet edit --inplace --subnode '/_:ncs-config[not(_:foo)]' -t elem -n 'foo'
+#
+# It is also possible to inspect deeper, see the hide-group further down.
+#
 
 if [ ${MANGLE_CONFIG} = "false" ]; then
     echo "Config mangling disabled, early exit..."
