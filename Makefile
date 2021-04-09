@@ -71,8 +71,9 @@ test-multiver:
 	$(MAKE) -C test NSO_VERSION=$(NSO_VERSION) DOCKER_TAG=$(DOCKER_TAG) test-multiver
 
 # Test NID skeletons
+# NSO_VERSION is set to to DOCKER_TAG, since we want to test the version we've just built!
 test-skeletons:
-	$(MAKE) -C skeletons/test NSO_VERSION=$(NSO_VERSION) DOCKER_TAG=$(DOCKER_TAG)
+	$(MAKE) -C skeletons/test NSO_VERSION=$(DOCKER_TAG) DOCKER_TAG=$(DOCKER_TAG)
 
 # build target that takes FILE env arg (really just passed on through
 # environment) as input. FILE should be an absolute path to the NSO install
