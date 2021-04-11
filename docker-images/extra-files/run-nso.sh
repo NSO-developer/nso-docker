@@ -63,7 +63,6 @@ if [ -f /etc/ncs/ncs.conf ]; then
     else
         echo "NSO configuration found mounted at /etc/ncs/ncs.conf, using it and will mangle it"
     fi
-    cp /etc/ncs/ncs.conf /etc/ncs/ncs.conf
 elif [ -f /nso/etc/ncs.conf ]; then
     export MANGLE_CONFIG=${MANGLE_CONFIG:-false}
     if [ "${MANGLE_CONFIG}" = "false" ]; then
@@ -74,12 +73,12 @@ elif [ -f /nso/etc/ncs.conf ]; then
     cp /nso/etc/ncs.conf /etc/ncs/ncs.conf
 else
     export MANGLE_CONFIG=${MANGLE_CONFIG:-true}
-    cp /etc/ncs/ncs.conf.in /etc/ncs/ncs.conf
     if [ "${MANGLE_CONFIG}" = "false" ]; then
         echo "No NSO configuration found in volume, using /etc/ncs/ncs.conf.in verbatim"
     else
         echo "No NSO configuration found in volume, using /etc/ncs/ncs.conf.in and will mangle it"
     fi
+    cp /etc/ncs/ncs.conf.in /etc/ncs/ncs.conf
 fi
 
 # Handle CDB crypto keys
