@@ -204,11 +204,23 @@ ncs --cd ${NCS_RUN_DIR} -c ${NCS_CONFIG_DIR}/ncs.conf --foreground -v --with-pac
 NSO_PID="$!"
 set +m
 
-# sleep a bit so ncs has a chance to start its IPC port
-# this doesn't slow down startup since we wait for ncs to start as the next step
-# anyway and that wait is much longer
+# sleep a bit so ncs has a chance to start up IPC port etc
 sleep 3
-ncs --wait-started 600
+# Wait for NSO to start by continuously ensuring the NSO PID is alive, i.e. that
+# NSO hasn't and NSO reports having started up. If CDB is corrupt or there are
+# other similar problems during startup, ncs --wait-started will hang, since it
+# is waiting for NSO. If NSO has died, there is no point waiting, thus we also
+# check for the NSO PID being alive.
+echo "Waiting for NSO to start..."
+for I in $(seq 60); do
+    if ! kill -s 0 ${NSO_PID} >/dev/null 2>&1; then
+        wait ${NSO_PID}
+        EXIT_CODE=$?
+        echo "run-nso.sh: NSO is dead (exit code ${EXIT_CODE}) - exiting container"
+        exit ${EXIT_CODE}
+    fi
+    ncs --wait-started 10 && break
+done
 
 # post-start scripts
 for FILE in $(ls /etc/ncs/post-ncs-start.d/*.sh 2>/dev/null); do
