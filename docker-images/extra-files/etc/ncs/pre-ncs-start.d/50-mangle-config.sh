@@ -33,9 +33,10 @@ if [ ${MANGLE_CONFIG} = "false" ]; then
     exit
 fi
 
-CONF_FILE=/etc/ncs/ncs.conf
+CONF_FILE=${CONF_FILE:-/etc/ncs/ncs.conf}
 CLI_STYLE=${CLI_STYLE:-j}
 
+AUTO_WIZARD=${AUTO_WIZARD:-true}
 SSH_PORT=${SSH_PORT:-22}
 HTTP_ENABLE=${HTTP_ENABLE:-false}
 HTTPS_ENABLE=${HTTPS_ENABLE:-false}
@@ -141,6 +142,16 @@ xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
            -s '/x:ncs-config/x:webui/x:transport/x:ssl/extra-listen[not(x:ip)]' -t elem -n ip -v '::' \
            -s '/x:ncs-config/x:webui/x:transport/x:ssl/extra-listen[not(x:port)]' -t elem -n port -v '443' \
            $CONF_FILE
+
+# configure auto-wizard
+xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
+            --subnode '/x:ncs-config/x:cli[not(x:auto-wizard)]' --type elem -n 'auto-wizard' \
+            $CONF_FILE
+xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
+            --update '/x:ncs-config/x:cli/x:auto-wizard/x:enabled' --value "${AUTO_WIZARD}" \
+            --subnode '/x:ncs-config/x:cli/x:auto-wizard[not(x:enabled)]' --type elem -n 'enabled' --value "${AUTO_WIZARD}" \
+            $CONF_FILE
+
 
 # enable unhiding the two common groups 'debug' and 'full'
 # This might be a little trickier to understand - we first add two new subnodes

@@ -292,6 +292,7 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
     | =SSH_PORT=           | uint16  | 22      | Set port for SSH to listen on                  |
     | =CLI_STYLE=          | enum    | j       | Configure the default CLI style to 'j' or 'c'  |
     | =XPATH_TRACE=        | boolean | false   | Enable XPath tracing                           |
+    | =AUTO_WIZARD=        | boolean | true    | Disable CLI auto-wizard by setting to 'false'  |
 
     Injecting a ~ncs.conf~ and enabling configuration mangling will also accept the same environment variables as input.
 
