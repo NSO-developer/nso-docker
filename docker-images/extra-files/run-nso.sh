@@ -31,8 +31,14 @@ sigterm_handler() {
 export NCS_JAVA_VM_OPTIONS="-Xmx4G -XX:+UseG1GC -XX:+UseStringDeduplication"
 
 # Capture NSO version
-NSO_MAJVER=$(ncs --version | cut -d. -f1)
-NSO_MINVER=$(ncs --version | cut -d. -f2)
+# Determine NSO version with major / minor version component
+if [[ $(ncs --version) =~ ^([0-9]+)\.([0-9]+) ]]; then
+    NSO_MAJVER=${BASH_REMATCH[1]}
+    NSO_MINVER=${BASH_REMATCH[2]}
+else
+    echo "Not a proper NSO version"
+    exit 1
+fi
 
 # enable core dump
 mkdir -p /nso/coredumps
