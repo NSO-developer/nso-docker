@@ -71,18 +71,18 @@ if [ $? -eq 0 ] || [ -n "${PACKAGE_RELOAD}" ]; then
     echo "-- Reloading packages for NSO ${NSO}";
     echo "request packages reload force" | ncs_cli -u admin
 else
-    # Keep track of indivudual redeploy errors and exit with code 1 if there
-    # are any failures
+    # Keep track of individual redeploy errors and exit with code 1 if there are
+    # any failures
     REDEPLOY_ERROR=0
     for PKG in $(sed -E 's,^........... ([^/]+).*,\1,' /tmp/rsync.log | sort | uniq); do
         echo "-- Redeploying package ${PKG} for NSO ${NSO}";
         PKG_NAME=$(xmlstarlet sel -N x=http://tail-f.com/ns/ncs-packages -t -v "/x:ncs-package/x:name" -nl /var/opt/ncs/packages/${PKG}/package-meta-data.xml) || continue
-	PKG_RESULT=$(echo "request packages package ${PKG_NAME} redeploy" | ncs_cli -u admin) && echo "${PKG_RESULT}"
-	echo "${PKG_RESULT}" | grep "result false" >/dev/null
+        PKG_RESULT=$(echo "request packages package ${PKG_NAME} redeploy" | ncs_cli -u admin) && echo "${PKG_RESULT}"
+        echo "${PKG_RESULT}" | grep "result false" >/dev/null
         if [ $? -eq 0 ]; then
             echo "-- Redeploying package ${PKG_NAME} failed, here is the output of \"show packages package ${PKG_NAME} oper-status\":"
             echo "show packages package ${PKG_NAME} oper-status" | ncs_cli -u admin
-	    REDEPLOY_ERROR=1
+            REDEPLOY_ERROR=1
         fi
     done
     if [ $REDEPLOY_ERROR -eq 1 ]; then exit 1; fi
