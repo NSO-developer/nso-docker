@@ -62,6 +62,7 @@ test:
 	$(MAKE) test-shutdown
 	$(MAKE) test-error-exit-code
 	$(MAKE) test-ncs-stop
+	$(MAKE) test-nso-restart
 	$(MAKE) test-logrotate
 	$(MAKE) test-admin-user
 	$(MAKE) test-admin-user-custom
@@ -176,7 +177,7 @@ test-ncs-stop:
 	@echo "-- Clean any already running containers with 'our' name"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Start NSO container"
-	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Stop NSO - ignoring return code because NSO 5.4 returns non-0, which should be fine here, as long as main return code, as seen by docker inspect, is 0"
@@ -186,6 +187,26 @@ test-ncs-stop:
 	@echo "-- Check that container is not running"
 	docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false"
 	docker inspect --format '{{.State.ExitCode}}' $(CNT_PREFIX)-$@ | grep -q "^0$$"
+	@echo "-- Remove the container"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
+test-nso-restart:
+	@echo "\n== Verify NSO restarts on SIGHUP to container"
+	@echo "-- Clean any already running containers with 'our' name"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Start NSO container"
+	docker run -td --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	@echo "-- Wait for NSO in container to start"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Restart NSO process in container"
+	docker kill --signal HUP $(CNT_PREFIX)-$@
+	@echo "-- Check that NSO process restarted, we should see 2 'starting' messages... (for some reason we get double messages, but can unique them based on pid)"
+	I=0; while true; do \
+		docker logs $(CNT_PREFIX)-$@ 2>&1 | grep "^ncs.*Starting NCS vsn:" | uniq | wc -l | grep "^2$$" && EXIT_CODE=true && break; \
+		if [ $${I} -gt 30 ]; then echo "Timed out waiting for NSO to restart"; EXIT_CODE=false; break; fi; \
+		sleep 1; I=$$((I+1)); \
+	done; $$($${EXIT_CODE})
 	@echo "-- Remove the container"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
