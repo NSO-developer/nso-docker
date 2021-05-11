@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <ncs-package xmlns="http://tail-f.com/ns/ncs-packages">
-  <name>ietf-ned</name>
-  <package-version>1.0</package-version>
+  <name>ietf-ned-2.0</name>
+  <package-version>2.0</package-version>
   <description>Generated netconf package</description>
   <ncs-min-version>4.7</ncs-min-version>
   <component>
-    <name>ietf-ned</name>
+    <name>ietf-ned-2.0</name>
     <ned>
       <netconf>
         <ned-id>to be replaced by build</ned-id>
