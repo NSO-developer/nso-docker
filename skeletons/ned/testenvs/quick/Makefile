@@ -29,25 +29,13 @@ ifeq ($(NSO_VERSION_MAJOR),4)
 STRIP_NED:=--delete "//x:ned-id"
 endif
 
-# determine the package name of the NED, which is assumed to be a sub-directory
-# of the packages directory. We look for packages/*/src/package-meta-data.xml*
-# which is then assumed to be the NED package we are looking for
-ifeq ($(NED_NAME),)
-ifeq ($(shell ls $(PROJECT_DIR)/packages/*/src/package-meta-data.xml* | wc -l | tr -d ' '),0)
-$(warning Could not determine NED package name automatically. No directory found based on glob packages/*/src/package-meta-data.xml*)
-else ifeq ($(shell ls $(PROJECT_DIR)/packages/*/src/package-meta-data.xml* | wc -l | tr -d ' '),1)
-NED_NAME=$(shell basename $(shell dirname $(shell dirname $(shell ls $(PROJECT_DIR)/packages/*/src/package-meta-data.xml*))))
-else
-$(warning Could not determine NED package name automatically. Multiple directories found based on glob packages/*/src/package-meta-data.xml*)
-endif
-endif
-
-
 add-device:
 	@echo "-- Add device to NSO"
 	@echo "   Get the package-meta-data.xml file from the compiled NED (we grab it from the netsim build)"
+# The netsim container only has a single version (ned-d) in the packages directory
+	docker exec $(CNT_PREFIX)-netsim bash -c "cp /var/opt/ncs/packages/*/package-meta-data.xml /tmp"
 	mkdir -p tmp
-	docker cp $(CNT_PREFIX)-netsim:/var/opt/ncs/packages/$(NED_NAME)/package-meta-data.xml tmp/package-meta-data.xml
+	docker cp $(CNT_PREFIX)-netsim:/tmp/package-meta-data.xml tmp/package-meta-data.xml
 	@echo "   Fill in the device-type in add-device.xml by extracting the relevant part from the package-meta-data of the NED"
 	xmlstarlet sel -t -c "//*[_:ned-id] | //_:ned/_:netconf | //_:ned/_:cli | //_:ned/_:snmp | //_:ned/_:generic" tmp/package-meta-data.xml | xmlstarlet edit --subnode '_:*[not(_:ned-id)]' --type elem -n ned-id -v dummy | xmlstarlet sel -R -t -c '/' -c "document('test/add-device.xml')" | xmlstarlet edit -O -N x=http://tail-f.com/ns/ncs-packages -N y=http://tail-f.com/ns/ncs -d "/x:xsl-select/*[x:ned-id]/*[not(self::x:ned-id)]" -m "/x:xsl-select/*[x:ned-id]" "/x:xsl-select/y:devices/y:device/y:device-type" $(STRIP_NED) | tail -n +2 | sed '$$d' | cut -c 3- > tmp/add-device.xml
 	docker cp tmp/add-device.xml $(CNT_PREFIX)-nso:/add-device.xml

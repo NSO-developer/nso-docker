@@ -22,6 +22,9 @@
 
 include nidcommon.mk
 
+NED_IDS:=$(shell for ned_dir in $$(ls $(PROJECT_DIR)/packages/*/src/package-meta-data.xml*); do basename $$(dirname $$(dirname $${ned_dir})); done)
+LATEST_NED_ID:=$(shell echo $(NED_IDS) | tr " " "\n" | sort -V | tail -n1)
+
 all:
 	$(MAKE) build
 	$(MAKE) test
@@ -46,25 +49,48 @@ Dockerfile: Dockerfile.in $(wildcard includes/*)
 .PHONY: Dockerfile
 
 
+build-ned-%:
+	docker build --target netsim  -t $(IMAGE_PATH)$(PROJECT_NAME)/netsim-$*:$(DOCKER_TAG)  --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) --build-arg NED_ID=$* .
+	docker build --target package -t $(IMAGE_PATH)$(PROJECT_NAME)/package-$*:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) --build-arg NED_ID=$* .
+
 # We explicitly build the first 'build' stage, which allows us to control
 # caching of it through the DOCKER_BUILD_CACHE_ARG.
 build: ensure-fresh-nid-available Dockerfile
 	docker build --target build   -t $(IMAGE_PATH)$(PROJECT_NAME)/build:$(DOCKER_TAG)   --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) $(DOCKER_BUILD_CACHE_ARG) .
-	docker build --target netsim  -t $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(DOCKER_TAG)  --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) --build-arg NED_NAME=$(NED_NAME) .
 	docker build --target testnso -t $(IMAGE_PATH)$(PROJECT_NAME)/testnso:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) .
+# We build the "package" image without providing the NED_ID build-arg. The
+# resulting image includes all packages found in the packages directory.
 	docker build --target package -t $(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) .
+	$(MAKE) $(addprefix build-ned-,$(NED_IDS))
+# Tag the latest netsim image without including the ned-id, just "netsim"
+	docker tag $(IMAGE_PATH)$(PROJECT_NAME)/netsim-$(LATEST_NED_ID):$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(DOCKER_TAG)
+
+push-ned-%:
+	docker push $(IMAGE_PATH)$(PROJECT_NAME)/package-$*:$(DOCKER_TAG)
+	docker push $(IMAGE_PATH)$(PROJECT_NAME)/netsim-$*:$(DOCKER_TAG)
 
 push:
 	docker push $(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG)
 	docker push $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(DOCKER_TAG)
+	$(MAKE) $(addprefix push-ned-,$(NED_IDS))
+
+tag-release-ned-%:
+	docker tag $(IMAGE_PATH)$(PROJECT_NAME)/package-$*:$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME)/package-$*:$(NSO_VERSION)
+	docker tag $(IMAGE_PATH)$(PROJECT_NAME)/netsim-$*:$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME)/netsim-$*:$(NSO_VERSION)
 
 tag-release:
 	docker tag $(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME)/package:$(NSO_VERSION)
 	docker tag $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(NSO_VERSION)
+	$(MAKE) $(addprefix tag-release-ned-,$(NED_IDS))
+
+push-release-ned-%:
+	docker push $(IMAGE_PATH)$(PROJECT_NAME)/package-$*:$(NSO_VERSION)
+	docker push $(IMAGE_PATH)$(PROJECT_NAME)/netsim-$*:$(NSO_VERSION)
 
 push-release:
 	docker push $(IMAGE_PATH)$(PROJECT_NAME)/package:$(NSO_VERSION)
 	docker push $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(NSO_VERSION)
+	$(MAKE) $(addprefix push-release-ned-,$(NED_IDS))
 
 
 dev-shell:
