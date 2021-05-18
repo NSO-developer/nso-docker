@@ -1,4 +1,4 @@
-push-4.7.8:
+push-4.7.9:
   extends: .push
   variables:
-    NSO_VERSION: "4.7.8"
+    NSO_VERSION: "4.7.9"

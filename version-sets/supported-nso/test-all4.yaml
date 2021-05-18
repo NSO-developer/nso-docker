@@ -25,3 +25,10 @@ test-4.7.8:
     NSO_VERSION: "4.7.8"
   needs:
     - build-4.7.8
+
+test-4.7.9:
+  extends: .test
+  variables:
+    NSO_VERSION: "4.7.9"
+  needs:
+    - build-4.7.9
