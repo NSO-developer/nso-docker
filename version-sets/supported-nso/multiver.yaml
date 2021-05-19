@@ -1,3 +1,12 @@
+multiver-test_4.7.9_4.7.10:
+  extends: .multiver_test
+  variables:
+    OLD_NSO_VERSION: "4.7.9"
+    NSO_VERSION: "4.7.10"
+  needs:
+    - build-4.7.9
+    - build-4.7.10
+
 
 multiver-test_4.7.5_4.7.6:
   extends: .multiver_test

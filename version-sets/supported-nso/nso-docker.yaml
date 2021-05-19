@@ -1,3 +1,8 @@
+build-4.7.10:
+  extends: .build
+  variables:
+    NSO_VERSION: "4.7.10"
+
 build-4.7.5:
   extends: .build
   variables:
@@ -132,6 +137,15 @@ build-5.5.2:
   extends: .build
   variables:
     NSO_VERSION: "5.5.2"
+multiver-test_4.7.9_4.7.10:
+  extends: .multiver_test
+  variables:
+    OLD_NSO_VERSION: "4.7.9"
+    NSO_VERSION: "4.7.10"
+  needs:
+    - build-4.7.9
+    - build-4.7.10
+
 
 multiver-test_4.7.5_4.7.6:
   extends: .multiver_test
@@ -834,6 +848,11 @@ multiver-test_5.5.1_5.5.2:
   needs:
     - build-5.5.1
     - build-5.5.2
+
+push-4.7.10:
+  extends: .push
+  variables:
+    NSO_VERSION: "4.7.10"
 
 push-4.7.5:
   extends: .push
