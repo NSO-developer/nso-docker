@@ -1,7 +1,7 @@
-deploy-4.7.9:
+deploy-4.7.10:
   extends: .deploy
   variables:
-    NSO_VERSION: "4.7.9"
+    NSO_VERSION: "4.7.10"
 
 deploy-5.1.6:
   extends: .deploy
