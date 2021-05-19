@@ -84,7 +84,9 @@ RUN for PKG_LINK in $(find /src/packages /src/test-packages -mindepth 1 -maxdept
 # default startup a netsim instance
 FROM ${NSO_IMAGE_PATH}cisco-nso-dev:${NSO_VERSION} AS netsim
 
-COPY --from=build /src/packages /var/opt/ncs/packages
+ARG NED_ID
+
+COPY --from=build /src/packages/${NED_ID} /var/opt/ncs/packages/${NED_ID}
 COPY /run-netsim.sh /run-netsim.sh
 
 VOLUME ["/netsim"]
@@ -111,4 +113,6 @@ COPY extra-files /
 # distribute the compiled NED by relying on Docker package registry
 # infrastructure
 FROM scratch AS package
-COPY --from=build /src/packages/ /var/opt/ncs/packages/
+ARG NED_ID
+
+COPY --from=build /src/packages/${NED_ID} /var/opt/ncs/packages/${NED_ID}

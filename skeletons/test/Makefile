@@ -82,7 +82,7 @@ MKBUILDTEST=NSO_VERSION=$(DOCKER_TAG) make -C repos/$@ build test
 DEVRUN=docker run -t --rm -v $$(pwd):/src $(DOCKER_DEV_IMAGE) bash -lc
 
 
-.PHONY: props/python-package props/template-package props/ietf-ned
+.PHONY: props/python-package props/template-package props/ietf-ned-1.0 props/ietf-ned-2.0
 # This is a standard package which we can use for our most basic tests.
 props/python-package:
 	mkdir -p props
@@ -98,9 +98,15 @@ props/template-package:
 	$(DEVRUN) 'cd /src/props && ncs-make-package --service-skeleton python-and-template template-package && chown -R 1000:1000 . && xmlstarlet edit --inplace -N x=http://tail-f.com/ns/ncs-packages --update "/x:ncs-package/x:ncs-min-version" --value 4.7 --delete "/x:ncs-package/x:component" template-package/package-meta-data.xml'
 	rm -rf $@/test $@/src $@/python
 
-props/ietf-ned:
+props/ietf-ned-1.0:
 	mkdir -p props
-	$(DEVRUN) 'cd /src/props && ncs-make-package --netconf-ned ietf-yang-models ietf-ned && chown -R 1000:1000 . && xmlstarlet edit --inplace -N x=http://tail-f.com/ns/ncs-packages --update "/x:ncs-package/x:ncs-min-version" --value 4.7 ietf-ned/src/package-meta-data.xml.in'
+	$(DEVRUN) 'cd /src/props && ncs-make-package --netconf-ned ietf-yang-models --package-version 1.0 ietf-ned-1.0 && chown -R 1000:1000 . && xmlstarlet edit --inplace -N x=http://tail-f.com/ns/ncs-packages --update "/x:ncs-package/x:ncs-min-version" --value 4.7 ietf-ned-1.0/src/package-meta-data.xml.in'
+	sed -i -e '/^\s\+--fail-on-warnings/d' -e 's/ --fail-on-warnings//' $@/src/Makefile
+	sed -i -e '/<AES256CFB128>/,+2d' $@/netsim/confd.conf.netsim
+
+props/ietf-ned-2.0:
+	mkdir -p props
+	$(DEVRUN) 'cd /src/props && ncs-make-package --netconf-ned ietf-yang-models --package-version 2.0 ietf-ned-2.0 && chown -R 1000:1000 . && xmlstarlet edit --inplace -N x=http://tail-f.com/ns/ncs-packages --update "/x:ncs-package/x:ncs-min-version" --value 4.7 ietf-ned-2.0/src/package-meta-data.xml.in'
 	sed -i -e '/^\s\+--fail-on-warnings/d' -e 's/ --fail-on-warnings//' $@/src/Makefile
 	sed -i -e '/<AES256CFB128>/,+2d' $@/netsim/confd.conf.netsim
 
@@ -108,7 +114,7 @@ props/ietf-ned:
 %-build-test-ietf-ned:
 	@echo "-- Testing $@ on $* skeleton"
 	$(INIT)
-	cp -av props/ietf-ned repos/$@/packages/
+	cp -av props/ietf-ned* repos/$@/packages/
 	$(MKBUILDTEST)
 
 %-build-test-python-package:

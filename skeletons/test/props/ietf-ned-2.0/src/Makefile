@@ -5,7 +5,7 @@ include $(NCS_DIR)/src/ncs/build/include.ncs.mk
 
 NS  = namespaces
 
-JAVA_PACKAGE = com.example.ietfned
+JAVA_PACKAGE = com.example.ietfned2_0
 JDIR = $(shell echo $(JAVA_PACKAGE) | sed 's/\./\//g')
 
 JFLAGS = --java-disable-prefix \
@@ -21,7 +21,7 @@ SRC = $(wildcard yang/*.yang)
 FXS = $(SRC:yang/%.yang=ncsc-out/modules/fxs/%.fxs)
 DIRS =  ncsc-out ../load-dir
 DIRS += ../shared-jar ../private-jar java/src/$(JDIR)/$(NS)
-DIRS += ../python/ietf_ned
+DIRS += ../python/ietf_ned_2.0
 NED_ID_ARG = $(shell [ -x ${NCS_DIR}/support/ned-ncs-ned-id-arg ] && \
                ${NCS_DIR}/support/ned-ncs-ned-id-arg package-meta-data.xml.in)
 
@@ -60,7 +60,7 @@ ncsc-out/.done:	$(SRC)
 	    n=`basename $$f | sed 's/\.fxs//'`; \
 	    $(NCSC) $(JFLAGS)/$${n}.java $$f  || exit 1; \
 	    $(NCSC)                                 \
-	        --emit-python ../python/ietf_ned $$f  || \
+	        --emit-python ../python/ietf_ned_2.0 $$f  || \
 	    exit 1;                                                      \
 	   true; \
 	done

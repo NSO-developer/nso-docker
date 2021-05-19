@@ -9,7 +9,7 @@
   <property name="ncs.topdir" value="${env.NCS_DIR}"/>
   <property name="sharedjar.dir" value="../../shared-jar"/>
   <property name="privatejar.dir" value="../../private-jar"/>
-  <property name="package" value="ietfned"/>
+  <property name="package" value="ietfned2_0"/>
 
   <!-- Retrieving compilation compability parameters from NCS
        Remove the following row if this is not desired  -->
