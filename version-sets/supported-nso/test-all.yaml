@@ -117,6 +117,13 @@ test-5.2.4:
   needs:
     - build-5.2.4
 
+test-5.2.5:
+  extends: .test
+  variables:
+    NSO_VERSION: "5.2.5"
+  needs:
+    - build-5.2.5
+
 test-5.2.6:
   extends: .test
   variables:
