@@ -8,10 +8,10 @@ push-5.2.6:
   variables:
     NSO_VERSION: "5.2.6"
 
-push-5.3.3:
+push-5.3.4:
   extends: .push
   variables:
-    NSO_VERSION: "5.3.3"
+    NSO_VERSION: "5.3.4"
 
 push-5.4.2:
   extends: .push
