@@ -13,10 +13,10 @@ build-5.3.3:
   variables:
     NSO_VERSION: "5.3.3"
 
-build-5.4.2:
+build-5.4.3:
   extends: .build
   variables:
-    NSO_VERSION: "5.4.2"
+    NSO_VERSION: "5.4.3"
 
 build-5.5.2:
   extends: .build
