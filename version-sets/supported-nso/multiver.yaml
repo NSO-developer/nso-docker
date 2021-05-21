@@ -647,13 +647,13 @@ multiver-test_5.2.6_5.4.3:
     - build-5.2.6
     - build-5.4.3
 
-multiver-test_5.3.3_5.4.3:
+multiver-test_5.3.4_5.4.3:
   extends: .multiver_test
   variables:
-    OLD_NSO_VERSION: "5.3.3"
+    OLD_NSO_VERSION: "5.3.4"
     NSO_VERSION: "5.4.3"
   needs:
-    - build-5.3.3
+    - build-5.3.4
     - build-5.4.3
 
 multiver-test_5.4.2_5.4.3:
