@@ -384,6 +384,24 @@ test-python-dap:
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 
+test-no-ha:
+	@echo "\n== Verify HA is disabled per default"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show ncs-state ha mode" | ncs_cli -u admin' | grep "No entries found"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
+test-ha:
+	@echo "\n== Verify we can enable HA via environment variable"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	docker run -td --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e HA_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show ncs-state ha mode" | ncs_cli -u admin' | grep "none"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
 test-docker-healthcheck:
 	@echo "\n== Verify that docker healthcheck works"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1

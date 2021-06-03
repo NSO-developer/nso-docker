@@ -287,6 +287,7 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
     |----------------------+---------+---------+------------------------------------------------|
     | =MANGLE_CONFIG=      | boolean | -       | Force enabling or disabling of config mangling |
     | =PAM=                | boolean | false   | Enable PAM instead of local auth in NSO (AAA)  |
+    | =HA_ENABLE=          | boolean | false   | Enable HA                                      |
     | =HTTP_ENABLE=        | boolean | false   | Enable HTTP web UI                             |
     | =HTTPS_ENABLE=       | boolean | false   | Enable HTTPS (TLS) web UI                      |
     | =SSH_PORT=           | uint16  | 22      | Set port for SSH to listen on                  |
