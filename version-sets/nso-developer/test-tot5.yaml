@@ -1,0 +1,39 @@
+test-5.1.6:
+  extends: .test
+  variables:
+    NSO_VERSION: "5.1.6"
+    NSO_VERSION_IS_TOT: "true"
+  needs:
+    - build-5.1.6
+
+test-5.2.6:
+  extends: .test
+  variables:
+    NSO_VERSION: "5.2.6"
+    NSO_VERSION_IS_TOT: "true"
+  needs:
+    - build-5.2.6
+
+test-5.3.4:
+  extends: .test
+  variables:
+    NSO_VERSION: "5.3.4"
+    NSO_VERSION_IS_TOT: "true"
+  needs:
+    - build-5.3.4
+
+test-5.4.3:
+  extends: .test
+  variables:
+    NSO_VERSION: "5.4.3"
+    NSO_VERSION_IS_TOT: "true"
+  needs:
+    - build-5.4.3
+
+test-5.5.2:
+  extends: .test
+  variables:
+    NSO_VERSION: "5.5.2"
+    NSO_VERSION_IS_TOT: "true"
+  needs:
+    - build-5.5.2

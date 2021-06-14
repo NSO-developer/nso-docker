@@ -128,23 +128,16 @@ mirror:
     - if [ "${MIRROR_PULL_MODE}" = "rebase" ]; then git push --force origin ${CI_DEFAULT_BRANCH}; else git push origin ${CI_DEFAULT_BRANCH}; fi
 
 
-# Version set to include. These file contain the actual jobs that instantiate
-# the templates above for various version of NSO. The default is to build for
-# all supported NSO versions by including a CI config file from the upstream
-# nso-docker repository. It is normal to build your own version set for the NSO
-# versions you are interested in and include that here.
-include: 'https://gitlab.com/nso-developer/nso-docker/-/raw/master/version-sets/supported-nso/build-tot.yaml'
-# For example, having mirrored the nso-docker repository and created your own
-# version-set, you could reference that, as long as it is hosted on the same
-# GitLab instance as this repo. Here we are using a structured notation which
-# automatically handles authentication, in case that is required (for non-public
-# repositories):
-#
-# include: 
-#   - project: foo/nso-docker
-#     ref: master 
-#     file: /version-sets/bar/build-tot.yaml
-#
+# Version set to include. This file contains the actual jobs that instantiate
+# the job templates above for a list of NSO versions. It is assumed you have
+# created a version set with the same name as the Gitlab project namespace. That
+# is, if this repo lives in gitlab.example.com/acme/my-nso-project/, the
+# version-set is assumed to be in /version-sets/acme/ in the repo
+# gitlab.example.com/acme/nso-docker/
+include:
+  - project: ${CI_PROJECT_NAMESPACE}/nso-docker
+    file: /version-sets/${CI_PROJECT_NAMESPACE}/build-all.yaml
+
 # An alternative is to specify the build jobs manually, like so:
 #
 # build-5.3.1:

@@ -1,0 +1,35 @@
+push-4.7.10:
+  extends: .push
+  variables:
+    NSO_VERSION: "4.7.10"
+    NSO_VERSION_IS_TOT: "true"
+
+push-4.7.5:
+  extends: .push
+  variables:
+    NSO_VERSION: "4.7.5"
+    NSO_VERSION_IS_TOT: "false"
+
+push-4.7.6:
+  extends: .push
+  variables:
+    NSO_VERSION: "4.7.6"
+    NSO_VERSION_IS_TOT: "false"
+
+push-4.7.7:
+  extends: .push
+  variables:
+    NSO_VERSION: "4.7.7"
+    NSO_VERSION_IS_TOT: "false"
+
+push-4.7.8:
+  extends: .push
+  variables:
+    NSO_VERSION: "4.7.8"
+    NSO_VERSION_IS_TOT: "false"
+
+push-4.7.9:
+  extends: .push
+  variables:
+    NSO_VERSION: "4.7.9"
+    NSO_VERSION_IS_TOT: "false"
