@@ -46,13 +46,17 @@ Dockerfile: Dockerfile.in $(wildcard includes/*)
 .PHONY: Dockerfile
 
 
+DOCKER_BUILD_ARGS:= --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH)
+DOCKER_BUILD_ARGS+= --build-arg NSO_VERSION=$(NSO_VERSION)
+DOCKER_BUILD_ARGS+= --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG)
+DOCKER_BUILD_ARGS+= --progress=plain
 # We explicitly build the first 'build' stage, which allows us to control
 # caching of it through the DOCKER_BUILD_CACHE_ARG.
 build: export DOCKER_BUILDKIT=1
 build: ensure-fresh-nid-available Dockerfile
-	docker build --target build   -t $(IMAGE_PATH)$(PROJECT_NAME)/build:$(DOCKER_TAG)   --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) $(DOCKER_BUILD_CACHE_ARG) .
-	docker build --target testnso -t $(IMAGE_PATH)$(PROJECT_NAME)/testnso:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) .
-	docker build --target package -t $(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) .
+	docker build --target build   -t $(IMAGE_PATH)$(PROJECT_NAME)/build:$(DOCKER_TAG)   $(DOCKER_BUILD_ARGS)  $(DOCKER_BUILD_CACHE_ARG) .
+	docker build --target testnso -t $(IMAGE_PATH)$(PROJECT_NAME)/testnso:$(DOCKER_TAG) $(DOCKER_BUILD_ARGS) .
+	docker build --target package -t $(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) $(DOCKER_BUILD_ARGS) .
 
 push:
 	docker push $(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG)
