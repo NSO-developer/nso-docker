@@ -43,7 +43,11 @@ RUN mkdir -p /var/opt/ncs/packages /includes /src/test-packages; \
 # are all in /var/opt/ncs/packages, as that is the final location where they
 # will be placed. build-pyvenv fakes this by rewriting the path after building
 # the venv.
-RUN for PKG_SRC in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth 1 -type d); do \
+# The "--mount=type=cache ..." option is a Docker BuildKit feature that mounts a
+# (cached) path into the build container. In this case we use it to cache files
+# downloaded by pip.
+RUN --mount=type=cache,target=/root/.cache/pip \
+  for PKG_SRC in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth 1 -type d); do \
   /src/nid/build-pyvenv ${PKG_SRC}; \
   done
 

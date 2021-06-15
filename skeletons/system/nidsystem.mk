@@ -43,6 +43,7 @@ Dockerfile: Dockerfile.in $(wildcard includes/*)
 
 # We explicitly build the first 'build' stage, which allows us to control
 # caching of it through the DOCKER_BUILD_CACHE_ARG.
+build: export DOCKER_BUILDKIT=1
 build: ensure-fresh-nid-available Dockerfile
 	docker build --target build -t $(IMAGE_PATH)$(PROJECT_NAME)/build:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) $(DOCKER_BUILD_CACHE_ARG) .
 	docker build --target nso   -t $(IMAGE_PATH)$(PROJECT_NAME)/nso:$(DOCKER_TAG)   --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) .
