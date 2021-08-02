@@ -32,7 +32,6 @@ RUN \
        /opt/ncs/current/examples.ncs \
        /opt/ncs/current/include \
        /opt/ncs/current/lib/ncs-project \
-       /opt/ncs/current/lib/ncs/lib/confdc \
        /opt/ncs/current/lib/pyang \
        /opt/ncs/current/man \
        /opt/ncs/current/netsim/confd/erlang/econfd/doc \
