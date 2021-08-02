@@ -65,6 +65,7 @@ RUN apt-get update \
   iputils-ping \
   less \
   libexpat1 \
+  make \
   openssh-client \
   procps \
   python3 \
@@ -100,7 +101,6 @@ RUN echo "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sou
      libuv1 \
      libxml2-utils \
      logrotate \
-     make \
      man \
      mypy \
      openssl \
