@@ -73,8 +73,9 @@ RUN apt-get update \
   xmlstarlet \
   xsltproc \
   # install debugpy via pip3, then immediately remove pip3 from base
-  && apt-get install -qy --no-install-recommends python3-pip \
-  && pip3 install debugpy \
+  # setuptools is needed to install envtpl
+  && apt-get install -qy --no-install-recommends python3-pip python3-setuptools \
+  && pip3 install debugpy envtpl \
   && apt-get -qy purge python3-pip \
   && apt-get -qy autoremove \
   && apt-get clean \
