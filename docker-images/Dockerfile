@@ -71,6 +71,7 @@ RUN apt-get update \
   tcpdump \
   telnet \
   xmlstarlet \
+  xsltproc \
   # install debugpy via pip3, then immediately remove pip3 from base
   && apt-get install -qy --no-install-recommends python3-pip \
   && pip3 install debugpy \
@@ -111,7 +112,6 @@ RUN echo "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sou
      snmp \
      sshpass \
      vim-tiny \
-     xsltproc \
      ipython3 \
   && apt-get install -qy -t buster-backports \
      # paramiko is required by netconf-console
