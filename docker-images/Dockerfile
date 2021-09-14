@@ -32,7 +32,6 @@ RUN \
        /opt/ncs/current/examples.ncs \
        /opt/ncs/current/include \
        /opt/ncs/current/lib/ncs-project \
-       /opt/ncs/current/lib/ncs/lib/confdc \
        /opt/ncs/current/lib/pyang \
        /opt/ncs/current/man \
        /opt/ncs/current/netsim/confd/erlang/econfd/doc \
@@ -65,15 +64,18 @@ RUN apt-get update \
   iputils-ping \
   less \
   libexpat1 \
+  make \
   openssh-client \
   procps \
   python3 \
   tcpdump \
   telnet \
   xmlstarlet \
+  xsltproc \
   # install debugpy via pip3, then immediately remove pip3 from base
-  && apt-get install -qy --no-install-recommends python3-pip \
-  && pip3 install debugpy \
+  # setuptools is needed to install envtpl
+  && apt-get install -qy --no-install-recommends python3-pip python3-setuptools \
+  && pip3 install debugpy envtpl \
   && apt-get -qy purge python3-pip \
   && apt-get -qy autoremove \
   && apt-get clean \
@@ -83,6 +85,13 @@ RUN apt-get update \
   && groupadd ncsadmin \
   && usermod -a -G ncsadmin root
 
+# default shell is ["/bin/sh", "-c"]. We add -l so we get a login shell which
+# means the shell reads /etc/profile on startup. /etc/profile includes the files
+# in /etc/profile.d where we have ncs.sh that sets the right paths so we can
+# access ncsc and other NSO related tools. This makes it possible for
+# Dockerfiles, using this image as a base, to directly invoke make for NSO
+# package compilation.
+SHELL ["/bin/sh", "-lc"]
 
 FROM deb_base AS dev
 
@@ -100,7 +109,6 @@ RUN echo "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sou
      libuv1 \
      libxml2-utils \
      logrotate \
-     make \
      man \
      mypy \
      openssl \
@@ -112,7 +120,6 @@ RUN echo "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sou
      snmp \
      sshpass \
      vim-tiny \
-     xsltproc \
      ipython3 \
   && apt-get install -qy -t buster-backports \
      # paramiko is required by netconf-console
@@ -130,14 +137,6 @@ COPY --from=nso_install /etc/ncs /etc/ncs/
 COPY --from=nso_install /opt/ncs /opt/ncs/
 COPY --from=nso_install /nso /nso
 COPY extra-files/ /
-
-# default shell is ["/bin/sh", "-c"]. We add -l so we get a login shell which
-# means the shell reads /etc/profile on startup. /etc/profile includes the files
-# in /etc/profile.d where we have ncs.sh that sets the right paths so we can
-# access ncsc and other NSO related tools. This makes it possible for
-# Dockerfiles, using this image as a base, to directly invoke make for NSO
-# package compilation.
-SHELL ["/bin/sh", "-lc"]
 
 ENTRYPOINT ["/enter-shell.sh"]
 

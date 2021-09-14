@@ -95,6 +95,19 @@ COPY --from=build /src/test-packages/ /var/opt/ncs/packages/
 # /etc/ncs/pre-ncs-start.d/
 COPY extra-files /
 
+# Run the 'compose' target for *all* packages. In contrast to running the build
+# and test targets only on the packages that are part of this repository this
+# will run on included packages as well. This is an optional target implemented
+# when the package needs to run additional steps that are not part of the
+# building recipes. For example the package may change its behavior depending on
+# the types of NEDs loaded in the final NSO image. The set of NEDs is only known
+# when building the NSO image and not in the package repository.
+RUN for PKG in $(find /var/opt/ncs/packages -mindepth 1 -maxdepth 1 -type d); do \
+  if make -C ${PKG}/src -n compose >/dev/null 2>&1; then \
+    echo "Found 'compose' target in ${PKG}/src, executing ..."; \
+    make -C ${PKG}/src compose || exit 1; \
+  fi; \
+done
 
 # build a minimal image that only contains the package itself - perfect way to
 # distribute the compiled package by relying on Docker package registry
