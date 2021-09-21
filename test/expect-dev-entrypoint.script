@@ -5,7 +5,7 @@
 #
 
 set timeout 20
-spawn docker run -it $::env(NSO_IMAGE)
+spawn docker run -it --name $::env(CNT_NAME) $::env(NSO_IMAGE)
 expect -re "root@.*:/# \r.*Kroot@.*:/# "
 send -- "ls /proc/self/cgroup\r"
 expect -exact "ls /proc/self/cgroup\r"

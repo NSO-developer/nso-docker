@@ -104,7 +104,7 @@ test-dev-entrypoint:
 	@echo "-- Clean any already running containers with 'our' name"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Verify that starting the -dev image without args results in an interactive shell"
-	NSO_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) expect expect-dev-entrypoint.script
+	NSO_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) CNT_NAME=$(CNT_PREFIX)-$@ expect expect-dev-entrypoint.script
 	@echo "-- Clean up after us"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Verify docker run correctly passes arguments. In this case we should"
