@@ -5,12 +5,12 @@ test-5.1.6:
   needs:
     - build-5.1.6
 
-test-5.2.6:
+test-5.2.7:
   extends: .test
   variables:
-    NSO_VERSION: "5.2.6"
+    NSO_VERSION: "5.2.7"
   needs:
-    - build-5.2.6
+    - build-5.2.7
 
 test-5.3.4:
   extends: .test
