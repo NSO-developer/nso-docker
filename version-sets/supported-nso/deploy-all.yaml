@@ -158,6 +158,11 @@ deploy-5.4.4:
   variables:
     NSO_VERSION: "5.4.4"
 
+deploy-5.4.5:
+  extends: .deploy
+  variables:
+    NSO_VERSION: "5.4.5"
+
 deploy-5.5:
   extends: .deploy
   variables:
