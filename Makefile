@@ -41,6 +41,9 @@ export DOCKER_BUILD_CACHE_ARG
 .PHONY: all build build-all build-file test test-file test-file-multiver tag-release push-release $(NSO_BUILD) $(NSO_TEST)
 
 all:
+ifneq ($(NSO_VERSION),)
+	$(error The NSO_VERSION variable is set, you probably want 'make build' to build for NSO_VERSION; or unset NSO_VERSION to build for all NSO versions found in NSO_INSTALL_FILES_DIR)
+endif
 	@echo "The default make target will build Docker images out of all the NSO"
 	@echo "versions found in $(NSO_INSTALL_FILES_DIR). To also run the test"
 	@echo "suite for the built images, run 'make test-all'"
