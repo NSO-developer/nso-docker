@@ -1,0 +1,20 @@
+<high-availability xmlns="http://tail-f.com/ns/ncs">
+	<token>Very-Secret</token>
+	<ha-node>
+		<id>n1</id>
+		<address>N1_ADDRESS</address>
+		<nominal-role>master</nominal-role>
+	</ha-node>
+	<ha-node>
+		<id>n2</id>
+		<address>N2_ADDRESS</address>
+		<nominal-role>slave</nominal-role>
+	</ha-node>
+	<settings>
+		<reconnect-slaves>true</reconnect-slaves>
+		<start-up>
+			<assume-nominal-role>true</assume-nominal-role>
+			<join-ha>true</join-ha>
+		</start-up>
+	</settings>
+</high-availability>
