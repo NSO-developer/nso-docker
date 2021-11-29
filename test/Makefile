@@ -646,12 +646,16 @@ test-backup-restore:
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg a-value 1337\ncommit\nexit" | ncs_cli -u admin'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg-python encrypted-value 42\ncommit\nexit" | ncs_cli -u admin'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-python decrypt" | ncs_cli -u admin' | grep "cleartext: 42"
 	@echo "-- Taking backup ---------------------------------------------------------------"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs-backup'
 	docker cp $(CNT_PREFIX)-$@:/nso/run/backups ./tmp/backups
 	@echo "-- Do 'bad' change -------------------------------------------------------------"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg a-value 1338\ncommit\nexit" | ncs_cli -u admin'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg-python encrypted-value 43\ncommit\nexit" | ncs_cli -u admin'
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-python decrypt" | ncs_cli -u admin'
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@
 	@echo "-- Recreate the data volume to ensure everything was backed up -----------------"
@@ -669,6 +673,7 @@ test-backup-restore:
 	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin' | grep "a-value 1337;"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-python decrypt" | ncs_cli -u admin' | grep "cleartext: 42"
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@
 
