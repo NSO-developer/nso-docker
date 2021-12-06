@@ -53,7 +53,8 @@ build-ned-%:
 	docker build --target netsim  -t $(IMAGE_PATH)$(PROJECT_NAME)/netsim-$*:$(DOCKER_TAG)  --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) --build-arg NED_ID=$* .
 	docker build --target package -t $(IMAGE_PATH)$(PROJECT_NAME)/package-$*:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) --build-arg NED_ID=$* .
 
-DOCKER_BUILD_ARGS:= --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH)
+DOCKER_BUILD_ARGS:= --platform=linux/amd64
+DOCKER_BUILD_ARGS+= --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH)
 DOCKER_BUILD_ARGS+= --build-arg NSO_VERSION=$(NSO_VERSION)
 DOCKER_BUILD_ARGS+= --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG)
 DOCKER_BUILD_ARGS+= --progress=plain
