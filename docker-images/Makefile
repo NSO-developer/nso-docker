@@ -9,10 +9,13 @@ DOCKER_BUILD_PROXY_ARGS ?= --build-arg http_proxy --build-arg https_proxy --buil
 # it automatically figures out dependencies and the synchronization points it
 # needs. Unfortunately we cannot tell it to build multiple targets with a single
 # command, so we have to invoke it twice. The dev image is built first and then
-# the base image. For the base build, we don't inject the
+# the base image. For the base build, we don't inject the variable
 # $(DOCKER_BUILD_CACHE_ARG) since if the previous build of the dev target
 # invalidated any image layer due to caching, then the base target will be
-# rebuilt anyway.
+# rebuilt anyway. And if we did specify it, we wouldn't be able to use cached
+# image layers from just building the dev image, which entirely defeats caching.
+# We want $(DOCKER_BUILD_CACHE_ARG) to invalidate an earlier build run, not the
+# common image or image layers from this build run.
 build: export DOCKER_BUILDKIT=1
 build:
 	@echo "Building NSO development Docker image cisco-nso-dev:$(NSO_VERSION) based on $(FILE)"
