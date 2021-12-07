@@ -6,6 +6,8 @@ ifeq ($(NSO_VERSION),)
 FILENAME:=$(shell basename $(FILE))
 NSO_VERSION:=$(shell echo $(FILENAME) | sed -E -e 's/(ncs|nso)-([0-9.]*).linux.x86_64.installer.bin/\2/')
 endif
+NSO_VERSION_MAJOR=$(word 1,$(subst ., ,$(NSO_VERSION)))
+NSO_VERSION_MINOR=$(word 2,$(subst ., ,$(subst _, ,$(NSO_VERSION))))
 
 ifneq ($(CI_JOB_ID),)
 CNT_PREFIX:=ci-$(CI_JOB_ID)
@@ -72,6 +74,9 @@ test:
 	$(MAKE) test-cdb-default
 	$(MAKE) test-config-on-volume
 	$(MAKE) test-mounted-config
+	$(MAKE) test-no-ha
+	$(MAKE) test-ha-old
+	if [ $(NSO_VERSION_MAJOR) -ge 5 ] && [ $(NSO_VERSION_MINOR) -ge 4 ]; then $(MAKE) test-ha-new; fi
 
 	$(MAKE) test-multiver
 
@@ -393,13 +398,62 @@ test-no-ha:
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 
-test-ha:
+# This limited HA test is used on NSO < 5.4 where HA roles can only be assigned
+# in code. We could include a package that uses the HA API but the one from
+# examples is also broken ...
+test-ha-old:
 	@echo "\n== Verify we can enable HA via environment variable"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e HA_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Node starts up in 'none' mode"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show ncs-state ha mode" | ncs_cli -u admin' | grep "none"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+
+
+# This HA test sets up two nodes to verify HA operation. The nodes are
+# configured with the tailf-ncs-high-availability.yang module and is only
+# supported in NSO >= 5.4.
+test-ha-new:
+	@echo "\n== Verify we can enable HA via environment variable"
+	mkdir -p tmp-$@
+	-docker rm -f $(CNT_PREFIX)-$@-1 >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@-2 >/dev/null 2>&1
+	-docker volume rm $(CNT_PREFIX)-$@ > /dev/null 2>&1
+# The encryption keys must be kept in sync to ensure both nodes can decrypt
+# encrypted leaves. Create a volume for sharing the /nso/etc/ncs.crypto_keys
+# file between containers. Wait until the first container is up before starting
+# the second to avoid a race creating the file.
+	docker volume create $(CNT_PREFIX)-$@
+	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@-1 --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e HA_ENABLE=true -e NCS_HA_NODE=n1 -v $(CNT_PREFIX)-$@:/nso/etc $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'ncs --wait-started 600'
+	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@-2 --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e HA_ENABLE=true -e NCS_HA_NODE=n2 -v $(CNT_PREFIX)-$@:/nso/etc $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'ncs --wait-started 600'
+	@echo "-- Load HA config"
+	cp high-availability.xml tmp-$@/
+	sed -i "s/N1_ADDRESS/$$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@-1)/" tmp-$@/high-availability.xml
+	sed -i "s/N2_ADDRESS/$$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@-2)/" tmp-$@/high-availability.xml
+	docker cp tmp-$@/high-availability.xml $(CNT_PREFIX)-$@-1:/
+	docker cp tmp-$@/high-availability.xml $(CNT_PREFIX)-$@-2:/
+	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'ncs --mergexmlfiles /high-availability.xml'
+	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'ncs --mergexmlfiles /high-availability.xml'
+	@echo "-- Node starts up in 'none' mode"
+	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'echo "show ncs-state ha mode" | ncs_cli -u admin' | grep "none"
+	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'echo "show ncs-state ha mode" | ncs_cli -u admin' | grep "none"
+	@echo "-- Enable HA (n1=master)"
+	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'echo "request high-availability enable" | ncs_cli -u admin'
+	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'echo "request high-availability enable" | ncs_cli -u admin'
+	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'echo "show ncs-state ha mode" | ncs_cli -u admin' | grep "master"
+	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'echo "show ncs-state ha mode" | ncs_cli -u admin' | grep "slave"
+	@echo "-- Failover HA (n2=master)"
+	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'echo "request high-availability be-master" | ncs_cli -u admin'
+	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'echo "request high-availability be-slave-to node n2" | ncs_cli -u admin'
+	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'echo "show ncs-state ha mode" | ncs_cli -u admin' | grep "slave"
+	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'echo "show ncs-state ha mode" | ncs_cli -u admin' | grep "master"
+	rm -rf tmp-$@
+	-docker rm -f $(CNT_PREFIX)-$@-1 >/dev/null 2>&1
+	-docker rm -f $(CNT_PREFIX)-$@-2 >/dev/null 2>&1
+	-docker volume rm $(CNT_PREFIX)-$@ > /dev/null 2>&1
 
 
 test-docker-healthcheck:
