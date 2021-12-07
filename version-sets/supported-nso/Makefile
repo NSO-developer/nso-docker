@@ -23,10 +23,14 @@ multiver.yaml: versions.json
 versions.txt: versions.json
 	../version-gen versions.json --flat $@
 
+# list of dicts
+lod.json: versions.json
+	../version-gen versions.json --json-lod $@
+
 test-version-set.yaml:
 	sed -i 's/VERSION_SET:.*/VERSION_SET: "$(shell pwd | xargs basename)"/' test-version-set.yaml
 
 nso-docker.yaml: build-all.yaml multiver.yaml push-all.yaml test-version-set.yaml
 	cat build-all.yaml multiver.yaml push-all.yaml test-version-set.yaml > $@
 
-generate: $(SUBSETS_BUILD) $(SUBSETS_TEST) $(SUBSETS_DEPLOY) $(SUBSETS_PUSH) multiver.yaml versions.txt nso-docker.yaml
+generate: $(SUBSETS_BUILD) $(SUBSETS_TEST) $(SUBSETS_DEPLOY) $(SUBSETS_PUSH) lod.json multiver.yaml versions.txt nso-docker.yaml
