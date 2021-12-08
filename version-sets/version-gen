@@ -198,6 +198,24 @@ def write_flat(filename, versions):
     with open(filename, "w") as f:
         f.write("".join(map(lambda ver: ver.version + "\n", versions)))
 
+#
+# A list of dicts, which is suitable for use in GitHub Action job matrices
+# [
+#     {
+#         "version": "5.6"
+#     },
+#     {
+#         "version": "5.6.1"
+#     },
+#     {
+#         "version": "5.6.2"
+#     }
+# ]
+def write_json_lod(filename, versions):
+    with open(filename, "w") as f:
+        f.write(json.dumps(list(map(lambda ver: {"version": ver.version}, versions))))
+
+
 def write_multiver_test(filename, versions, needs):
     """
     For a given version, we want to test upgrading from the tip of train for
@@ -250,6 +268,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('version_file', metavar='version-file')
     parser.add_argument('--job')
+    parser.add_argument('--json-lod')
     parser.add_argument('--flat')
     parser.add_argument('--multiver')
     parser.add_argument('--needs')
@@ -257,6 +276,9 @@ if __name__ == '__main__':
 
     with open(args.version_file) as f:
         versions = sorted(list(map(lambda x: vsn_split(x), json.load(f))))
+
+    if args.json_lod is not None:
+        write_json_lod(args.json_lod, versions)
 
     if args.multiver is not None:
         write_multiver_test(args.multiver, versions, args.needs)
