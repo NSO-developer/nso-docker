@@ -40,12 +40,12 @@ test-5.5.3:
   needs:
     - build-5.5.3
 
-test-5.6.2:
+test-5.6.3:
   extends: .test
   variables:
-    NSO_VERSION: "5.6.2"
+    NSO_VERSION: "5.6.3"
   needs:
-    - build-5.6.2
+    - build-5.6.3
 
 test-5.7:
   extends: .test
