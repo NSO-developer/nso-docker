@@ -402,12 +402,12 @@ Do note that the example image URLs used above would be the result of the defaul
   NSO version 5.3 and newer supports ed25519 and will in fact default to using ed25519 as server host key on new installations but this behavior is suppressed for NSO in Docker and instead RSA is used as it is supported by all currently existing versions of NSO.
 
 * HTTPS TLS certificate
-  NSO expects to find a TLS certificate and key at =/nso/ssl/cert/host.cert= and =/nso/ssl/cert/host.key= respectively. Since the =/nso= path is usually on persistent shared volume for production setups, the certificate remains the same across restarts or upgrades.
+  NSO expects to find a TLS certificate and key at =/nso/etc/ssl/cert/host.cert= and =/nso/etc/ssl/cert/host.key= respectively. Since the =/nso= path is usually on persistent shared volume for production setups, the certificate remains the same across restarts or upgrades.
 
   When no certificate is present, one will be generated. It is a self-signed certificate valid for 30 days making it possible to use both in development and staging environments. It is *not* meant for production. You *should* replace it with a proper signed certificate for production and it is encouraged to do so even for test and staging environments. Simply generate one and place at the provided path, for example using the following, which is the command used to generate the temporary self-signed certificate:
   #+BEGIN_SRC shell
     openssl req -new -newkey rsa:4096 -x509 -sha256 -days 30 -nodes \
-            -out /nso/ssl/cert/host.cert -keyout /nso/ssl/cert/host.key \
+            -out /nso/etc/ssl/cert/host.cert -keyout /nso/etc/ssl/cert/host.key \
             -subj "/C=SE/ST=NA/L=/O=NSO/OU=WebUI/CN=Mr. Self-Signed"
   #+END_SRC
 

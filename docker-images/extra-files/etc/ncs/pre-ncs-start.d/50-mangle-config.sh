@@ -118,8 +118,8 @@ xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
 # conditionally enable webUI with TLS on port 443
 xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
            --update '/x:ncs-config/x:webui/x:transport/x:ssl/x:enabled' --value ${HTTPS_ENABLE} \
-           --update '/x:ncs-config/x:webui/x:transport/x:ssl/x:key-file' --value '/nso/ssl/cert/host.key' \
-           --update '/x:ncs-config/x:webui/x:transport/x:ssl/x:cert-file' --value '/nso/ssl/cert/host.cert' \
+           --update '/x:ncs-config/x:webui/x:transport/x:ssl/x:key-file' --value '${NCS_CONFIG_DIR}/ssl/cert/host.key' \
+           --update '/x:ncs-config/x:webui/x:transport/x:ssl/x:cert-file' --value '${NCS_CONFIG_DIR}/ssl/cert/host.cert' \
            $CONF_FILE
 
 # enable IPv6 for NETCONF northbound

@@ -22,6 +22,8 @@ RUN \
   rm -f /etc/ncs/ncs.crypto_keys \
   # wipe SSH keys
   rm -rf /etc/ncs/ssh \
+  # wipe SSL cert (remove the directory)
+  rm -rf /etc/ncs/ssl \
   # save the default aaa_init for later
   && mkdir -p /nid/cdb-default \
   && mv /nso/run/cdb/aaa_init.xml /nid/cdb-default/ \

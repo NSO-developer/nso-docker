@@ -167,12 +167,13 @@ fi
 cp -pr /nso/etc/ssh /etc/ncs/
 
 # generate SSL cert if one doesn't exist
-if [ ! -f /nso/ssl/cert/host.cert ]; then
+if [ ! -f /nso/etc/ssl/cert/host.cert ]; then
     echo "No SSL certs found, generating a self-signed one!"
-    mkdir -p /nso/ssl/cert
-    openssl req -new -newkey rsa:4096 -x509 -sha256 -days 30 -nodes -out /nso/ssl/cert/host.cert -keyout /nso/ssl/cert/host.key \
+    mkdir -p /nso/etc/ssl/cert
+    openssl req -new -newkey rsa:4096 -x509 -sha256 -days 30 -nodes -out /nso/etc/ssl/cert/host.cert -keyout /nso/etc/ssl/cert/host.key \
             -subj "/C=SE/ST=NA/L=/O=NSO/OU=WebUI/CN=Mr. Self-Signed"
 fi
+cp -pr /nso/etc/ssl /etc/ncs/
 
 # If necessary, i.e. if starting NSO 5 on a CDB written by NSO 4, compact CDB.
 # If there is no CDB on disk, ncs --cdb-debug-dump will return "Error..." and we
