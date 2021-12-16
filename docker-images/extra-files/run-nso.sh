@@ -157,13 +157,14 @@ else
     cat /nso/etc/ncs.crypto_keys >> /etc/ncs/ncs.crypto_keys
 fi
 
-
 # generate SSH key if one doesn't exist
-if [ ! -f /nso/ssh/ssh_host_rsa_key ]; then
+if [ ! -f /nso/etc/ssh/ssh_host_rsa_key ]; then
     echo "No SSH key found, generating one!"
-    mkdir /nso/ssh
-    ssh-keygen -m PEM -t rsa -f /nso/ssh/ssh_host_rsa_key -N ''
+    mkdir -p /nso/etc/ssh
+    ssh-keygen -m PEM -t rsa -f /nso/etc/ssh/ssh_host_rsa_key -N ''
 fi
+# copy the (generated) SSH keys from the volume to config dir
+cp -pr /nso/etc/ssh /etc/ncs/
 
 # generate SSL cert if one doesn't exist
 if [ ! -f /nso/ssl/cert/host.cert ]; then

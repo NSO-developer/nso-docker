@@ -395,7 +395,7 @@ Do note that the example image URLs used above would be the result of the defaul
    Restoring a NSO backup should move the current run directory (~/nso/run~ to ~/nso/run.old~) and restore the run directory from the backup to the main run directory (~/nso/run~). After this is done, shut down your temporary container and start the normal NSO container again as usual.
 
 * SSH host key
-  NSO looks for the SSH host key in the directory =/nso/ssh=. The filename differs based on the configured host key algorithm. NSO in Docker will use the RSA algorithm for host keys.
+  NSO looks for the SSH host key in the directory =/nso/etc/ssh=. The filename differs based on the configured host key algorithm. NSO in Docker will use the RSA algorithm for host keys.
 
   If no SSH host key exists, one will be generated. As it is stored in =/nso= which is typically a persistent shared volume in production setups, it will remain the same across restarts or upgrades of NSO.
 

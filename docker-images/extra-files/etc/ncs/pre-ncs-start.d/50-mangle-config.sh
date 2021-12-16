@@ -82,11 +82,10 @@ xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
     --value "${CLI_STYLE}" \
     $CONF_FILE
 
-# change SSH key dir and set host key algorithm
+# Set host key algorithm for NSO built-in SSH server.
 # In NSO 5.4 and later, there is no <ssh> node while in earlier versions, it
 # already exists. We first wipe the <ssh> node to avoid creating a duplicate.
 xmlstarlet edit --inplace -N x=http://tail-f.com/yang/tailf-ncs-config \
-           --update '/x:ncs-config/x:aaa/x:ssh-server-key-dir' --value '/nso/ssh' \
            --delete '/x:ncs-config/x:ssh' \
            -s '/x:ncs-config' -t elem -n 'ssh' \
            -s '/x:ncs-config/ssh' -t elem -n 'algorithms' \
