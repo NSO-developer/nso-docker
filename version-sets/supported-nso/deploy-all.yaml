@@ -43,6 +43,11 @@ deploy-5.2.8:
   variables:
     NSO_VERSION: "5.2.8"
 
+deploy-5.2.9:
+  extends: .deploy
+  variables:
+    NSO_VERSION: "5.2.9"
+
 deploy-5.3.3:
   extends: .deploy
   variables:
@@ -57,6 +62,16 @@ deploy-5.3.5:
   extends: .deploy
   variables:
     NSO_VERSION: "5.3.5"
+
+deploy-5.3.5.1:
+  extends: .deploy
+  variables:
+    NSO_VERSION: "5.3.5.1"
+
+deploy-5.4.2.1:
+  extends: .deploy
+  variables:
+    NSO_VERSION: "5.4.2.1"
 
 deploy-5.4.3:
   extends: .deploy
@@ -73,6 +88,11 @@ deploy-5.4.5:
   variables:
     NSO_VERSION: "5.4.5"
 
+deploy-5.4.5.2:
+  extends: .deploy
+  variables:
+    NSO_VERSION: "5.4.5.2"
+
 deploy-5.5.1:
   extends: .deploy
   variables:
@@ -83,10 +103,20 @@ deploy-5.5.2:
   variables:
     NSO_VERSION: "5.5.2"
 
+deploy-5.5.2.12:
+  extends: .deploy
+  variables:
+    NSO_VERSION: "5.5.2.12"
+
 deploy-5.5.3:
   extends: .deploy
   variables:
     NSO_VERSION: "5.5.3"
+
+deploy-5.5.4:
+  extends: .deploy
+  variables:
+    NSO_VERSION: "5.5.4"
 
 deploy-5.6.1:
   extends: .deploy
@@ -102,6 +132,11 @@ deploy-5.6.3:
   extends: .deploy
   variables:
     NSO_VERSION: "5.6.3"
+
+deploy-5.6.3.1:
+  extends: .deploy
+  variables:
+    NSO_VERSION: "5.6.3.1"
 
 deploy-5.7:
   extends: .deploy
