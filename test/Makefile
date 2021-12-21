@@ -42,13 +42,17 @@ OLD_DOCKER_TAG=$(DOCKER_TAG)
 endif
 endif
 
+ifneq ($(shell uname -m),x86_64)
+DOCKER_PLATFORM_ARG ?= $(DOCKER_PLATFORM_ARG)
+endif
+
 IPV6?=true
 
 .PHONY: test-post-start-script test-cdb-default
 
 build-test-image:
 	@echo "\n== Building test Docker image"
-	docker build --platform=linux/amd64 $(DOCKER_BUILD_CACHE_ARG) -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) --build-arg BASE_IMAGE=$(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) --build-arg BUILD_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) .
+	docker build $(DOCKER_PLATFORM_ARG) $(DOCKER_BUILD_CACHE_ARG) -t $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG) --build-arg BASE_IMAGE=$(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) --build-arg BUILD_IMAGE=$(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) .
 
 test:
 	$(MAKE) build-test-image
@@ -118,18 +122,18 @@ test-dev-entrypoint:
 	@echo "   is run in our normal shell invoked by make, outside of the container."
 	@echo "   It is only the last arguments to docker run that are fed into the"
 	@echo "   container entrypoint."
-	docker run -t --rm --platform=linux/amd64 $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) ls /proc/self/cgroup | grep /proc/self/cgroup
+	docker run -t --rm $(DOCKER_PLATFORM_ARG) $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) ls /proc/self/cgroup | grep /proc/self/cgroup
 	@echo "-- Verify docker run works with nested call to bash -lc. In particular"
 	@echo "   that quoted inner argument works for preserving white space. Test"
 	@echo "   by passing argument with whitespace to 'cat' and verify error"
 	@echo "   message is as expected."
-	docker run -t --rm --platform=linux/amd64 $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) bash -lc 'cat "foo bar"' | grep "cat: 'foo bar': No such file or directory"
+	docker run -t --rm $(DOCKER_PLATFORM_ARG) $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) bash -lc 'cat "foo bar"' | grep "cat: 'foo bar': No such file or directory"
 
 
 test-shutdown:
 	@echo "\n== Verify normal shutdown (using docker stop) of container works and exits with code 0"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker stop $(CNT_PREFIX)-$@
 	docker logs $(CNT_PREFIX)-$@ | grep "NCS stopping"
@@ -147,7 +151,7 @@ test-error-exit-code:
 	-docker volume rm -f $(CNT_PREFIX)-$@
 	docker volume create $(CNT_PREFIX)-$@
 	@echo "-- Start NSO to write initial CDB"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Stop NSO, wait for it to stop and clean up"
 	docker stop $(CNT_PREFIX)-$@
@@ -156,7 +160,7 @@ test-error-exit-code:
 	docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Break the CDB persisted in the volume"
-	docker run --rm --platform=linux/amd64 --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) bash -lc "echo 'BROKEN' > /nso/run/cdb/A.cdb"
+	docker run --rm $(DOCKER_PLATFORM_ARG) --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG) bash -lc "echo 'BROKEN' > /nso/run/cdb/A.cdb"
 	@echo "-- Start NSO in foreground - it should exit on CDB failure"
 	-docker run --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker inspect --format '{{.State.Running}}' $(CNT_PREFIX)-$@ | grep -q "false"
@@ -171,7 +175,7 @@ test-ncs-stop:
 	@echo "-- Clean any already running containers with 'our' name"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Start NSO container"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Stop NSO - ignoring return code because NSO 5.4 returns non-0, which should be fine here, as long as main return code, as seen by docker inspect, is 0"
@@ -190,7 +194,7 @@ test-admin-user:
 	@echo "-- Clean any already running containers with 'our' name"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Start NSO container with admin password"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e ADMIN_PASSWORD=foobar $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e ADMIN_PASSWORD=foobar $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Test that SSH login works"
@@ -204,7 +208,7 @@ test-admin-user-custom:
 	@echo "-- Clean any already running containers with 'our' name"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Start NSO container with admin password"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e ADMIN_USERNAME=kalle -e ADMIN_PASSWORD=foobar $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e ADMIN_USERNAME=kalle -e ADMIN_PASSWORD=foobar $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Test that SSH login works"
@@ -218,7 +222,7 @@ test-admin-user-sshkey:
 	@echo "-- Clean any already running containers with 'our' name"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Start NSO container with admin password"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e ADMIN_SSHKEY="$(shell cat test_ssh_key.pub)" $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e ADMIN_SSHKEY="$(shell cat test_ssh_key.pub)" $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Test that SSH login works"
@@ -236,7 +240,7 @@ test-post-start-script:
 	@echo "-- Clean any already running containers with 'our' name"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Start NSO container with admin password"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(CNT_PREFIX)-$@
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(CNT_PREFIX)-$@
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Verify that our post-start script ran by grepping in the container log"
@@ -256,12 +260,12 @@ test-ssh-custom-port:
 	@echo "-- Create network"
 	docker network inspect $(CNT_PREFIX)-$@ >/dev/null 2>&1 || docker network create $(CNT_PREFIX)-$@ $(shell [ "$(IPV6)" = "true" ] && LC_ALL=C && echo --ipv6 --subnet $${IPV6_NET:-fd00:$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):}:/64)
 	@echo "-- Start NSO container with admin password"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ -e SSH_PORT=2024 $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ -e SSH_PORT=2024 $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Test that SSH is listening on expected port"
-	docker run --rm --platform=linux/amd64 --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) ssh-keyscan -p 2024 $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) | grep "Connection refused"; test $$? -eq 1
-	docker run --rm --platform=linux/amd64 --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) ssh-keyscan -p 2024 $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.GlobalIPv6Address}}{{end}}' $(CNT_PREFIX)-$@) | grep "Connection refused"; test $$? -eq 1
+	docker run --rm $(DOCKER_PLATFORM_ARG) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) ssh-keyscan -p 2024 $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) | grep "Connection refused"; test $$? -eq 1
+	docker run --rm $(DOCKER_PLATFORM_ARG) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) ssh-keyscan -p 2024 $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.GlobalIPv6Address}}{{end}}' $(CNT_PREFIX)-$@) | grep "Connection refused"; test $$? -eq 1
 	@echo "-- Remove the container"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	-docker network rm $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -275,13 +279,13 @@ test-netconf:
 	@echo "-- Create network"
 	docker network inspect $(CNT_PREFIX)-$@ >/dev/null 2>&1 || docker network create $(CNT_PREFIX)-$@ $(shell [ "$(IPV6)" = "true" ] && LC_ALL=C && echo --ipv6 --subnet $${IPV6_NET:-fd00:$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):}:/64)
 	@echo "-- Start NSO container with admin password"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ --env ADMIN_PASSWORD=admin $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ --env ADMIN_PASSWORD=admin $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Test that NETCONF works on port 830"
-	docker run --rm --platform=linux/amd64 --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) netconf-console --host $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) --port 830 --hello >/dev/null
+	docker run --rm $(DOCKER_PLATFORM_ARG) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) netconf-console --host $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) --port 830 --hello >/dev/null
 	@echo "-- NETCONF <hello> received"
-	docker run --rm --platform=linux/amd64 --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) netconf-console --host $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.GlobalIPv6Address}}{{end}}' $(CNT_PREFIX)-$@) --port 830 --hello >/dev/null
+	docker run --rm $(DOCKER_PLATFORM_ARG) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) netconf-console --host $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.GlobalIPv6Address}}{{end}}' $(CNT_PREFIX)-$@) --port 830 --hello >/dev/null
 	@echo "-- NETCONF <hello> received over IPv6"
 	@echo "-- Remove the container"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -291,7 +295,7 @@ test-netconf:
 test-http-disabled:
 	@echo "\n== Verify that the HTTP webUI is disabled per default"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	curl --noproxy '*' $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
 	@echo "Connection to HTTP TCP port 80 was refused, I'm happy"
@@ -301,7 +305,7 @@ test-http-disabled:
 test-https-disabled:
 	@echo "\n== Verify that the HTTP webUI is disabled per default"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	curl --noproxy '*' https://$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
 	@echo "Connection to HTTPS TCP port 443 was refused, I'm happy"
@@ -315,18 +319,18 @@ test-http-enabled:
 	@echo "-- Create network"
 	docker network inspect $(CNT_PREFIX)-$@ >/dev/null 2>&1 || docker network create $(CNT_PREFIX)-$@ $(shell [ "$(IPV6)" = "true" ] && LC_ALL=C && echo --ipv6 --subnet $${IPV6_NET:-fd00:$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):}:/64)
 	@echo "-- Start NSO container with admin password"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ --env HTTP_ENABLE=true --env ADMIN_PASSWORD=admin $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ --env HTTP_ENABLE=true --env ADMIN_PASSWORD=admin $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
-	docker run --rm --platform=linux/amd64 --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) >/dev/null
+	docker run --rm $(DOCKER_PLATFORM_ARG) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) >/dev/null
 	@echo "Connection to HTTP (TCP port 80) was accepted, I'm happy"
 	@echo "\n== Verify that the HTTP webUI works over IPv6 when enabled"
-	docker run --rm --platform=linux/amd64 --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' -g http://[$$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.GlobalIPv6Address}}{{end}}' $(CNT_PREFIX)-$@)] >/dev/null
+	docker run --rm $(DOCKER_PLATFORM_ARG) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' -g http://[$$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.GlobalIPv6Address}}{{end}}' $(CNT_PREFIX)-$@)] >/dev/null
 	@echo "Connection to HTTP (TCP port 80) via IPv6 was accepted, I'm happy"
 	@echo "\n== Verify that RESTCONF works over HTTP when enabled"
-	docker run --rm --platform=linux/amd64 --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl -u admin:admin --noproxy '*' -H "Accept: application/yang-data+xml" http://$$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@)/restconf | grep yang-library-version >/dev/null
+	docker run --rm $(DOCKER_PLATFORM_ARG) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl -u admin:admin --noproxy '*' -H "Accept: application/yang-data+xml" http://$$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@)/restconf | grep yang-library-version >/dev/null
 	@echo "Connection to RESTCONF (TCP port 80) was accepted, I'm happy"
 	@echo "\n== Verify that RESTCONF works over HTTP and IPv6 when enabled"
-	docker run --rm --platform=linux/amd64 --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl -u admin:admin --noproxy '*' -H "Accept: application/yang-data+xml" -g http://[$$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.GlobalIPv6Address}}{{end}}' $(CNT_PREFIX)-$@)]/restconf | grep yang-library-version >/dev/null
+	docker run --rm $(DOCKER_PLATFORM_ARG) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl -u admin:admin --noproxy '*' -H "Accept: application/yang-data+xml" -g http://[$$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.GlobalIPv6Address}}{{end}}' $(CNT_PREFIX)-$@)]/restconf | grep yang-library-version >/dev/null
 	@echo "Connection to RESTCONF (TCP port 80) via IPv6 was accepted, I'm happy"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	-docker network rm $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -339,18 +343,18 @@ test-https-enabled:
 	@echo "-- Create network"
 	docker network inspect $(CNT_PREFIX)-$@ >/dev/null 2>&1 || docker network create $(CNT_PREFIX)-$@ $(shell [ "$(IPV6)" = "true" ] && LC_ALL=C && echo --ipv6 --subnet $${IPV6_NET:-fd00:$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):}:/64)
 	@echo "-- Start NSO container with admin password"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true --env ADMIN_PASSWORD=admin $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ --env HTTPS_ENABLE=true --env ADMIN_PASSWORD=admin $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
-	docker run --rm --platform=linux/amd64 --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' --insecure https://$$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) >/dev/null
+	docker run --rm $(DOCKER_PLATFORM_ARG) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' --insecure https://$$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) >/dev/null
 	@echo "Connection to HTTPS (TLS/TCP port 443) was accepted, I'm happy"
 	@echo "\n== Verify that the HTTPS webUI works over IPv6 when enabled"
-	docker run --rm --platform=linux/amd64 --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' --insecure -g https://[$$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.GlobalIPv6Address}}{{end}}' $(CNT_PREFIX)-$@)] >/dev/null; \
+	docker run --rm $(DOCKER_PLATFORM_ARG) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' --insecure -g https://[$$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.GlobalIPv6Address}}{{end}}' $(CNT_PREFIX)-$@)] >/dev/null; \
 	echo "Connection to HTTPS (TLS/TCP port 443) via IPv6 was accepted, I'm happy"
 	@echo "\n== Verify that RESTCONF works over HTTPS when enabled"
-	docker run --rm --platform=linux/amd64 --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl -u admin:admin --noproxy '*' --insecure -H "Accept: application/yang-data+xml" https://$$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@)/restconf | grep yang-library-version >/dev/null
+	docker run --rm $(DOCKER_PLATFORM_ARG) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl -u admin:admin --noproxy '*' --insecure -H "Accept: application/yang-data+xml" https://$$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@)/restconf | grep yang-library-version >/dev/null
 	@echo "Connection to RESTCONF (TLS/TCP port 443) was accepted, I'm happy"
 	@echo "\n== Verify that RESTCONF works over HTTPS and IPv6 when enabled"
-	docker run --rm --platform=linux/amd64 --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl -u admin:admin --noproxy '*' --insecure -H "Accept: application/yang-data+xml" -g https://[$$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.GlobalIPv6Address}}{{end}}' $(CNT_PREFIX)-$@)]/restconf | grep yang-library-version >/dev/null
+	docker run --rm $(DOCKER_PLATFORM_ARG) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl -u admin:admin --noproxy '*' --insecure -H "Accept: application/yang-data+xml" -g https://[$$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.GlobalIPv6Address}}{{end}}' $(CNT_PREFIX)-$@)]/restconf | grep yang-library-version >/dev/null
 	@echo "Connection to RESTCONF (TCP port 443) via IPv6 was accepted, I'm happy"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	-docker network rm $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -359,7 +363,7 @@ test-https-enabled:
 test-java:
 	@echo "\n== Verify that a java package works"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-java java-test" | ncs_cli -u admin' | grep "Hello world from Java"
@@ -369,7 +373,7 @@ test-java:
 test-python:
 	@echo "\n== Verify that a Python package works"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin' | grep oper-status.up | wc -l | grep '^\s*5$$'
@@ -383,7 +387,7 @@ test-python:
 test-python-dap:
 	@echo "\n== Verify that Python remote debugging works (via Debug Adapter Protocol)"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e DEBUGPY=python-test-package $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e DEBUGPY=python-test-package $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	NSO_IP=$$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) expect expect-dap.script
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -392,7 +396,7 @@ test-python-dap:
 test-no-ha:
 	@echo "\n== Verify HA is disabled per default"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show ncs-state ha mode" | ncs_cli -u admin' | grep "No entries found"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -404,7 +408,7 @@ test-no-ha:
 test-ha-old:
 	@echo "\n== Verify we can enable HA via environment variable"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e HA_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e HA_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Node starts up in 'none' mode"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show ncs-state ha mode" | ncs_cli -u admin' | grep "none"
@@ -425,9 +429,9 @@ test-ha-new:
 # file between containers. Wait until the first container is up before starting
 # the second to avoid a race creating the file.
 	docker volume create $(CNT_PREFIX)-$@
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@-1 --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e HA_ENABLE=true -e NCS_HA_NODE=n1 -v $(CNT_PREFIX)-$@:/nso/etc $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@-1 --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e HA_ENABLE=true -e NCS_HA_NODE=n1 -v $(CNT_PREFIX)-$@:/nso/etc $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'ncs --wait-started 600'
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@-2 --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e HA_ENABLE=true -e NCS_HA_NODE=n2 -v $(CNT_PREFIX)-$@:/nso/etc $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@-2 --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e HA_ENABLE=true -e NCS_HA_NODE=n2 -v $(CNT_PREFIX)-$@:/nso/etc $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'ncs --wait-started 600'
 	@echo "-- Load HA config"
 	cp high-availability.xml tmp-$@/
@@ -460,7 +464,7 @@ test-docker-healthcheck:
 	@echo "\n== Verify that docker healthcheck works"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Starting cisco-nso test container -------------------------------------------"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	@echo "-- Ensuring health is 'starting' -----------------------------------------------"
 	docker inspect --format='{{.State.Health.Status}}' $(CNT_PREFIX)-$@ | grep "starting"
 	@echo "-- Waiting for NCS to start ----------------------------------------------------"
@@ -495,7 +499,7 @@ test-cdb-default:
 	@echo "-- Clean any already running containers with 'our' name"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Start NSO container with admin password"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(CNT_PREFIX)-$@
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(CNT_PREFIX)-$@
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Verify that our post-start script ran by grepping in the container log"
@@ -517,29 +521,29 @@ test-config-on-volume:
 	-docker volume rm -f $(CNT_PREFIX)-$@
 	docker volume create $(CNT_PREFIX)-$@
 	@echo "-- Start NSO to let it generate an ncs.conf with HTTP enabled"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env HTTP_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env HTTP_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Verify HTTP is enabled"
-	docker run --rm --platform=linux/amd64 --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) >/dev/null
+	docker run --rm $(DOCKER_PLATFORM_ARG) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) >/dev/null
 	@echo "-- Copy the config file to the persistent volume"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'cp /etc/ncs/ncs.conf /nso/etc/ncs.conf'
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@
 	@echo "-- Start NSO, without enabling HTTP (but it should be enabled since we now use config from volume)"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Verify HTTP is enabled"
-	docker run --rm --platform=linux/amd64 --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) >/dev/null
+	docker run --rm $(DOCKER_PLATFORM_ARG) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) >/dev/null
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@
 	@echo "-- Start NSO, forcing config mangling and explicitly disable HTTP"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env MANGLE_CONFIG=true --env HTTP_ENABLE=false $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env MANGLE_CONFIG=true --env HTTP_ENABLE=false $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Verify HTTP is disabled"
-	docker run --rm --platform=linux/amd64 --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
+	docker run --rm $(DOCKER_PLATFORM_ARG) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	-docker network rm $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	-docker volume rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -552,11 +556,11 @@ test-mounted-config:
 	@echo "-- Create network"
 	docker network inspect $(CNT_PREFIX)-$@ >/dev/null 2>&1 || docker network create $(CNT_PREFIX)-$@ $(shell [ "$(IPV6)" = "true" ] && LC_ALL=C && echo --ipv6 --subnet $${IPV6_NET:-fd00:$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):$$(< /dev/urandom tr -dc a-f0-9 | head -c4):}:/64)
 	@echo "-- Start NSO to let it generate an ncs.conf with HTTP enabled"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env HTTP_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --network $(CNT_PREFIX)-$@ -v $(CNT_PREFIX)-$@:/nso --env HTTP_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Verify HTTP is enabled"
-	docker run --rm --platform=linux/amd64 --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) >/dev/null
+	docker run --rm $(DOCKER_PLATFORM_ARG) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) >/dev/null
 	@echo "-- Copy the config file to our temp dir"
 	mkdir -p tmp-$@
 	docker cp $(CNT_PREFIX)-$@:/etc/ncs/ncs.conf tmp-$@/ncs.conf
@@ -570,7 +574,7 @@ test-mounted-config:
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Verify HTTP is enabled"
-	docker run --rm --platform=linux/amd64 --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) >/dev/null
+	docker run --rm $(DOCKER_PLATFORM_ARG) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) >/dev/null
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@
 	@echo "-- Start NSO, forcing config mangling and explicitly disable HTTP"
@@ -581,7 +585,7 @@ test-mounted-config:
 	@echo "-- Wait for NSO in container to start"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	@echo "-- Verify HTTP is disabled"
-	docker run --rm --platform=linux/amd64 --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
+	docker run --rm $(DOCKER_PLATFORM_ARG) --network $(CNT_PREFIX)-$@ $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) curl --noproxy '*' $$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@) 2>&1 | grep "Connection refused"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	-docker network rm $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	rm -rf tmp-$@
@@ -598,7 +602,7 @@ test-cdb-persistence:
 	-docker volume rm -f $(CNT_PREFIX)-$@
 	docker volume create $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container -------------------------------------------"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(OLD_DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(OLD_DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin'
 	@echo "-- Store a value ---------------------------------------------------------------"
@@ -612,7 +616,7 @@ test-cdb-persistence:
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container (second time) -----------------------------"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg-python" | ncs_cli -u admin'
 	@echo "-- Validate stored value -------------------------------------------------------"
@@ -641,7 +645,7 @@ test-backup-restore:
 	@echo "-- If NONEMPTY_VOLUME=true, create a file in volume, so the volume is non-empty --------------------------------"
 	[ "$(NONEMPTY_VOLUME)" = "true" ] && docker run -t --rm --name $(CNT_PREFIX)-$@-helper --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/vol $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) touch /vol/foo || true
 	@echo "-- Starting cisco-nso test container -------------------------------------------"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(OLD_DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(OLD_DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg a-value 1337\ncommit\nexit" | ncs_cli -u admin'
@@ -666,14 +670,14 @@ test-backup-restore:
 	@echo "-- If NONEMPTY_VOLUME=true, create a file in volume, so the volume is non-empty --------------------------------"
 	[ "$(NONEMPTY_VOLUME)" = "true" ] && docker run -t --rm --name $(CNT_PREFIX)-$@-helper --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/vol $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) touch /vol/foo || true
 	@echo "-- Restore from backup ---------------------------------------------------------"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@-helper --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(OLD_DOCKER_TAG) bash -lc 'read DUMMY'
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@-helper --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(OLD_DOCKER_TAG) bash -lc 'read DUMMY'
 	docker exec -t $(CNT_PREFIX)-$@-helper mkdir -p /nso/run /nso/etc
 	docker cp tmp/backups/. $(CNT_PREFIX)-$@-helper:/nso/run/backups
 	docker cp tmp/ncs.crypto_keys $(CNT_PREFIX)-$@-helper:/nso/etc/ncs.crypto_keys
 	docker exec -t $(CNT_PREFIX)-$@-helper bash -lc "ncs-backup --restore /nso/run/backups/*.gz --non-interactive"
 	docker rm -f $(CNT_PREFIX)-$@-helper
 	@echo "-- Starting cisco-nso test container (second time) -----------------------------"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin' | grep "a-value 1337;"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-python decrypt" | ncs_cli -u admin' | grep "cleartext: 42"
@@ -689,11 +693,11 @@ test-run-time-ssh-key-gen:
 	mkdir -p tmp
 	rm -rf tmp/testrtskg*
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(DOCKER_REGISTRY)cisco-nso-base:$(OLD_DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(DOCKER_REGISTRY)cisco-nso-base:$(OLD_DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | awk '{ print $$3 }' > tmp/testrtskg1
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | awk '{ print $$3 }' > tmp/testrtskg2
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -711,13 +715,13 @@ test-persistent-ssh-key:
 	docker volume create $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container, first invocation -------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(OLD_DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(OLD_DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | awk '{ print $$3 }' > tmp/testpsk1
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Starting cisco-nso test container, second invocation ------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	ssh-keyscan $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@) | awk '{ print $$3 }' > tmp/testpsk2
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -735,12 +739,12 @@ test-run-time-ssl-cert-gen:
 	mkdir -p tmp
 	rm -rf tmp/testrtscg*
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(OLD_DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(OLD_DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/testrtscg1
 
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/testrtscg2
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
@@ -759,13 +763,13 @@ test-persistent-ssl-cert:
 	@echo "-- Creating volume for cisco-nso test container --------------------------------"
 	docker volume create $(CNT_PREFIX)-$@
 	@echo "-- Starting cisco-nso test container, first invocation -------------------------"
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(OLD_DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(OLD_DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/$@-1
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Starting cisco-nso test container, second invocation ------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
-	docker run -td --platform=linux/amd64 --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso --env HTTPS_ENABLE=true $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc "ncs --wait-started 600"
 	echo | openssl s_client -showcerts -connect $$(docker inspect --format '{{.NetworkSettings.IPAddress}}' $(CNT_PREFIX)-$@):443 2>/dev/null | openssl x509 -inform pem -noout -text > tmp/$@-2
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
