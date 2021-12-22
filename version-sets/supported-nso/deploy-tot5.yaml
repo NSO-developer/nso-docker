@@ -43,6 +43,11 @@ deploy-5.5.2.12:
   variables:
     NSO_VERSION: "5.5.2.12"
 
+deploy-5.5.4.1:
+  extends: .deploy
+  variables:
+    NSO_VERSION: "5.5.4.1"
+
 deploy-5.6.3:
   extends: .deploy
   variables:
