@@ -22,8 +22,8 @@
 
 include nidcommon.mk
 
-NED_IDS:=$(shell for ned_dir in $$(ls $(PROJECT_DIR)/packages/*/src/package-meta-data.xml*); do basename $$(dirname $$(dirname $${ned_dir})); done)
-LATEST_NED_ID:=$(shell echo $(NED_IDS) | tr " " "\n" | sort -V | tail -n1)
+NED_DIRS:=$(shell for ned_dir in $$(ls $(PROJECT_DIR)/packages/*/src/package-meta-data.xml*); do basename $$(dirname $$(dirname $${ned_dir})); done)
+LATEST_NED_DIR:=$(shell echo $(NED_DIRS) | tr " " "\n" | sort -V | tail -n1)
 
 all:
 	$(MAKE) build
@@ -50,11 +50,11 @@ Dockerfile: Dockerfile.in $(wildcard includes/*)
 
 
 build-ned-%:
-	docker build --target netsim  -t $(IMAGE_PATH)$(PROJECT_NAME)/netsim-$*:$(DOCKER_TAG)  --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) --build-arg NED_ID=$* .
-	docker build --target package -t $(IMAGE_PATH)$(PROJECT_NAME)/package-$*:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) --build-arg NED_ID=$* .
+	docker build --target netsim  -t $(IMAGE_PATH)$(PROJECT_NAME)/netsim-$*:$(DOCKER_TAG)  --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) --build-arg NED_DIR=$* .
+	docker build --target package -t $(IMAGE_PATH)$(PROJECT_NAME)/package-$*:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) --build-arg NED_DIR=$* .
 
 DOCKER_BUILD_ARGS:= --platform=linux/amd64
-DOCKER_BUILD_ARGS+= --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH)
+DOCKER_BUILD_ARGS:= --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH)
 DOCKER_BUILD_ARGS+= --build-arg NSO_VERSION=$(NSO_VERSION)
 DOCKER_BUILD_ARGS+= --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG)
 DOCKER_BUILD_ARGS+= --progress=plain
@@ -64,12 +64,12 @@ build: export DOCKER_BUILDKIT=1
 build: ensure-fresh-nid-available Dockerfile
 	docker build --target build   -t $(IMAGE_PATH)$(PROJECT_NAME)/build:$(DOCKER_TAG)   $(DOCKER_BUILD_ARGS) $(DOCKER_BUILD_CACHE_ARG) .
 	docker build --target testnso -t $(IMAGE_PATH)$(PROJECT_NAME)/testnso:$(DOCKER_TAG) $(DOCKER_BUILD_ARGS) .
-# We build the "package" image without providing the NED_ID build-arg. The
+# We build the "package" image without providing the NED_DIR build-arg. The
 # resulting image includes all packages found in the packages directory.
 	docker build --target package -t $(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) $(DOCKER_BUILD_ARGS) .
-	$(MAKE) $(addprefix build-ned-,$(NED_IDS))
+	$(MAKE) $(addprefix build-ned-,$(NED_DIRS))
 # Tag the latest netsim image without including the ned-id, just "netsim"
-	docker tag $(IMAGE_PATH)$(PROJECT_NAME)/netsim-$(LATEST_NED_ID):$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(DOCKER_TAG)
+	docker tag $(IMAGE_PATH)$(PROJECT_NAME)/netsim-$(LATEST_NED_DIR):$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(DOCKER_TAG)
 
 push-ned-%:
 	docker push $(IMAGE_PATH)$(PROJECT_NAME)/package-$*:$(DOCKER_TAG)
@@ -78,7 +78,7 @@ push-ned-%:
 push:
 	docker push $(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG)
 	docker push $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(DOCKER_TAG)
-	$(MAKE) $(addprefix push-ned-,$(NED_IDS))
+	$(MAKE) $(addprefix push-ned-,$(NED_DIRS))
 
 tag-release-ned-%:
 	docker tag $(IMAGE_PATH)$(PROJECT_NAME)/package-$*:$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME)/package-$*:$(NSO_VERSION)
@@ -87,7 +87,7 @@ tag-release-ned-%:
 tag-release:
 	docker tag $(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME)/package:$(NSO_VERSION)
 	docker tag $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(NSO_VERSION)
-	$(MAKE) $(addprefix tag-release-ned-,$(NED_IDS))
+	$(MAKE) $(addprefix tag-release-ned-,$(NED_DIRS))
 
 push-release-ned-%:
 	docker push $(IMAGE_PATH)$(PROJECT_NAME)/package-$*:$(NSO_VERSION)
@@ -96,7 +96,7 @@ push-release-ned-%:
 push-release:
 	docker push $(IMAGE_PATH)$(PROJECT_NAME)/package:$(NSO_VERSION)
 	docker push $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(NSO_VERSION)
-	$(MAKE) $(addprefix push-release-ned-,$(NED_IDS))
+	$(MAKE) $(addprefix push-release-ned-,$(NED_DIRS))
 
 
 dev-shell:
