@@ -50,6 +50,16 @@
        - do note however that it is the ONLY step that needs customization to achieve (CI) testing of a NED
        - modify the file at =test/device-config-hostname.xml=
 
+** Building multiple versions of a NED
+   A very common task in the lifecycle of a NED is upgrading the device model. A new version of a device model with backwards incompatible changes usually defines a new ned-id. This allows users to load both old and version of the package in their NSO instance and migrate the devices at their leisure. To build multiple versions of the package in the same NED repository just place the directories in the =packages= directory. For example, the =packages= directory contains =ned-foo-1.0= and =ned-foo-2.0= directories. The build script will automatically create additional docker images with the tags:
+   - "repo/package" contains all versions (all directories)
+   - "repo/package-ned-foo-1.0" contains just the package with the name =ned-foo-1.0=
+   - "repo/package-ned-foo-2.0" contains just the package with the name =ned-foo-2.0=
+   - "repo/testnso" contains all versions
+   - "repo/netsim" contains just the latest version
+   - "repo/netsim-ned-foo-1.0" contains just the package with the name =ned-foo-1.0=
+   - "repo/netsim-ned-foo-2.0" contains just the package with the name =ned-foo-2.0=
+
 ** The test environment - testenv
    A =testenv= is a standardized test environment that contains recipes for
    creating and tearing down all the containers, as well as configuration for
@@ -187,7 +197,7 @@
   - =Makefile=: repository specific Makefile, while it comes with the skeleton, this is meant to be customized for each project
   - =run-netsim.sh=: A Docker entrypoint script for running a netsim container
   - =testenvs/=: Directory containing the testenvs, with subdirectories for each testenv. While a "quick" testenv comes with the skeleton, this is meant to be customized for each project
-  - =packages/=: Standard location for placing the NSO package for the NED itself. Despite plural, only supposed to be one NED package (other skeletons in the NID ecosystem supports multiple packages)
+  - =packages/=: Standard location for placing the NSO package for the NED itself. Supports multiple packages - for example multiple versions of the same NED like =packages/ned-foo-1.0= and =packages/ned-foo-2.0=.
   - =test-packages/=: Standard location for placing NSO packages for testing. These are included in the =testnso= container that can be used to test the NED but aren't included in the final output.
   - =includes/=: Standard location for placing manifests for including externally built packages
   - =extra-files/=: Standard location for placing extra files to be included in the =testnso=. Files are relative to the image file system root, i.e. create =extra-files/tmp/foobar= to have it placed at =/tmp/foobar= in the Docker image.
