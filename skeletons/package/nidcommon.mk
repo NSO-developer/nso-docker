@@ -188,4 +188,5 @@ ensure-fresh-nid-available:
 							echo "$(NSO_IMAGE_PATH)" | grep "/$$" >/dev/null || echo "HINT: did you forget a trailing '/' in NSO_IMAGE_PATH?"; \
 							echo "HINT: Is NSO_IMAGE_PATH correctly set? Set NSO_IMAGE_PATH to the registry URL of the nso-docker repo, for example 'registry.gitlab.com/nso-developer/nso-docker/'"; \
 							false); \
+				docker pull $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) 2>/dev/null; \
 			fi)
