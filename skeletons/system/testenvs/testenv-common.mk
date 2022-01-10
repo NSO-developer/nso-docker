@@ -1,3 +1,4 @@
+include ../../nidvars.mk
 include ../../nidcommon.mk
 
 # The name of the current test environment is the final directory name
