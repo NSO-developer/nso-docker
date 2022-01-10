@@ -23,7 +23,9 @@ $(DIRS):
 
 ../load-dir/%.fxs: yang/%.yang
 	$(NCSC)  `ls $*-ann.yang  > /dev/null 2>&1 && echo "-a $*-ann.yang"` \
-             $(NCSCPATH) -c -o $@ $<
+		--fail-on-warnings \
+		$(NCSCPATH) \
+		-c -o $@ $<
 
 clean:
 	rm -rf $(DIRS)

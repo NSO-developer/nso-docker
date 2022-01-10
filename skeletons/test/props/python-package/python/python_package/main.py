@@ -1,4 +1,5 @@
 # -*- mode: python; python-indent: 4 -*-
+import netconf_console
 import ncs
 from ncs.application import Service
 
