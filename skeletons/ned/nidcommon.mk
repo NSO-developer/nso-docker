@@ -74,7 +74,7 @@ ifeq ($(NSO_VERSION),)
 $(error "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on NSO version 5.2.1")
 endif
 NSO_VERSION_MAJOR=$(word 1,$(subst ., ,$(NSO_VERSION)))
-NSO_VERSION_MINOR=$(word 2,$(subst ., ,$(NSO_VERSION)))
+NSO_VERSION_MINOR=$(word 2,$(subst ., ,$(subst _, ,$(NSO_VERSION))))
 
 # Determine our project name, either from CI_PROJECT_NAME which is normally set
 # by GitLab CI or by looking at the name of our directory (that we are in).
@@ -188,4 +188,5 @@ ensure-fresh-nid-available:
 							echo "$(NSO_IMAGE_PATH)" | grep "/$$" >/dev/null || echo "HINT: did you forget a trailing '/' in NSO_IMAGE_PATH?"; \
 							echo "HINT: Is NSO_IMAGE_PATH correctly set? Set NSO_IMAGE_PATH to the registry URL of the nso-docker repo, for example 'registry.gitlab.com/nso-developer/nso-docker/'"; \
 							false); \
+				docker pull $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION) 2>/dev/null; \
 			fi)
