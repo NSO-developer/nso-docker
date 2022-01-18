@@ -120,12 +120,26 @@ export IMAGE_PATH?=$(call lc,$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/)
 export PKG_PATH?=$(call lc,$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/)
 endif
 
+# If we are not on x86_64, use --platform arg to Docker to enable emulation of
+# x86 for the container. NSO is only compiled for x86_64, so we can never run
+# without emulation.
+ifneq ($(shell uname -m),x86_64)
+DOCKER_PLATFORM_ARG ?= --platform=linux/amd64
+endif
+
+DOCKER_BUILD_ARGS+= $(DOCKER_PLATFORM_ARG)
+DOCKER_BUILD_ARGS+= --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH)
+DOCKER_BUILD_ARGS+= --build-arg NSO_VERSION=$(NSO_VERSION)
+DOCKER_BUILD_ARGS+= --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG)
+DOCKER_BUILD_ARGS+= --progress=plain
+
 # DOCKER_ARGS contains arguments to 'docker run' for any type of container in
 # the test environment.
 # DOCKER_NSO_ARGS contains additional arguments specific to an NSO container.
 # This includes exposing tcp/5678 for Python Remote Debugging using debugpy.
 DOCKER_LABEL_ARG?=--label com.cisco.nso.testenv.name=$(CNT_PREFIX)
-DOCKER_ARGS=--network $(CNT_PREFIX) $(DOCKER_LABEL_ARG)
+DOCKER_ARGS+=$(DOCKER_PLATFORM_ARG)
+DOCKER_ARGS+=--network $(CNT_PREFIX) $(DOCKER_LABEL_ARG)
 # DEBUGPY?=$(PROJECT_NAME)
 DOCKER_NSO_ARGS=$(DOCKER_ARGS) --label com.cisco.nso.testenv.type=nso --volume /var/opt/ncs/packages -e DEBUGPY=$(DEBUGPY) --expose 5678 --publish-all
 

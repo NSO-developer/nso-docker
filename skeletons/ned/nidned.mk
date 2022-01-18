@@ -49,15 +49,6 @@ Dockerfile: Dockerfile.in $(wildcard includes/*)
 .PHONY: Dockerfile
 
 
-build-ned-%:
-	docker build --target netsim  -t $(IMAGE_PATH)$(PROJECT_NAME)/netsim-$*:$(DOCKER_TAG)  --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) --build-arg NED_DIR=$* .
-	docker build --target package -t $(IMAGE_PATH)$(PROJECT_NAME)/package-$*:$(DOCKER_TAG) --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH) --build-arg NSO_VERSION=$(NSO_VERSION) --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) --build-arg NED_DIR=$* .
-
-DOCKER_BUILD_ARGS:= --platform=linux/amd64
-DOCKER_BUILD_ARGS:= --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH)
-DOCKER_BUILD_ARGS+= --build-arg NSO_VERSION=$(NSO_VERSION)
-DOCKER_BUILD_ARGS+= --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG)
-DOCKER_BUILD_ARGS+= --progress=plain
 # We explicitly build the first 'build' stage, which allows us to control
 # caching of it through the DOCKER_BUILD_CACHE_ARG.
 build: export DOCKER_BUILDKIT=1
@@ -70,6 +61,10 @@ build: ensure-fresh-nid-available Dockerfile
 	$(MAKE) $(addprefix build-ned-,$(NED_DIRS))
 # Tag the latest netsim image without including the ned-id, just "netsim"
 	docker tag $(IMAGE_PATH)$(PROJECT_NAME)/netsim-$(LATEST_NED_DIR):$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME)/netsim:$(DOCKER_TAG)
+
+build-ned-%:
+	docker build --target netsim  -t $(IMAGE_PATH)$(PROJECT_NAME)/netsim-$*:$(DOCKER_TAG)  $(DOCKER_BUILD_ARGS) --build-arg NED_DIR=$* .
+	docker build --target package -t $(IMAGE_PATH)$(PROJECT_NAME)/package-$*:$(DOCKER_TAG) $(DOCKER_BUILD_ARGS) --build-arg NED_DIR=$* .
 
 push-ned-%:
 	docker push $(IMAGE_PATH)$(PROJECT_NAME)/package-$*:$(DOCKER_TAG)
