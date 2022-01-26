@@ -19,6 +19,7 @@
 cd $1
 
 if [ -f "src/requirements-dev.txt" ]; then
+    echo "Creating 'pyvenv-dev' venv and installing packages from src/requirements-dev.txt"
     # use --system-site-packages to be able to use already installed things,
     # like pylint (which is built with the venv activated), without also having
     # to install it in our venv
@@ -41,6 +42,7 @@ if [ -f "src/requirements-dev.txt" ]; then
 fi
 
 if [ -f "src/requirements.txt" ]; then
+    echo "Creating 'pyvenv' venv and installing packages from src/requirements.txt"
     # use --system-site-packages to be able to use already installed things,
     # like pylint (which is built with the venv activated), without also having
     # to install it in our venv

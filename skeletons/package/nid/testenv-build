@@ -58,9 +58,10 @@ rsync -aEim --exclude '.#*' --exclude '.*.sw[a-p]' /src/packages/. /src/test-pac
 for PKG_SRC in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth 1 -type d); do
     export PKG_NAME=$(basename ${PKG_SRC});
     export PKG_DIR=/var/opt/ncs/packages/${PKG_NAME}/
-    if [ -f "${PKG_DIR}pyvenv/bin/activate" ]; then . ${PKG_DIR}pyvenv/bin/activate; fi;
+    if [ -f "${PKG_DIR}pyvenv-dev/bin/activate" ]; then echo "Activating ${PKG_DIR}pyvenv-dev"; . ${PKG_DIR}pyvenv-dev/bin/activate;
+    elif [ -f "${PKG_DIR}pyvenv/bin/activate" ]; then echo "Activating ${PKG_DIR}pyvenv"; . ${PKG_DIR}pyvenv/bin/activate; fi;
     make -C /var/opt/ncs/packages/${PKG_NAME}/src || exit 1;
-    if [ -f "${PKG_DIR}pyvenv/bin/activate" ]; then deactivate; fi;
+    if [ -f "${PKG_DIR}pyvenv-dev/bin/activate" ] || [ -f "${PKG_DIR}pyvenv/bin/activate" ]; then deactivate; fi;
     OUTPUT_PATH=${PKG_DIR}/ make -f /src/nid/bmd.mk -C ${PKG_SRC} build-meta-data.xml;
 done
 
