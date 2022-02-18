@@ -15,52 +15,8 @@
 # requirements-dev.txt:
 #   -r requirements.txt
 
-# Change directory into the package provided as first argument
-cd $1
+source /src/nid/create-or-update-venv.inc
 
-if [ -f "src/requirements-dev.txt" ]; then
-    echo "Creating 'pyvenv-dev' venv and installing packages from src/requirements-dev.txt"
-    # use --system-site-packages to be able to use already installed things,
-    # like pylint (which is built with the venv activated), without also having
-    # to install it in our venv
-    python3 -m venv --symlinks --system-site-packages --clear pyvenv-dev
-    # venv starts by resolving the symlink of its own location, thus doesn't
-    # think /var/opt/ncs/packages/ is its location but /src/(test-)?packages
-    # - we fix that with sed...
-    sed -e 's,/src/\(test-\)\?packages/,/var/opt/ncs/packages/,' -i pyvenv-dev/bin/activate
-    . pyvenv-dev/bin/activate
-    # upgrade pip to latest version (in the venv) to deal with correct
-    # downloading of wheel packages
-    pip3 install --upgrade pip
-    # we ignore-installed to installed things even thought they are already
-    # installed in the system as otherwise we depend on the system packages and
-    # as those can shift between the -dev container and the -base container we
-    # might get unexpected results
-    pip3 install -r src/requirements-dev.txt --ignore-installed
-    chown -R $(ls -nd /src | awk '{ print $3":"$4 }') pyvenv-dev
-    deactivate
-fi
-
-if [ -f "src/requirements.txt" ]; then
-    echo "Creating 'pyvenv' venv and installing packages from src/requirements.txt"
-    # use --system-site-packages to be able to use already installed things,
-    # like pylint (which is built with the venv activated), without also having
-    # to install it in our venv
-    python3 -m venv --symlinks --system-site-packages --clear pyvenv
-    # venv starts by resolving the symlink of its own location, thus doesn't
-    # think /var/opt/ncs/packages/ is its location but /src/(test-)?packages
-    # - we fix that with sed...
-    sed -e 's,/src/\(test-\)\?packages/,/var/opt/ncs/packages/,' -i pyvenv/bin/activate
-    . pyvenv/bin/activate
-    # upgrade pip to latest version (in the venv) to deal with correct
-    # downloading of wheel packages
-    pip3 install --upgrade pip
-    # we ignore-installed to installed things even thought they are already
-    # installed in the system as otherwise we depend on the system packages and
-    # as those can shift between the -dev container and the -base container we
-    # might get unexpected results
-    pip3 install -r src/requirements.txt --ignore-installed
-    chown -R $(ls -nd /src | awk '{ print $3":"$4 }') pyvenv
-    # TODO: strip away pip etc to reduce size of venv?
-    deactivate
-fi
+PKG_DIR=$1
+create_or_update_venv "${PKG_DIR}" "src/requirements-dev.txt" pyvenv-dev
+create_or_update_venv "${PKG_DIR}" "src/requirements.txt" pyvenv
