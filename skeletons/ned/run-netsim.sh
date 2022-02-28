@@ -12,26 +12,26 @@ trap sigquit_handler QUIT
 trap sigterm_handler TERM
 
 sighup_handler() {
-    echo "run-nso.sh: received SIGHUP, restarting netsim"
+    echo "run-netsim.sh: received SIGHUP, restarting netsim"
     RESTART_REQUESTED=true
     stop_netsim
     start_netsim
 }
 
 sigint_handler() {
-    echo "run-nso.sh: received SIGINT, stopping netsim"
+    echo "run-netsim.sh: received SIGINT, stopping netsim"
     stop_netsim
     exit 130 # 128+2
 }
 
 sigquit_handler() {
-    echo "run-nso.sh: received SIGQUIT, stopping netsim"
+    echo "run-netsim.sh: received SIGQUIT, stopping netsim"
     stop_netsim
     exit 131 # 128+3
 }
 
 sigterm_handler() {
-    echo "run-nso.sh: received SIGTERM, stopping netsim"
+    echo "run-netsim.sh: received SIGTERM, stopping netsim"
     stop_netsim
     exit 143 # 128+15
 }
