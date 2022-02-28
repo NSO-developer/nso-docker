@@ -46,11 +46,6 @@ Dockerfile: Dockerfile.in $(wildcard includes/*)
 .PHONY: Dockerfile
 
 
-DOCKER_BUILD_ARGS:= --platform=linux/amd64
-DOCKER_BUILD_ARGS+= --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH)
-DOCKER_BUILD_ARGS+= --build-arg NSO_VERSION=$(NSO_VERSION)
-DOCKER_BUILD_ARGS+= --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG)
-DOCKER_BUILD_ARGS+= --progress=plain
 # We explicitly build the first 'build' stage, which allows us to control
 # caching of it through the DOCKER_BUILD_CACHE_ARG.
 build: export DOCKER_BUILDKIT=1
