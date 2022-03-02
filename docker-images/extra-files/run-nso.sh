@@ -158,6 +158,12 @@ else
     cat /nso/etc/ncs.crypto_keys >> /etc/ncs/ncs.crypto_keys
 fi
 
+# check whether SSH keys still exist in the "old" location
+if [ -f /nso/ssh/ssh_host_rsa_key ]; then
+    echo "Please move your existing SSH keys from /nso/ssh to /nso/etc/ssh"
+    exit 1
+fi
+
 # generate SSH key if one doesn't exist
 if [ ! -f /nso/etc/ssh/ssh_host_rsa_key ]; then
     echo "No SSH key found, generating one!"
@@ -166,6 +172,12 @@ if [ ! -f /nso/etc/ssh/ssh_host_rsa_key ]; then
 fi
 # copy the (generated) SSH keys from the volume to config dir
 cp -pr /nso/etc/ssh /etc/ncs/
+
+# check whether SSL cert still exists in the "old" location
+if [ -f /nso/ssl/cert/host.cert ]; then
+    echo "Please move your existing SSL certificate from /nso/ssl to /nso/etc/ssl"
+    exit 1
+fi
 
 # generate SSL cert if one doesn't exist
 if [ ! -f /nso/etc/ssl/cert/host.cert ]; then
