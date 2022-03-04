@@ -86,7 +86,9 @@ RUN apt-get update \
   && groupadd ncsadmin \
   && usermod -a -G ncsadmin root \
   # Clean up logrotate config for system files (like apt, alternatives, ...)
-  && rm /etc/logrotate.d/*
+  && rm /etc/logrotate.d/* \
+  # Clean up system entries in cron.daily
+  && find /etc/cron.daily/ -type f -not -name logrotate -exec rm {} +
 
 # default shell is ["/bin/sh", "-c"]. We add -l so we get a login shell which
 # means the shell reads /etc/profile on startup. /etc/profile includes the files
