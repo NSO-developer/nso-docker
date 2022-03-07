@@ -669,6 +669,12 @@ test-backup-restore:
 	docker exec -t $(CNT_PREFIX)-$@-helper mkdir -p /nso/run
 	docker cp tmp/backups/. $(CNT_PREFIX)-$@-helper:/nso/run/backups
 	docker exec -t $(CNT_PREFIX)-$@-helper bash -lc "ncs-backup --restore /nso/run/backups/*.gz --non-interactive"
+ifneq ($(OLD_NSO_VERSION),)
+# The startup config in /etc/ncs/ncs.conf may not be forward compatible with the
+# newer versions. If we are running the "multiver" backup and restore test let's
+# remove it and let it be "mangled" using the new version.
+	docker exec $(CNT_PREFIX)-$@-helper rm /etc/ncs/ncs.conf
+endif
 	docker rm -f $(CNT_PREFIX)-$@-helper
 	@echo "-- Starting cisco-nso test container (after restoring backup) -----------------------------"
 	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@-run:/nso -v $(CNT_PREFIX)-$@-config:/nso/etc $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
