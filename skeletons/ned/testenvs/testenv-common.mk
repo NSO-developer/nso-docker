@@ -109,16 +109,16 @@ runcmdC runcmdJ:
 loadconf:
 	@if [ -z "$(FILE)" ]; then echo "FILE variable must be set"; false; fi
 	@echo "Loading configuration $(FILE)"
-	@docker exec -t $(CNT_PREFIX)-nso bash -lc "mkdir -p test/$(shell echo $(FILE) | xargs dirname)"
-	@docker cp $(FILE) $(CNT_PREFIX)-nso:test/$(FILE)
-	@$(MAKE) runcmdJ CMD="configure\nload merge test/$(FILE)\ncommit"
+	@docker exec -t $(CNT_PREFIX)-nso$(NSO) bash -lc "mkdir -p /tmp/$(shell echo $(FILE) | xargs dirname)"
+	@docker cp $(FILE) $(CNT_PREFIX)-nso$(NSO):/tmp/$(FILE)
+	@$(MAKE) runcmdJ CMD="configure\nload merge /tmp/$(FILE)\ncommit"
 
 saveconfxml:
 	@if [ -z "$(FILE)" ]; then echo "FILE variable must be set"; false; fi
 	@echo "Saving configuration to $(FILE)"
-	docker exec -t $(CNT_PREFIX)-nso bash -lc "mkdir -p test/$(shell echo $(FILE) | xargs dirname)"
-	@$(MAKE) runcmdJ CMD="show configuration $(CONFPATH) | display xml | save test/$(FILE)"
-	@docker cp $(CNT_PREFIX)-nso:test/$(FILE) $(FILE)
+	docker exec -t $(CNT_PREFIX)-nso$(NSO) bash -lc "mkdir -p /tmp/$(shell echo $(FILE) | xargs dirname)"
+	@$(MAKE) runcmdJ CMD="show configuration $(CONFPATH) | display xml | save /tmp/$(FILE)"
+	@docker cp $(CNT_PREFIX)-nso$(NSO):/tmp/$(FILE) $(FILE)
 
 # Wait for all NSO instances in testenv to start up, as determined by `ncs
 # --wait-started`, or display the docker log for the first failed NSO instance.
