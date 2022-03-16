@@ -151,7 +151,7 @@ COPY --from=nso_stripped /nso /nso
 COPY --from=nso_stripped /nid /nid
 COPY extra-files/ /
 
-EXPOSE 22 80 443 830 4334
+EXPOSE 22 80 443 830 4334 4570
 
 HEALTHCHECK --start-period=60s --interval=5s --retries=3 --timeout=5s CMD /opt/ncs/current/bin/ncs_cmd -c get_phase
 
