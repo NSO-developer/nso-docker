@@ -332,6 +332,7 @@ Do note that the example image URLs used above would be the result of the defaul
  | TCP      |  443 | HTTPS             |            |
  | TCP      |  830 | NETCONF           |            |
  | TCP      | 4334 | NETCONF call-home |            |
+ | TCP      | 4570 | NSO HA            |            |
 
  It is possible to reconfigure the port that SSH uses by setting the =SSH_PORT= variable to the wanted value.
 
