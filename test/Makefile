@@ -62,6 +62,7 @@ test:
 	$(MAKE) test-shutdown
 	$(MAKE) test-error-exit-code
 	$(MAKE) test-ncs-stop
+	$(MAKE) test-logrotate
 	$(MAKE) test-admin-user
 	$(MAKE) test-admin-user-custom
 	$(MAKE) test-admin-user-sshkey
@@ -778,6 +779,20 @@ test-persistent-ssl-cert:
 	diff -u tmp/$@-1 tmp/$@-2 || (echo "ERROR: SSL cert different across runs, should be persisted" && exit 1)
 	@echo "SSL cert are the same across invocations, I'm happy"
 
+test-logrotate:
+	@echo "\n== Verify logrotate works"
+	@echo "-- Clean any already running containers with 'our' name"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
+	@echo "-- Start NSO container"
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	@echo "-- Wait for NSO in container to start"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Run logrotate with --force"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'logrotate --verbose --force /etc/logrotate.conf'
+	@echo "-- Verify logs were rotated"
+	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ls /log/' | grep "devel\.log\.1\.gz"
+	@echo "-- Remove the container"
+	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 
 clean:
 # stop all containers with out CNT_PREFIX

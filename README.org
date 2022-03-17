@@ -410,6 +410,16 @@ Do note that the example image URLs used above would be the result of the defaul
             -subj "/C=SE/ST=NA/L=/O=NSO/OU=WebUI/CN=Mr. Self-Signed"
   #+END_SRC
 
+* Logrotate and other periodic tasks (cron)
+  NSO places the logs in =/log= by default. NSO does not rotate the logs itself, but the installation does include a system ~logrotate~ configuration in =/etc/logrotate.d/ncs=. The ~cron~ installation in the base image schedules a ~logrotate~ run daily when enabled. The following environment variables control this functionality:
+
+    | Environment variable | Type    | Default | Description                                                |
+    |----------------------+---------+---------+------------------------------------------------------------|
+    | =CRON_ENABLE=        | boolean | true    | Enables cron to run entries in =/etc/cron.*/= and crontabs |
+    | =LOGROTATE_ENABLE=   | boolean | true    | Enables logrotate configuration, executed by cron          |
+
+  =CRON_ENABLE= must be set to true when =LOGROTATE_ENABLE= is set to true. The startup script will report and stop startup if the condition is not satisfied.
+
 * NSO upgrades, downgrades, YANG model changes and package modifications
   As the produced Docker image contains both NSO itself and a given version of all included packages, any changes to said components will result in a new Docker image. Deploying any change, however small, means building and deploying a new Docker image. Upgrading and downgrading of NSO itself, with the packages kept static, is also based on deploying another Docker image.
 

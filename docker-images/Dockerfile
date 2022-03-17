@@ -64,6 +64,7 @@ RUN apt-get update \
   iputils-ping \
   less \
   libexpat1 \
+  logrotate \
   make \
   openssh-client \
   procps \
@@ -83,7 +84,11 @@ RUN apt-get update \
   && echo '. /opt/ncs/current/ncsrc' >> /root/.bashrc \
   # Add root to ncsadmin group for easier command-line tools usage
   && groupadd ncsadmin \
-  && usermod -a -G ncsadmin root
+  && usermod -a -G ncsadmin root \
+  # Clean up logrotate config for system files (like apt, alternatives, ...)
+  && rm /etc/logrotate.d/* \
+  # Clean up system entries in cron.daily
+  && find /etc/cron.daily/ -type f -not -name logrotate -exec rm {} +
 
 # default shell is ["/bin/sh", "-c"]. We add -l so we get a login shell which
 # means the shell reads /etc/profile on startup. /etc/profile includes the files
@@ -108,7 +113,6 @@ RUN echo "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sou
      liblog4cplus-1.1-9 \
      libuv1 \
      libxml2-utils \
-     logrotate \
      man \
      mypy \
      openssl \
@@ -133,6 +137,7 @@ RUN echo "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sou
 
 COPY --from=nso_install /etc/profile.d /etc/profile.d
 COPY --from=nso_install /etc/init.d/ncs /etc/init.d/.
+COPY --from=nso_install /etc/logrotate.d/ncs /etc/logrotate.d/.
 COPY --from=nso_install /etc/ncs /etc/ncs/
 COPY --from=nso_install /opt/ncs /opt/ncs/
 COPY --from=nso_install /nso /nso
@@ -145,6 +150,7 @@ FROM deb_base AS base
 
 COPY --from=nso_stripped /etc/profile.d /etc/profile.d
 COPY --from=nso_stripped /etc/init.d/ncs /etc/init.d/.
+COPY --from=nso_stripped /etc/logrotate.d/ncs /etc/logrotate.d/.
 COPY --from=nso_stripped /etc/ncs /etc/ncs/
 COPY --from=nso_stripped /opt/ncs /opt/ncs/
 COPY --from=nso_stripped /nso /nso
