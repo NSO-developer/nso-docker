@@ -267,7 +267,7 @@ endif
 
     NOTE: the mangling will be directly applied to the mounted file and modify it. Many of the mangling operations are not idempotently implemented, so this will likely break things. If you want to supply a configuration file and mangle it on startup, you probably want to mount it to ~/etc/ncs/ncs.conf.in~.
 
-    It is entirely up to you to manage your ~ncs.conf~ and make sure that it is correct. See the section [[*** Writing your own ncs.conf]].
+    It is entirely up to you to manage your ~ncs.conf~ and make sure that it is correct. See the section [[Writing your own ncs.conf]].
 
 *** Injecting ncs.conf through a persistent volume
     Place your ~ncs.conf~ in a ~etc~ directory on the volume that is mounted to ~/nso~ on the NSO container. From inside the container, the path should be ~/nso/etc/ncs.conf~.
