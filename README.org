@@ -108,7 +108,7 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
        - the suffix is to avoid overwriting a version tag, like =cisco-nso-base:5.3=, before the image has been tested and determined to be a good build
        - run ~make tag-release~ to also add a docker tag without the suffix, like =cisco-nso-base:5.3=
 
-   #+BEGIN_SRC shell :results output scalar code replace :cache yes :exports both
+   #+BEGIN_SRC shell :results output scalar code replace :cache yes :exports both :eval no-export
      docker images
    #+END_SRC
 
@@ -125,7 +125,7 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
 
    Run ~make tag-release~ and provide the version to tag using the variable =NSO_VERSION=:
 
-   #+BEGIN_SRC shell :results output scalar code replace :cache yes :exports both
+   #+BEGIN_SRC shell :results output scalar code replace :cache yes :exports both :eval no-export
      make NSO_VERSION=5.3 tag-release
      docker images
    #+END_SRC
