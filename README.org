@@ -108,7 +108,7 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
        - the suffix is to avoid overwriting a version tag, like =cisco-nso-base:5.3=, before the image has been tested and determined to be a good build
        - run ~make tag-release~ to also add a docker tag without the suffix, like =cisco-nso-base:5.3=
 
-   #+BEGIN_SRC shell :results output scalar code replace :cache yes :exports both
+   #+BEGIN_SRC shell :results output scalar code replace :cache yes :exports both :eval no-export
      docker images
    #+END_SRC
 
@@ -125,7 +125,7 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
 
    Run ~make tag-release~ and provide the version to tag using the variable =NSO_VERSION=:
 
-   #+BEGIN_SRC shell :results output scalar code replace :cache yes :exports both
+   #+BEGIN_SRC shell :results output scalar code replace :cache yes :exports both :eval no-export
      make NSO_VERSION=5.3 tag-release
      docker images
    #+END_SRC
@@ -192,6 +192,21 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
     The path ~/data/nso-install-files~ on the host machine becomes available as ~/nso-install-files/~ in the CI build docker containers and by specifying that path (~/nso-install-files~) using the CI variable settings, the job will now pick up the NSO images from there. This is how the public repo at [[https://gitlab.com/nso-developer/nso-docker]] works. It allows us to host all code in public, run CI tests in public yet not reveal the NSO install file as required by its EULA.
 
 ** Running
+*** Platform architecture
+NSO is compiled for Linux on x86_64 / amd64. If you are using a different CPU architecture, like the Apple M1 silicon, you must run the container with the additional argument ~--platform=linux/amd64~. For example, starting NSO standalone for testing would be:
+
+#+BEGIN_SRC shell
+docker run -itd --platform=linux/amd64 --name nso-dev1 my-prod-image:12345
+#+END_SRC
+
+Using the ~--platform=linux/amd64~ argument when the native architecture is already amd64 is harmless and doesn't incur any emulation penalty or similar. The only drawback is that older versions of Docker does not support the ~--platform~ argument and throws an error. In the Makefiles in this repository and in the repository skeletons, the use of the ~--platform~ argument is conditioned. Docker running on any architecture that is not =x86_64= implies that it is new enough to also support the ~--platform~ argument.
+
+#+BEGIN_SRC makefile
+ifneq ($(shell uname -m),x86_64)
+DOCKER_PLATFORM_ARG ?= --platform=linux/amd64
+endif
+#+END_SRC
+
 *** Run standalone for testing
     - if you built a production image, i.e. using base image from this repo and adding in your own packages
     - run a standalone container
@@ -252,7 +267,7 @@ NSO in Docker is a project created by Cisco to enable users of NSO to easily run
 
     NOTE: the mangling will be directly applied to the mounted file and modify it. Many of the mangling operations are not idempotently implemented, so this will likely break things. If you want to supply a configuration file and mangle it on startup, you probably want to mount it to ~/etc/ncs/ncs.conf.in~.
 
-    It is entirely up to you to manage your ~ncs.conf~ and make sure that it is correct. See the section [[*** Writing your own ncs.conf]].
+    It is entirely up to you to manage your ~ncs.conf~ and make sure that it is correct. See the section [[Writing your own ncs.conf]].
 
 *** Injecting ncs.conf through a persistent volume
     Place your ~ncs.conf~ in a ~etc~ directory on the volume that is mounted to ~/nso~ on the NSO container. From inside the container, the path should be ~/nso/etc/ncs.conf~.
