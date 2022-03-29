@@ -377,21 +377,22 @@ Do note that the example image URLs used above would be the result of the defaul
   In NSO v5.3 and later, the python VM to use is probed by first looking for ~python3~, if not found ~python2~ will be tried and finally it will fall back to running ~python~. In earlier versions of NSO, ~python~ is executed, which on most systems means python2. As python2 is soon end of life, these docker images default to using ~python3~.
 
 * Backup
-  *NOTE*: SSH keys and SSL certificates are not included in backups produced by ~ncs-backup~.
-  Backup and restore largely behaves as it normally does with ~ncs-backup~ as run outside of Docker, with some exceptions.
+  Backup and restore largely behaves as it normally does with ~ncs-backup~ as run outside of Docker.
 
-  Normally, the ncs-backup script includes the NCS_CONFIG_DIR (defaults to /etc/ncs). SSH keys and SSL certificates are normally placed in /etc/ncs/ssh and /etc/ncs/ssl respectively. This means that the SSH keys and SSL certificates are part of the produced backup file. This is NOT the case for when NSO is run in a container as SSH keys and SSL certificates are not in the default configuration path.
+  Normally, the ncs-backup script includes the NCS_CONFIG_DIR (defaults to /etc/ncs). SSH keys and SSL certificates are normally placed in /etc/ncs/ssh and /etc/ncs/ssl respectively. When NSO is run in a container the keys are normally provided using a persistent volume (=/nso=). These secrets are copied to the configuration dir at startup and will be included in the backup. This distinction becomes important when you restore a backup and want to store the secrets on the persistent volume.
 
 ** Taking a backup
    To take a backup, simply run ~ncs-backup~. The backup file will be written to ~/nso/run/backups~.
 
 ** Restoring from a backup
+   Backups created with ~ncs-backup~ contain all files necessary to run NSO, not only limited to data and packages, but also startup configuration and secrets. The latter are restored to NCS_CONFIG_DIR (defaults to /etc/ncs). In NSO in Docker these files are normally stored on a persistent volume (=/nso=). The restore procedure described below use mounts a subdirectory in the persistent shared volume to =/etc/ncs= in the container to ensure the configuration files are restored to the persistent volume.
+
    To restore a backup, NSO must not be running. As you likely only have access to the ~ncs-backup~ tool and the volume containing CDB and other run time state from inside of the NSO container, this poses a slight challenge. Additionally, shutting down NSO will terminate the NSO container.
 
    What you need to do is shut down the NSO container and start a new one with the same persistent shared volume mounted but with a different command. Instead of running the ~/run-ncs.sh~ which is the normal command of the NSO container, you should run something that keeps the container alive but doesn't start NSO, for example ~read DUMMY~ (it's a bash builtin command so still have to run bash). A full docker command could look like:
 
    #+BEGIN_SRC shell
-     docker run -itd --name nso -v /data/nso:/nso -v /data/nso-logs:/log --net=host my-prod-image:12345 bash -lc 'read DUMMY'
+     docker run -itd --name nso -v /data/nso:/nso -v /data/nso/etc:/etc/ncs -v /data/nso-logs:/log --net=host my-prod-image:12345 bash -lc 'read DUMMY'
    #+END_SRC
 
    You now have the NSO container running but without NSO itself. Get a shell in the container with
@@ -412,22 +413,27 @@ Do note that the example image URLs used above would be the result of the defaul
      docker exec -it nso bash -lc 'ncs-backup restore /nso/run/backups/ncs-4.7.5@2019-10-07T14:41:02.backup.gz --non-interactively'
    #+END_SRC
 
+   The restore command also restored the startup configuration to =/data/etc/ncs.conf=. This means the next time you start NSO in Docker the configuration file will be used verbatim. If you would like to keep using config mangling, remove the file from the persistent shared volume:
+   #+BEGIN_SRC shell
+     rm /data/etc/ncs.conf
+   #+END_SRC
+
    Restoring a NSO backup should move the current run directory (~/nso/run~ to ~/nso/run.old~) and restore the run directory from the backup to the main run directory (~/nso/run~). After this is done, shut down your temporary container and start the normal NSO container again as usual.
 
 * SSH host key
-  NSO looks for the SSH host key in the directory =/nso/ssh=. The filename differs based on the configured host key algorithm. NSO in Docker will use the RSA algorithm for host keys.
+  NSO looks for the SSH host key in the directory =/nso/etc/ssh=. The filename differs based on the configured host key algorithm. NSO in Docker will use the RSA algorithm for host keys.
 
   If no SSH host key exists, one will be generated. As it is stored in =/nso= which is typically a persistent shared volume in production setups, it will remain the same across restarts or upgrades of NSO.
 
   NSO version 5.3 and newer supports ed25519 and will in fact default to using ed25519 as server host key on new installations but this behavior is suppressed for NSO in Docker and instead RSA is used as it is supported by all currently existing versions of NSO.
 
 * HTTPS TLS certificate
-  NSO expects to find a TLS certificate and key at =/nso/ssl/cert/host.cert= and =/nso/ssl/cert/host.key= respectively. Since the =/nso= path is usually on persistent shared volume for production setups, the certificate remains the same across restarts or upgrades.
+  NSO expects to find a TLS certificate and key at =/nso/etc/ssl/cert/host.cert= and =/nso/etc/ssl/cert/host.key= respectively. Since the =/nso= path is usually on persistent shared volume for production setups, the certificate remains the same across restarts or upgrades.
 
   When no certificate is present, one will be generated. It is a self-signed certificate valid for 30 days making it possible to use both in development and staging environments. It is *not* meant for production. You *should* replace it with a proper signed certificate for production and it is encouraged to do so even for test and staging environments. Simply generate one and place at the provided path, for example using the following, which is the command used to generate the temporary self-signed certificate:
   #+BEGIN_SRC shell
     openssl req -new -newkey rsa:4096 -x509 -sha256 -days 30 -nodes \
-            -out /nso/ssl/cert/host.cert -keyout /nso/ssl/cert/host.key \
+            -out /nso/etc/ssl/cert/host.cert -keyout /nso/etc/ssl/cert/host.key \
             -subj "/C=SE/ST=NA/L=/O=NSO/OU=WebUI/CN=Mr. Self-Signed"
   #+END_SRC
 

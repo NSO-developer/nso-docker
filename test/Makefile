@@ -640,13 +640,8 @@ test-backup-restore:
 	mkdir -p tmp
 	-docker rm -f $(CNT_PREFIX)-$@
 	-docker rm -f $(CNT_PREFIX)-$@-helper
-	@echo "-- Creating volume for cisco-nso test container --------------------------------"
-	-docker volume rm -f $(CNT_PREFIX)-$@
-	docker volume create $(CNT_PREFIX)-$@
-	@echo "-- If NONEMPTY_VOLUME=true, create a file in volume, so the volume is non-empty --------------------------------"
-	[ "$(NONEMPTY_VOLUME)" = "true" ] && docker run -t --rm --name $(CNT_PREFIX)-$@-helper --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/vol $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) touch /vol/foo || true
 	@echo "-- Starting cisco-nso test container -------------------------------------------"
-	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(OLD_DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(CNT_PREFIX)-test-cisco-nso-$(OLD_DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show packages" | ncs_cli -u admin'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg a-value 1337\ncommit\nexit" | ncs_cli -u admin'
@@ -656,35 +651,39 @@ test-backup-restore:
 	@echo "-- Taking backup ---------------------------------------------------------------"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs-backup'
 	docker cp $(CNT_PREFIX)-$@:/nso/run/backups ./tmp/backups
-	@echo "-- Copying /nso/etc/ncs.crypto_keys --------------------------------------------"
-	docker cp $(CNT_PREFIX)-$@:/nso/etc/ncs.crypto_keys ./tmp/
-	@echo "-- Do 'bad' change -------------------------------------------------------------"
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg a-value 1338\ncommit\nexit" | ncs_cli -u admin'
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin'
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo -e "configure\nset testpkg-python encrypted-value 43\ncommit\nexit" | ncs_cli -u admin'
-	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-python decrypt" | ncs_cli -u admin'
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@
-	@echo "-- Recreate the data volume to ensure everything was backed up -----------------"
-	docker volume rm -f $(CNT_PREFIX)-$@
-	docker volume create $(CNT_PREFIX)-$@
+	@echo "-- Create the data volumes for restoring the run and config directories -----------------"
+	docker volume rm -f $(CNT_PREFIX)-$@-run $(CNT_PREFIX)-$@-config
+	docker volume create $(CNT_PREFIX)-$@-run
+	docker volume create $(CNT_PREFIX)-$@-config
 	@echo "-- If NONEMPTY_VOLUME=true, create a file in volume, so the volume is non-empty --------------------------------"
-	[ "$(NONEMPTY_VOLUME)" = "true" ] && docker run -t --rm --name $(CNT_PREFIX)-$@-helper --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/vol $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) touch /vol/foo || true
+	[ "$(NONEMPTY_VOLUME)" = "true" ] && docker run -t --rm --name $(CNT_PREFIX)-$@-helper --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@-run:/vol $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) touch /vol/foo || true
+	[ "$(NONEMPTY_VOLUME)" = "true" ] && docker run -t --rm --name $(CNT_PREFIX)-$@-helper --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@-config:/vol $(DOCKER_REGISTRY)cisco-nso-dev:$(DOCKER_TAG) touch /vol/foo || true
 	@echo "-- Restore from backup ---------------------------------------------------------"
-	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@-helper --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(OLD_DOCKER_TAG) bash -lc 'read DUMMY'
-	docker exec -t $(CNT_PREFIX)-$@-helper mkdir -p /nso/run /nso/etc
+# The data volume is mounted to /nso, while the config volume is mounted to
+# /etc/ncs (NCS_CONFIG_DIR) for restoring the backup in the helper container.
+# Note that the config volume mount point is changed to /nso/etc later when
+# running the container!
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@-helper --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@-run:/nso -v $(CNT_PREFIX)-$@-config:/etc/ncs $(CNT_PREFIX)-test-cisco-nso-$(OLD_DOCKER_TAG) bash -lc 'read DUMMY'
+	docker exec -t $(CNT_PREFIX)-$@-helper mkdir -p /nso/run
 	docker cp tmp/backups/. $(CNT_PREFIX)-$@-helper:/nso/run/backups
-	docker cp tmp/ncs.crypto_keys $(CNT_PREFIX)-$@-helper:/nso/etc/ncs.crypto_keys
 	docker exec -t $(CNT_PREFIX)-$@-helper bash -lc "ncs-backup --restore /nso/run/backups/*.gz --non-interactive"
+ifneq ($(OLD_NSO_VERSION),)
+# The startup config in /etc/ncs/ncs.conf may not be forward compatible with the
+# newer versions. If we are running the "multiver" backup and restore test let's
+# remove it and let it be "mangled" using the new version.
+	docker exec $(CNT_PREFIX)-$@-helper rm /etc/ncs/ncs.conf
+endif
 	docker rm -f $(CNT_PREFIX)-$@-helper
-	@echo "-- Starting cisco-nso test container (second time) -----------------------------"
-	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@:/nso $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
+	@echo "-- Starting cisco-nso test container (after restoring backup) -----------------------------"
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -v $(CNT_PREFIX)-$@-run:/nso -v $(CNT_PREFIX)-$@-config:/nso/etc $(CNT_PREFIX)-test-cisco-nso-$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "show configuration testpkg a-value" | ncs_cli -u admin' | grep "a-value 1337;"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'echo "request testpkg-python decrypt" | ncs_cli -u admin' | grep "cleartext: 42"
 	@echo "-- Stopping cisco-nso test container -------------------------------------------"
 	-docker rm -f $(CNT_PREFIX)-$@
-
+	docker volume rm -f $(CNT_PREFIX)-$@-run $(CNT_PREFIX)-$@-config
 
 test-run-time-ssh-key-gen:
 	@echo "\n== Verify that SSH keys are generated at runtime"
