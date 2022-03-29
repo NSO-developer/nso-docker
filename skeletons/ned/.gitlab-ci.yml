@@ -11,6 +11,21 @@ stages:
   - test
   - deploy
 
+default:
+  retry:
+    max: 2
+    when:
+      - api_failure
+      - data_integrity_failure
+      - job_execution_timeout
+      - runner_system_failure
+      - runner_unsupported
+      - scheduler_failure
+      - stale_schedule
+      - stuck_or_timeout_failure
+      - unknown_failure
+      - unmet_prerequisites
+
 # The helper functions mark_section_start/end that help us mark out the start
 # and end of a "section" in a CI job. Each section can be folded and gets a
 # duration timestamp in the CI job view making it easy to see how long it took
