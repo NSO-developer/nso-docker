@@ -6,6 +6,12 @@
 
 NSO in Docker is a project created by Cisco to enable users of NSO to easily run NSO in Docker.
 
+For internal Cisco users; ready made container images built from this repository are available at <https://containers.cisco.com/organization/nso-docker>
+
+-   use with NID skeletons:
+    -   `export NSO_IMAGE_PATH=containers.cisco.com/nso-docker/`
+    -   `export NSO_VERSION=5.6.3` (or whatever version you want!)
+
 
 # NSO in Docker for development and production
 
@@ -81,8 +87,8 @@ See the [NID skeletons](./skeletons/) for how to get started developing in the N
 NSO in Docker runs on:
 
 -   Linux
--   Mac OS X, see [Mac OS X support](#org222c8ed) for more information
--   Windows, see [Windows Support](#org6f8bb19) for more information
+-   Mac OS X, see [Mac OS X support](#orgbfc1879) for more information
+-   Windows, see [Windows Support](#orgfbc11bf) for more information
 
 To build these images, you need:
 
@@ -261,7 +267,7 @@ This uses the `--net=host` option to let the container live in the hosts network
     docker run -itd --name nso -v /data/nso:/nso -v /data/nso-logs:/log --net=host -e SSH_PORT=2024 my-prod-image:12345
 
 
-## NCS configuration management
+## NSO configuration management
 
 There are multiple approaches for how to deal with `ncs.conf` in NSO in Docker;
 
@@ -283,7 +289,7 @@ The normal configuration mangling will NOT be applied to the mounted `/etc/ncs/n
 
 NOTE: the mangling will be directly applied to the mounted file and modify it. Many of the mangling operations are not idempotently implemented, so this will likely break things. If you want to supply a configuration file and mangle it on startup, you probably want to mount it to `/etc/ncs/ncs.conf.in`.
 
-It is entirely up to you to manage your `ncs.conf` and make sure that it is correct. See the section [6.3.4](#org76ff5f8).
+It is entirely up to you to manage your `ncs.conf` and make sure that it is correct. See the section [6.3.4](#org43ad587).
 
 
 ### Injecting ncs.conf through a persistent volume
@@ -414,7 +420,7 @@ Injecting a `ncs.conf` and enabling configuration mangling will also accept the 
 As we start with the `/etc/ncs/ncs.conf.in` as provided by the NSO version installed in our image, our starting point will look somewhat different. For example, if we build a container image based on NSO 5.2 we will get the default `ncs.conf` that comes with `5.2`. Any updates to the `ncs.conf` shipped with NSO will find its way into the container image. 
 
 
-<a id="org76ff5f8"></a>
+<a id="org43ad587"></a>
 
 ### Writing your own ncs.conf
 
@@ -714,7 +720,7 @@ Do however note that you now have to ensure that the packages in that directory 
 
 # Healthcheck
 
-The production-base image comes with a basic Docker healthcheck. It is using ncs<sub>cmd</sub> to get the phase that NCS is currently in. Only the result status, i.e. if ncs<sub>cmd</sub> was able to communicate with the `ncs` process or not, is actually observed. This tells us whether the `ncs` process is responding to IPC requests.
+The production-base image comes with a basic Docker healthcheck. It is using ncs<sub>cmd</sub> to get the phase that NSO is currently in. Only the result status, i.e. if ncs<sub>cmd</sub> was able to communicate with the `ncs` process or not, is actually observed. This tells us whether the `ncs` process is responding to IPC requests.
 
 As far as monitoring NSO goes, this is a very basic check. Just a tad above the basic process check, i.e. that the `ncs` process is actually alive, which is the most basic premise of production-base image.
 
@@ -919,7 +925,7 @@ The typical workflow for submitting code involves forking this git repository, c
 In order to run the tests, a maintainer will need to do a coarse review of the changes to verify there is no hostile code, after which your private branch can be copied to the `nso-developer/nso-docker` repository, which then allows it to be tested with the specialized CI runner. A shadow MR can then be setup to merge the commits to master. The commits still maintain the author, preserving credit for the changes.
 
 
-<a id="org222c8ed"></a>
+<a id="orgbfc1879"></a>
 
 # Mac OS X support
 
@@ -945,7 +951,7 @@ To build, make sure you have `realpath` installed, which comes with `coreutils` 
 If you notice any issues, please open an issue.
 
 
-<a id="org6f8bb19"></a>
+<a id="orgfbc11bf"></a>
 
 # Windows support
 
@@ -994,8 +1000,8 @@ minideb, which is a minimal build of a debian base image, was not only considere
     -   `docker run -it cisco-nso-dev:5.3 echo foo` to echo `foo` from within the container
     -   `docker run -it cisco-nso-dev:5.3 ncs_cli` to get the NSO CLI
 -   `sh`, the Bourne shell, has a hard coded `PATH`
--   ncs is not installed in `PATH` of `sh`
--   we don&rsquo;t want to modify the ncs install
+-   `ncs` is not installed in `PATH` of `sh`
+-   we don&rsquo;t want to modify the NSO install
     -   likely error prone, in particular over time
 -   we can modify `PATH` of `sh` by configuring our profile
 -   `sh` only reads profile when started as interactive shell
