@@ -55,7 +55,7 @@ endif
 # specified by NSO_INSTALL_FILES_DIR
 build: export FILE=$(shell realpath -q -e $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin $(NSO_INSTALL_FILES_DIR)/ncs-$(NSO_VERSION).linux.x86_64.installer.bin)
 build:
-	@if [ -z "$(NSO_VERSION)" ]; then echo "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin"; false; fi
+	@if [ -z "$(NSO_VERSION)" ]; then echo "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on $(NSO_INSTALL_FILES_DIR)nso-5.2.1.linux.x86_64.installer.bin"; false; fi
 	$(MAKE) build-file
 
 # test target based on NSO version as input
@@ -70,7 +70,7 @@ test:
 # run like: make OLD_NSO_VERSION=5.2.1 NSO_VERSION=5.3 test-multiver
 test-multiver:
 	@if [ -z "$(OLD_NSO_VERSION)" ]; then echo "ERROR: variable OLD_NSO_VERSION must be set, for example to '5.2.1' to run multi-version tests between OLD_NSO_VERSION and NSO_VERSION"; false; fi
-	@if [ -z "$(NSO_VERSION)" ]; then echo "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin"; false; fi
+	@if [ -z "$(NSO_VERSION)" ]; then echo "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on $(NSO_INSTALL_FILES_DIR)nso-5.2.1.linux.x86_64.installer.bin"; false; fi
 	$(MAKE) -C test NSO_VERSION=$(NSO_VERSION) DOCKER_TAG=$(DOCKER_TAG) test-multiver
 
 # Test NID skeletons
