@@ -21,6 +21,7 @@ endif
 # common image or image layers from this build run.
 build: export DOCKER_BUILDKIT=1
 build:
+	@echo $(FILENAME) | grep ".linux.x86_64.installer.bin" >/dev/null; test $$? -eq 0 || (echo "ERROR: FILE ($(FILE)) does not look like the Linux installer"; echo "HINT: filename must end with .linux.x86_64.installer.bin"; false)
 	@echo "Building NSO development Docker image cisco-nso-dev:$(NSO_VERSION) based on $(FILE)"
 	rm -f *.bin
 	cp $(FILE) $(FILENAME)
