@@ -53,9 +53,10 @@ endif
 # run like: make NSO_VERSION=5.2.1 build
 # assumes the corresponding NSO install file is located in the directory
 # specified by NSO_INSTALL_FILES_DIR
-build: export FILE=$(shell realpath -q -e $(NSO_INSTALL_FILES_DIR)/nso-$(NSO_VERSION).linux.x86_64.installer.bin $(NSO_INSTALL_FILES_DIR)/ncs-$(NSO_VERSION).linux.x86_64.installer.bin)
+build: export FILE=$(shell realpath -q -e $(NSO_INSTALL_FILES_DIR)nso-$(NSO_VERSION).linux.x86_64.installer.bin $(NSO_INSTALL_FILES_DIR)ncs-$(NSO_VERSION).linux.x86_64.installer.bin)
 build:
 	@if [ -z "$(NSO_VERSION)" ]; then echo "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to build based on $(NSO_INSTALL_FILES_DIR)nso-5.2.1.linux.x86_64.installer.bin"; false; fi
+	@if [ -z "$${FILE}" ]; then echo "ERROR: NSO installer not found at $(NSO_INSTALL_FILES_DIR)nso-$(NSO_VERSION).linux.x86_64.installer.bin"; false; fi
 	$(MAKE) build-file
 
 # test target based on NSO version as input
@@ -82,12 +83,12 @@ test-skeletons:
 # environment) as input. FILE should be an absolute path to the NSO install
 # file.
 build-file:
-	@if [ -z "$(FILE)" ]; then echo "ERROR: variable FILE must be set to the full path to the NSO installer, e.g. FILE=/data/foo/nso-5.2.1.linux.x86_64.install.bin"; echo "HINT: You probably want to invoke the 'build' target instead"; false; fi
+	@if [ -z "$(FILE)" ]; then echo "ERROR: variable FILE must be the absolute path to the NSO installer, e.g. FILE=/data/foo/nso-5.2.1.linux.x86_64.install.bin"; echo "HINT: You probably want to invoke the 'build' target instead"; false; fi
 	$(MAKE) -C docker-images DOCKER_TAG=$(DOCKER_TAG) build
 
 # test target also takes FILE env arg as described above
 test-file test-file-multiver:
-	@if [ -z "$(FILE)" ]; then echo "ERROR: variable FILE must be set to the full path to the NSO installer, e.g. FILE=/data/foo/nso-5.2.1.linux.x86_64.install.bin"; echo "HINT: You probably want to invoke the 'test' target instead"; false; fi
+	@if [ -z "$(FILE)" ]; then echo "ERROR: variable FILE must be the absolute path to the NSO installer, e.g. FILE=/data/foo/nso-5.2.1.linux.x86_64.install.bin"; echo "HINT: You probably want to invoke the 'test' target instead"; false; fi
 	$(MAKE) -C test DOCKER_TAG=$(DOCKER_TAG) $(subst -file,,$@)
 
 # builds images for all NSO versions (found in NSO_INSTALL_FILES_DIR)
