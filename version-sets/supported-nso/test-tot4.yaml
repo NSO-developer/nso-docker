@@ -1,6 +1,6 @@
-test-4.7.10:
+test-4.7.11:
   extends: .test
   variables:
-    NSO_VERSION: "4.7.10"
+    NSO_VERSION: "4.7.11"
   needs:
-    - build-4.7.10
+    - build-4.7.11

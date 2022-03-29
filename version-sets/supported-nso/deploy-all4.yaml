@@ -3,10 +3,10 @@ deploy-4.7.10:
   variables:
     NSO_VERSION: "4.7.10"
 
-deploy-4.7.8:
+deploy-4.7.11:
   extends: .deploy
   variables:
-    NSO_VERSION: "4.7.8"
+    NSO_VERSION: "4.7.11"
 
 deploy-4.7.9:
   extends: .deploy
