@@ -453,9 +453,9 @@ test-ha-new:
 # file between containers. Wait until the first container is up before starting
 # the second to avoid a race creating the file.
 	docker volume create $(CNT_PREFIX)-$@
-	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@-1 --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e HA_ENABLE=true -e NCS_HA_NODE=n1 -v $(CNT_PREFIX)-$@:/nso/etc $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@-1 --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e HA_ENABLE=true -v $(CNT_PREFIX)-$@:/nso/etc $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'ncs --wait-started 600'
-	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@-2 --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e HA_ENABLE=true -e NCS_HA_NODE=n2 -v $(CNT_PREFIX)-$@:/nso/etc $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
+	docker run -td $(DOCKER_PLATFORM_ARG) --name $(CNT_PREFIX)-$@-2 --label com.cisco.nso.testenv.name=$(CNT_PREFIX) -e HA_ENABLE=true -v $(CNT_PREFIX)-$@:/nso/etc $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
 	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'ncs --wait-started 600'
 	@echo "-- Load HA config"
 	cp high-availability.xml tmp-$@/
