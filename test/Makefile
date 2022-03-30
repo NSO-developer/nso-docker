@@ -197,8 +197,10 @@ test-nso-restart:
 	-docker rm -f $(CNT_PREFIX)-$@ >/dev/null 2>&1
 	@echo "-- Start NSO container"
 	docker run -td --name $(CNT_PREFIX)-$@ --label com.cisco.nso.testenv.name=$(CNT_PREFIX) $(DOCKER_REGISTRY)cisco-nso-base:$(DOCKER_TAG)
-	@echo "-- Wait for NSO in container to start"
+	@echo "-- Wait for NSO in container to properly start up"
 	docker exec -t $(CNT_PREFIX)-$@ bash -lc 'ncs --wait-started 600'
+	@echo "-- Wait for NSO in container to properly start up"
+	timeout 20 docker logs -f $(CNT_PREFIX)-$@ 2>&1 | grep -m1 "waiting for signals or NSO"
 	@echo "-- Restart NSO process in container"
 	docker kill --signal HUP $(CNT_PREFIX)-$@
 	@echo "-- Check that NSO process restarted, we should see 2 'starting' messages... (for some reason we get double messages, but can unique them based on pid)"
