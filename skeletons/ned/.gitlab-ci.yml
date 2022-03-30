@@ -68,7 +68,7 @@ before_script:
     - make build
     - mark_section_end build
     - mark_section_start test-start "Starting testenv"
-    - make testenv-start testenv-wait-healthy
+    - make testenv-start
     - mark_section_end test-start
     - mark_section_start test-run "Running tests"
     - make testenv-test
