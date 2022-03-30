@@ -201,26 +201,30 @@ check-logs:
 dev-shell:
 	docker run -it --rm -v $(PROJECT_DIR):/src --volumes-from $(CNT_PREFIX)-nso$(NSO) --network container:$(CNT_PREFIX)-nso$(NSO) $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION)
 
+# Wait for all containers in the testenv (as found via the testenv label) to
+# become healthy! If a container has exited, we exit immediately.
+# The implicit assumption is that all containers as part of the testenv should
+# be running. If a temporary container is used, i.e. its normal life cycle is
+# that it is started, run shortly and then exits, it must also be removed!
 wait-healthy:
-	@echo "Waiting (up to 900 seconds) for vrnetlab and NCS containers to become healthy"
+	@echo "Waiting (up to 900 seconds) for testenv container(s) to become healthy"
 	@OLD_COUNT=0; for I in $$(seq 1 900); do \
-		if [ "$$(docker ps -f name=^/$(CNT_PREFIX)-nso\$$ | tail -n +2 | wc -l)" -ne 1 ]; then echo -e "\e[31m$(CNT_PREFIX)-nso not running. Something in start must have gone bad (failed to load package etc). You should debug (check 'docker logs $(CNT_PREFIX)-nso') and restart\e[0m"; exit 1; fi; \
-		STOPPED=$$(docker ps -a -f name=$(CNT_PREFIX) | grep Exited); \
-		if [ -n "$$STOPPED" ]; then \
-			echo -e "\e[31m===  $${SECONDS}s elapsed - Container died"; \
-	    echo -e "$$STOPPED \\e[0m"; \
+		STOPPED=$$(docker ps -a --filter label=com.cisco.nso.testenv.name=$(CNT_PREFIX) | grep "Exited"); \
+		if [ -n "$${STOPPED}" ]; then \
+			echo -e "\e[31m===  $${SECONDS}s elapsed - Container(s) unexpectedly exited"; \
+			echo -e "$${STOPPED} \\e[0m"; \
 			exit 1; \
 		fi; \
-		COUNT=$$(docker ps -f name=$(CNT_PREFIX) | egrep "(unhealthy|health: starting)" | wc -l); \
-		if [ $$COUNT -gt 0 ]; then  \
-			if [ $$OLD_COUNT -ne $$COUNT ];\
+		COUNT=$$(docker ps --filter label=com.cisco.nso.testenv.name=$(CNT_PREFIX) | egrep "(unhealthy|health: starting)" | wc -l); \
+		if [ $${COUNT} -gt 0 ]; then  \
+			if [ $${OLD_COUNT} -ne $${COUNT} ];\
 			then \
 				echo -e "\e[31m===  $${SECONDS}s elapsed - Found unhealthy/starting ($${COUNT}) containers";\
-				docker ps -f name=$(CNT_PREFIX) | egrep "(unhealthy|health: starting)" | awk '{ print $$(NF) }';\
+				docker ps --filter label=com.cisco.nso.testenv.name=$(CNT_PREFIX) | egrep "(unhealthy|health: starting)" | awk '{ print $$(NF) }';\
 				echo -e "Checking again every 1 second, no more messages until changes detected\\e[0m"; \
 			fi;\
 			sleep 1; \
-			OLD_COUNT=$$COUNT;\
+			OLD_COUNT=$${COUNT};\
 			continue; \
 		else \
 			echo -e "\e[32m=== $${SECONDS}s elapsed - Did not find any unhealthy containers, all is good.\e[0m"; \
@@ -228,6 +232,6 @@ wait-healthy:
 		fi ;\
 	done; \
 	echo -e "\e[31m===  $${SECONDS}s elapsed - Found unhealthy/starting ($${COUNT}) containers";\
-	docker ps -f name=$(CNT_PREFIX) | egrep "(unhealthy|health: starting)" | awk '{ print $$(NF) }';\
+	docker ps --filter label=com.cisco.nso.testenv.name=$(CNT_PREFIX) | egrep "(unhealthy|health: starting)" | awk '{ print $$(NF) }';\
 	echo -e "\e[0m"; \
 	exit 1
