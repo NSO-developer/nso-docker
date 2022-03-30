@@ -253,7 +253,7 @@ done
 # wait forever on the ncs process, we run ncs in background and wait on it like
 # this, with a signal handler for HUP, INT & TERM so that we upon receiving
 # those signals can run ncs --stop rather than having those signals sent
-# directly to ncs. For HUP we set RESTART_REQUEST=true and will take another
+# directly to ncs. For HUP we set RESTART_REQUESTED=true and will take another
 # spin in our loop.
 while true; do
     echo "run-nso.sh: waiting for signals or NSO (PID ${NSO_PID}) to exit..."
