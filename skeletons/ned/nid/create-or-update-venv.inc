@@ -19,8 +19,8 @@ create_or_update_venv () {
             python3 -m venv --symlinks --system-site-packages $([ "${clear}" == "true" ] && echo "--clear") "${venv}"
             # venv starts by resolving the symlink of its own location, thus doesn't
             # think /var/opt/ncs/packages/ is its location but /src/(test-)?packages
-            # - we fix that with sed...
-            find "${venv}" -type f -print0 | xargs -0 sed -i -e 's,/src/\(test-\)\?packages/,/var/opt/ncs/packages/,'
+            # - we fix that with sed by replacing the path in executables in venv/bin ...
+            find "${venv}"/bin -type f -print0 | xargs -0 sed -i -e 's,/src/\(test-\)\?packages/,/var/opt/ncs/packages/,'
             . "${venv}"/bin/activate
             # upgrade pip to latest version (in the venv) to deal with correct
             # downloading of wheel packages
