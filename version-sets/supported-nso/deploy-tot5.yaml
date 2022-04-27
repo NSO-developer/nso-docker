@@ -3,10 +3,10 @@ deploy-5.1.6:
   variables:
     NSO_VERSION: "5.1.6"
 
-deploy-5.2.9:
+deploy-5.2.10:
   extends: .deploy
   variables:
-    NSO_VERSION: "5.2.9"
+    NSO_VERSION: "5.2.10"
 
 deploy-5.3.6:
   extends: .deploy
@@ -18,17 +18,22 @@ deploy-5.4.6:
   variables:
     NSO_VERSION: "5.4.6"
 
-deploy-5.5.4:
+deploy-5.5.5:
   extends: .deploy
   variables:
-    NSO_VERSION: "5.5.4"
+    NSO_VERSION: "5.5.5"
 
 deploy-5.6.5:
   extends: .deploy
   variables:
     NSO_VERSION: "5.6.5"
 
-deploy-5.7.2:
+deploy-5.7.3:
   extends: .deploy
   variables:
-    NSO_VERSION: "5.7.2"
+    NSO_VERSION: "5.7.3"
+
+deploy-5.8:
+  extends: .deploy
+  variables:
+    NSO_VERSION: "5.8"
