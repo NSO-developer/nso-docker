@@ -3,6 +3,7 @@ FROM debian:buster AS nso_install
 RUN apt-get update \
   && apt-get install -qy \
   openssh-client \
+  openssl \
   libexpat1 \
   && apt-get -qy autoremove \
   && apt-get clean \
