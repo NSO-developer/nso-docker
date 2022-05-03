@@ -127,7 +127,10 @@ ifneq ($(shell uname -m),x86_64)
 DOCKER_PLATFORM_ARG ?= --platform=linux/amd64
 endif
 
-DOCKER_BUILD_ARGS+= $(DOCKER_PLATFORM_ARG)
+DOCKER_BUILD_PROXY_ARGS ?= --build-arg http_proxy --build-arg https_proxy --build-arg no_proxy
+
+
+DOCKER_BUILD_ARGS+= $(DOCKER_PLATFORM_ARG) $(DOCKER_BUILD_PROXY_ARGS)
 DOCKER_BUILD_ARGS+= --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH)
 DOCKER_BUILD_ARGS+= --build-arg NSO_VERSION=$(NSO_VERSION)
 DOCKER_BUILD_ARGS+= --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG)
