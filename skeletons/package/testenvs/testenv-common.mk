@@ -82,7 +82,7 @@ clean-rebuild:
 		docker run -t --rm --volumes-from $${NSO} $(IMAGE_PATH)$(PROJECT_NAME)/build:$(DOCKER_TAG) cp -a /includes/. /var/opt/ncs/packages/; \
 	done
 	@echo "-- Done cleaning, rebuilding with forced package reload..."
-	$(MAKE) build PACKAGE_RELOAD="true"
+	$(MAKE) rebuild PACKAGE_RELOAD="true"
 
 # stop - stop the testenv
 # This finds the currently running containers that are part of our testenv based
