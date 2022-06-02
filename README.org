@@ -233,15 +233,15 @@ endif
 
 *** Run for production
     - with a production image, i.e. using the base image from this repo and adding in your own packages
-    - use shared volume to persist data across restarts
+    - use shared volume, mounted at =/nso=, to persist data across restarts
       - CDB (NSO database)
       - SSH & SSL keys
       - NETCONF notification replay
       - rollbacks
       - backups
-      - optionally NSO logs
-        - if remote (syslog) logging is used there is little need to persist logs
-        - if local logging, then persisting logs is a good idea
+    - optionally mount a shared volume at =/log= to persist NSO logs
+      - if remote (syslog) logging is used there is little need to persist logs
+      - if local logging, then persisting logs is a good idea
     - possibly use --net=host to share IP address with host machine
       - makes it easier to handle connectivity
 
