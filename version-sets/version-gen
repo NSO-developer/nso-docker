@@ -138,14 +138,14 @@ def f_tot(versions):
             mm = version.tup[0:2] + (version.extra,)
         # if we have no matches at all for this major/minor, we insert
         if mm not in tot:
-            tot[mm] = [version]
+            tot[mm] = version
         # if currently stored major/minor is less (lower maintenance version),
         # we overwrite it
-        elif tot[mm][0].tup < version.tup:
-            tot[mm] = [version]
+        elif tot[mm].tup < version.tup:
+            tot[mm] = version
 
     # return flattened result
-    return [ver for mmver in tot.values() for ver in mmver]
+    return list(tot.values())
 
 def frmt(tmpl, version, data=None):
     """Generic formatter
