@@ -2,6 +2,7 @@ test-4.7.11:
   extends: .test
   variables:
     NSO_VERSION: "4.7.11"
+    NSO_VERSION_IS_TOT: "true"
   needs:
     - build-4.7.11
 
@@ -9,6 +10,7 @@ test-5.1.6:
   extends: .test
   variables:
     NSO_VERSION: "5.1.6"
+    NSO_VERSION_IS_TOT: "true"
   needs:
     - build-5.1.6
 
@@ -16,6 +18,7 @@ test-5.2.11:
   extends: .test
   variables:
     NSO_VERSION: "5.2.11"
+    NSO_VERSION_IS_TOT: "true"
   needs:
     - build-5.2.11
 
@@ -23,6 +26,7 @@ test-5.3.7:
   extends: .test
   variables:
     NSO_VERSION: "5.3.7"
+    NSO_VERSION_IS_TOT: "true"
   needs:
     - build-5.3.7
 
@@ -30,6 +34,7 @@ test-5.4.8:
   extends: .test
   variables:
     NSO_VERSION: "5.4.8"
+    NSO_VERSION_IS_TOT: "true"
   needs:
     - build-5.4.8
 
@@ -37,6 +42,7 @@ test-5.5.7:
   extends: .test
   variables:
     NSO_VERSION: "5.5.7"
+    NSO_VERSION_IS_TOT: "true"
   needs:
     - build-5.5.7
 
@@ -44,6 +50,7 @@ test-5.6.8:
   extends: .test
   variables:
     NSO_VERSION: "5.6.8"
+    NSO_VERSION_IS_TOT: "true"
   needs:
     - build-5.6.8
 
@@ -51,6 +58,7 @@ test-5.7.6:
   extends: .test
   variables:
     NSO_VERSION: "5.7.6"
+    NSO_VERSION_IS_TOT: "true"
   needs:
     - build-5.7.6
 
@@ -58,6 +66,7 @@ test-5.8.4:
   extends: .test
   variables:
     NSO_VERSION: "5.8.4"
+    NSO_VERSION_IS_TOT: "true"
   needs:
     - build-5.8.4
 
@@ -65,5 +74,6 @@ test-6.0:
   extends: .test
   variables:
     NSO_VERSION: "6.0"
+    NSO_VERSION_IS_TOT: "true"
   needs:
     - build-6.0

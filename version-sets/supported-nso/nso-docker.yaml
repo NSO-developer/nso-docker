@@ -2,141 +2,169 @@ build-4.7.10:
   extends: .build
   variables:
     NSO_VERSION: "4.7.10"
+    NSO_VERSION_IS_TOT: "false"
 
 build-4.7.11:
   extends: .build
   variables:
     NSO_VERSION: "4.7.11"
+    NSO_VERSION_IS_TOT: "true"
 
 build-4.7.9:
   extends: .build
   variables:
     NSO_VERSION: "4.7.9"
+    NSO_VERSION_IS_TOT: "false"
 
 build-5.1.4:
   extends: .build
   variables:
     NSO_VERSION: "5.1.4"
+    NSO_VERSION_IS_TOT: "false"
 
 build-5.1.5:
   extends: .build
   variables:
     NSO_VERSION: "5.1.5"
+    NSO_VERSION_IS_TOT: "false"
 
 build-5.1.6:
   extends: .build
   variables:
     NSO_VERSION: "5.1.6"
+    NSO_VERSION_IS_TOT: "true"
 
 build-5.2.10:
   extends: .build
   variables:
     NSO_VERSION: "5.2.10"
+    NSO_VERSION_IS_TOT: "false"
 
 build-5.2.11:
   extends: .build
   variables:
     NSO_VERSION: "5.2.11"
+    NSO_VERSION_IS_TOT: "true"
 
 build-5.2.9:
   extends: .build
   variables:
     NSO_VERSION: "5.2.9"
+    NSO_VERSION_IS_TOT: "false"
 
 build-5.3.5:
   extends: .build
   variables:
     NSO_VERSION: "5.3.5"
+    NSO_VERSION_IS_TOT: "false"
 
 build-5.3.6:
   extends: .build
   variables:
     NSO_VERSION: "5.3.6"
+    NSO_VERSION_IS_TOT: "false"
 
 build-5.3.7:
   extends: .build
   variables:
     NSO_VERSION: "5.3.7"
+    NSO_VERSION_IS_TOT: "true"
 
 build-5.4.6:
   extends: .build
   variables:
     NSO_VERSION: "5.4.6"
+    NSO_VERSION_IS_TOT: "false"
 
 build-5.4.7:
   extends: .build
   variables:
     NSO_VERSION: "5.4.7"
+    NSO_VERSION_IS_TOT: "false"
 
 build-5.4.8:
   extends: .build
   variables:
     NSO_VERSION: "5.4.8"
+    NSO_VERSION_IS_TOT: "true"
 
 build-5.5.5:
   extends: .build
   variables:
     NSO_VERSION: "5.5.5"
+    NSO_VERSION_IS_TOT: "false"
 
 build-5.5.6:
   extends: .build
   variables:
     NSO_VERSION: "5.5.6"
+    NSO_VERSION_IS_TOT: "false"
 
 build-5.5.7:
   extends: .build
   variables:
     NSO_VERSION: "5.5.7"
+    NSO_VERSION_IS_TOT: "true"
 
 build-5.6.6:
   extends: .build
   variables:
     NSO_VERSION: "5.6.6"
+    NSO_VERSION_IS_TOT: "false"
 
 build-5.6.7:
   extends: .build
   variables:
     NSO_VERSION: "5.6.7"
+    NSO_VERSION_IS_TOT: "false"
 
 build-5.6.8:
   extends: .build
   variables:
     NSO_VERSION: "5.6.8"
+    NSO_VERSION_IS_TOT: "true"
 
 build-5.7.4:
   extends: .build
   variables:
     NSO_VERSION: "5.7.4"
+    NSO_VERSION_IS_TOT: "false"
 
 build-5.7.5:
   extends: .build
   variables:
     NSO_VERSION: "5.7.5"
+    NSO_VERSION_IS_TOT: "false"
 
 build-5.7.6:
   extends: .build
   variables:
     NSO_VERSION: "5.7.6"
+    NSO_VERSION_IS_TOT: "true"
 
 build-5.8.2:
   extends: .build
   variables:
     NSO_VERSION: "5.8.2"
+    NSO_VERSION_IS_TOT: "false"
 
 build-5.8.3:
   extends: .build
   variables:
     NSO_VERSION: "5.8.3"
+    NSO_VERSION_IS_TOT: "false"
 
 build-5.8.4:
   extends: .build
   variables:
     NSO_VERSION: "5.8.4"
+    NSO_VERSION_IS_TOT: "true"
 
 build-6.0:
   extends: .build
   variables:
     NSO_VERSION: "6.0"
+    NSO_VERSION_IS_TOT: "true"
 multiver-test_4.7.9_4.7.10:
   extends: .multiver_test
   variables:
@@ -1295,141 +1323,169 @@ push-4.7.10:
   extends: .push
   variables:
     NSO_VERSION: "4.7.10"
+    NSO_VERSION_IS_TOT: "false"
 
 push-4.7.11:
   extends: .push
   variables:
     NSO_VERSION: "4.7.11"
+    NSO_VERSION_IS_TOT: "true"
 
 push-4.7.9:
   extends: .push
   variables:
     NSO_VERSION: "4.7.9"
+    NSO_VERSION_IS_TOT: "false"
 
 push-5.1.4:
   extends: .push
   variables:
     NSO_VERSION: "5.1.4"
+    NSO_VERSION_IS_TOT: "false"
 
 push-5.1.5:
   extends: .push
   variables:
     NSO_VERSION: "5.1.5"
+    NSO_VERSION_IS_TOT: "false"
 
 push-5.1.6:
   extends: .push
   variables:
     NSO_VERSION: "5.1.6"
+    NSO_VERSION_IS_TOT: "true"
 
 push-5.2.10:
   extends: .push
   variables:
     NSO_VERSION: "5.2.10"
+    NSO_VERSION_IS_TOT: "false"
 
 push-5.2.11:
   extends: .push
   variables:
     NSO_VERSION: "5.2.11"
+    NSO_VERSION_IS_TOT: "true"
 
 push-5.2.9:
   extends: .push
   variables:
     NSO_VERSION: "5.2.9"
+    NSO_VERSION_IS_TOT: "false"
 
 push-5.3.5:
   extends: .push
   variables:
     NSO_VERSION: "5.3.5"
+    NSO_VERSION_IS_TOT: "false"
 
 push-5.3.6:
   extends: .push
   variables:
     NSO_VERSION: "5.3.6"
+    NSO_VERSION_IS_TOT: "false"
 
 push-5.3.7:
   extends: .push
   variables:
     NSO_VERSION: "5.3.7"
+    NSO_VERSION_IS_TOT: "true"
 
 push-5.4.6:
   extends: .push
   variables:
     NSO_VERSION: "5.4.6"
+    NSO_VERSION_IS_TOT: "false"
 
 push-5.4.7:
   extends: .push
   variables:
     NSO_VERSION: "5.4.7"
+    NSO_VERSION_IS_TOT: "false"
 
 push-5.4.8:
   extends: .push
   variables:
     NSO_VERSION: "5.4.8"
+    NSO_VERSION_IS_TOT: "true"
 
 push-5.5.5:
   extends: .push
   variables:
     NSO_VERSION: "5.5.5"
+    NSO_VERSION_IS_TOT: "false"
 
 push-5.5.6:
   extends: .push
   variables:
     NSO_VERSION: "5.5.6"
+    NSO_VERSION_IS_TOT: "false"
 
 push-5.5.7:
   extends: .push
   variables:
     NSO_VERSION: "5.5.7"
+    NSO_VERSION_IS_TOT: "true"
 
 push-5.6.6:
   extends: .push
   variables:
     NSO_VERSION: "5.6.6"
+    NSO_VERSION_IS_TOT: "false"
 
 push-5.6.7:
   extends: .push
   variables:
     NSO_VERSION: "5.6.7"
+    NSO_VERSION_IS_TOT: "false"
 
 push-5.6.8:
   extends: .push
   variables:
     NSO_VERSION: "5.6.8"
+    NSO_VERSION_IS_TOT: "true"
 
 push-5.7.4:
   extends: .push
   variables:
     NSO_VERSION: "5.7.4"
+    NSO_VERSION_IS_TOT: "false"
 
 push-5.7.5:
   extends: .push
   variables:
     NSO_VERSION: "5.7.5"
+    NSO_VERSION_IS_TOT: "false"
 
 push-5.7.6:
   extends: .push
   variables:
     NSO_VERSION: "5.7.6"
+    NSO_VERSION_IS_TOT: "true"
 
 push-5.8.2:
   extends: .push
   variables:
     NSO_VERSION: "5.8.2"
+    NSO_VERSION_IS_TOT: "false"
 
 push-5.8.3:
   extends: .push
   variables:
     NSO_VERSION: "5.8.3"
+    NSO_VERSION_IS_TOT: "false"
 
 push-5.8.4:
   extends: .push
   variables:
     NSO_VERSION: "5.8.4"
+    NSO_VERSION_IS_TOT: "true"
 
 push-6.0:
   extends: .push
   variables:
     NSO_VERSION: "6.0"
+    NSO_VERSION_IS_TOT: "true"
 
 test-version-set:
   extends: .test-version-set
