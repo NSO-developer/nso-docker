@@ -32,7 +32,8 @@ the tip-of-train would include 4.7.2 and 5.2.1.
 import json
 import re
 
-from collections import namedtuple
+from dataclasses import dataclass, replace
+from typing import Tuple, Union
 
 # stores both the version, which can include extra characters, for example
 # 5.3.2_ps or 5.3.2_200407.032413.72dd81aef74b for a nightly, and then we have
@@ -40,7 +41,14 @@ from collections import namedtuple
 # a tuple form which is easy to sort on. extra will keep the extra stuff, like
 # '_ps' or '_200407.032413.72dd81aef74b' in the above examples. type is one
 # of "normal", "nightly" or "special".
-NsoV = namedtuple('NSOv', ['version', 'tup', 'extra', 'type'])
+
+@dataclass(order=True, frozen=True)
+class NsoV:
+    version: str
+    tup: Tuple[Union[int, str]]
+    extra: str
+    type: str
+    tot: bool = False
 
 flat_tmpl = "{version}\n"
 
@@ -48,6 +56,7 @@ ci_template = """{name}-{version}:
   extends: .{name}
   variables:
     NSO_VERSION: "{version}"
+    NSO_VERSION_IS_TOT: "{tot}"
 """
 
 ci_template_needs = """  needs:
@@ -147,6 +156,14 @@ def f_tot(versions):
     # return flattened result
     return list(tot.values())
 
+def f_is_tot(versions):
+    """Filter based on the 'tot' attribute
+
+    Returns versions where the 'tot' attribute is set to True."""
+    for vsn in versions:
+        if vsn.tot is True:
+            yield vsn
+
 def frmt(tmpl, version, data=None):
     """Generic formatter
     """
@@ -155,8 +172,8 @@ def frmt(tmpl, version, data=None):
     data['version'] = version
     return tmpl.format(**data)
 
-def formatter(version, name='build', needs=None):
-    r = ci_template.format(name=name, version=version)
+def formatter(version, name='build', needs=None, tot=False):
+    r = ci_template.format(name=name, version=version, tot=str(tot).lower())
     if needs:
         r += ci_template_needs.format(needs=needs, version=version)
     return r
@@ -172,27 +189,27 @@ def formatter_mv(old_version, version, needs=None):
 def write_job_set(name, versions, needs):
     # all versions
     with open("{}-all.yaml".format(name), "w") as f:
-        f.write("\n".join(map(lambda ver: formatter(ver.version, name, needs), versions)))
+        f.write("\n".join(map(lambda ver: formatter(ver.version, name, needs, ver.tot), versions)))
 
     # all 4 versions
     with open("{}-all4.yaml".format(name), "w") as f:
-        f.write("\n".join(map(lambda ver: formatter(ver.version, name, needs), f_major(4, versions))))
+        f.write("\n".join(map(lambda ver: formatter(ver.version, name, needs, ver.tot), f_major(4, versions))))
 
     # all 5 versions
     with open("{}-all5.yaml".format(name), "w") as f:
-        f.write("\n".join(map(lambda ver: formatter(ver.version, name, needs), f_major(5, versions))))
+        f.write("\n".join(map(lambda ver: formatter(ver.version, name, needs, ver.tot), f_major(5, versions))))
 
     # all tip-of-train versions
     with open("{}-tot.yaml".format(name), "w") as f:
-        f.write("\n".join(map(lambda ver: formatter(ver.version, name, needs), f_tot(versions))))
+        f.write("\n".join(map(lambda ver: formatter(ver.version, name, needs, ver.tot), f_is_tot(versions))))
 
     # all tip-of-train 4 versions
     with open("{}-tot4.yaml".format(name), "w") as f:
-        f.write("\n".join(map(lambda ver: formatter(ver.version, name, needs), f_tot(f_major(4, versions)))))
+        f.write("\n".join(map(lambda ver: formatter(ver.version, name, needs, ver.tot), f_is_tot(f_major(4, versions)))))
 
     # all tip-of-train 5 versions
     with open("{}-tot5.yaml".format(name), "w") as f:
-        f.write("\n".join(map(lambda ver: formatter(ver.version, name, needs), f_tot(f_major(5, versions)))))
+        f.write("\n".join(map(lambda ver: formatter(ver.version, name, needs, ver.tot), f_is_tot(f_major(5, versions)))))
 
 def write_flat(filename, versions):
     with open(filename, "w") as f:
@@ -275,7 +292,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     with open(args.version_file) as f:
-        versions = sorted(list(map(lambda x: vsn_split(x), json.load(f))))
+        versions_input = sorted(list(map(lambda x: vsn_split(x), json.load(f))))
+
+    tot_versions = list(f_tot(versions_input))
+    versions = [v if v not in tot_versions else replace(v, tot=True) for v in versions_input]
 
     if args.json_lod is not None:
         write_json_lod(args.json_lod, versions)
