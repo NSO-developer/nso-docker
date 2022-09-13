@@ -75,6 +75,21 @@ $(error "ERROR: variable NSO_VERSION must be set, for example to '5.2.1' to buil
 endif
 NSO_VERSION_MAJOR=$(word 1,$(subst ., ,$(NSO_VERSION)))
 NSO_VERSION_MINOR=$(word 2,$(subst ., ,$(subst _, ,$(NSO_VERSION))))
+# NSO_VERSION_EXTRA is NSO_VERSION but just the extra part: 5.7.3_ps-123456 becomes _ps
+ifneq (,$(findstring _,$(NSO_VERSION)))
+NSO_VERSION_EXTRA=$(subst $(firstword $(subst _, ,$(firstword $(subst -, ,$(NSO_VERSION))))),,$(NSO_VERSION))
+else
+NSO_VERSION_EXTRA=
+endif
+
+# NSO_VERSION_MM is NSO_VERSION but just the major, minor and extra parts:
+# 5.7.3_ps-123456 becomes 5.7_ps. This is used for includes which do not require
+# the package to be built with the exact same patch version of NSO. For example,
+# a package built with 5.8.1_ps can be loaded in all NSO versions in the 5.8_ps
+# train.
+# This version variable is exported to make it available to the shell script
+# doing variable expansion in the includes files.
+export NSO_VERSION_MM?=$(NSO_VERSION_MAJOR).$(NSO_VERSION_MINOR)$(NSO_VERSION_EXTRA)
 
 # Determine our project name, either from CI_PROJECT_NAME which is normally set
 # by GitLab CI or by looking at the name of our directory (that we are in).
@@ -102,6 +117,7 @@ endif
 
 # set the docker tag to use, if not already set
 DOCKER_TAG?=$(NSO_VERSION)-$(PNS)
+DOCKER_TAG_MM?=$(NSO_VERSION_MM)-$(PNS)
 CNT_PREFIX?=testenv-$(PROJECT_NAME)-$(TESTENV)-$(NSO_VERSION)-$(PNS)
 
 # There are three important paths that we provide:

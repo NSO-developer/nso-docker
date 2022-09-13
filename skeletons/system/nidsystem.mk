@@ -40,6 +40,10 @@ Dockerfile: Dockerfile.in $(wildcard includes/*)
 # no way of getting a timestamp for, we must rebuild in order to be safe.
 .PHONY: Dockerfile
 
+# For CI builds, create the major.minor_extra version tag if the current
+# NSO_VERSION is tip-of-train. For local builds always create the additional tag
+# because that makes it easy to compose a local system image.
+CREATE_MM_TAG?=$(if $(CI),$(NSO_VERSION_IS_TOT),true)
 
 # We explicitly build the first 'build' stage, which allows us to control
 # caching of it through the DOCKER_BUILD_CACHE_ARG.
@@ -47,21 +51,33 @@ build: export DOCKER_BUILDKIT=1
 build: ensure-fresh-nid-available Dockerfile
 	docker build --target build -t $(IMAGE_PATH)$(PROJECT_NAME)/build:$(DOCKER_TAG) $(DOCKER_BUILD_ARGS) $(DOCKER_BUILD_CACHE_ARG) .
 	docker build --target nso   -t $(IMAGE_PATH)$(PROJECT_NAME)/nso:$(DOCKER_TAG)   $(DOCKER_BUILD_ARGS) .
+ifeq ($(CREATE_MM_TAG),true)
+	docker tag $(IMAGE_PATH)$(PROJECT_NAME)/nso:$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME)/nso:MM_$(DOCKER_TAG_MM)
+endif
 
 push:
 	docker push $(IMAGE_PATH)$(PROJECT_NAME)/nso:$(DOCKER_TAG)
+ifeq ($(CREATE_MM_TAG),true)
+	docker push $(IMAGE_PATH)$(PROJECT_NAME)/nso:MM_$(DOCKER_TAG_MM)
+endif
 
 tag-release:
 	docker tag $(IMAGE_PATH)$(PROJECT_NAME)/nso:$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME)/nso:$(NSO_VERSION)
+ifeq ($(CREATE_MM_TAG),true)
+	docker tag $(IMAGE_PATH)$(PROJECT_NAME)/nso:$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME)/nso:MM_$(NSO_VERSION_MM)
+endif
 
 push-release:
 	docker push $(IMAGE_PATH)$(PROJECT_NAME)/nso:$(NSO_VERSION)
 
+ifeq ($(CREATE_MM_TAG),true)
+	docker push $(IMAGE_PATH)$(PROJECT_NAME)/nso:MM_$(NSO_VERSION_MM)
+endif
 
 dev-shell:
 	docker run -it -v $$(pwd):/src $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION)
 
-.PHONY: all build dev-shell push push-release tag-release test
+.PHONY: all build push push-release tag-release dev-shell test
 
 # Proxy target for running (legacy) default testenv. We explicitly list the
 # "common" targets here to enable tab autocompletion.
