@@ -3,37 +3,37 @@ push-5.1.6:
   variables:
     NSO_VERSION: "5.1.6"
 
-push-5.2.10:
+push-5.2.11:
   extends: .push
   variables:
-    NSO_VERSION: "5.2.10"
+    NSO_VERSION: "5.2.11"
 
-push-5.3.6:
+push-5.3.7:
   extends: .push
   variables:
-    NSO_VERSION: "5.3.6"
+    NSO_VERSION: "5.3.7"
 
-push-5.4.6:
+push-5.4.8:
   extends: .push
   variables:
-    NSO_VERSION: "5.4.6"
+    NSO_VERSION: "5.4.8"
 
-push-5.5.5:
+push-5.5.6:
   extends: .push
   variables:
-    NSO_VERSION: "5.5.5"
+    NSO_VERSION: "5.5.6"
 
-push-5.6.5:
+push-5.6.8:
   extends: .push
   variables:
-    NSO_VERSION: "5.6.5"
+    NSO_VERSION: "5.6.8"
 
-push-5.7.3:
+push-5.7.6:
   extends: .push
   variables:
-    NSO_VERSION: "5.7.3"
+    NSO_VERSION: "5.7.6"
 
-push-5.8:
+push-5.8.3:
   extends: .push
   variables:
-    NSO_VERSION: "5.8"
+    NSO_VERSION: "5.8.3"
