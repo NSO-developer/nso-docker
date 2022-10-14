@@ -726,6 +726,13 @@ Do note that the example image URLs used above would be the result of the defaul
   If you notice any issues, please open an issue.
 
 * FAQ / Questions and answers
+** Q: NSO consumes all / a lot of RAM, why?
+Does =ulimit -n= report a limit of 1073741824 (~1 billion) open files? NSO uses that value to initialize some internal tables and 1 billion is too much. Lower the limit to something more reasonable, like a million open files. This seems to have popped up on some RedHat / Centos systems.
+
+Check if it helps with =docker run --ulimit nofile=1048576 ...=
+
+And set it permanently for your docker daemon through its configuration or how it is started on your system.
+
 ** Q: Why are these images not based on alpine or some other minimal container friendly image
    *A*: The larger the final container image is, the less impact the base image size typically has. Picking a 5MB or 50MB base image is not crucial when the final image is an order of magnitude larger.
 
