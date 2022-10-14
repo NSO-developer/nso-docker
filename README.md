@@ -87,8 +87,8 @@ See the [NID skeletons](./skeletons/) for how to get started developing in the N
 NSO in Docker runs on:
 
 -   Linux
--   Mac OS X, see [Mac OS X support](#orgbfc1879) for more information
--   Windows, see [Windows Support](#orgfbc11bf) for more information
+-   Mac OS X, see [Mac OS X support](#org94090a9) for more information
+-   Windows, see [Windows Support](#org0b7d9d4) for more information
 
 To build these images, you need:
 
@@ -250,15 +250,15 @@ Using the `--platform=linux/amd64` argument when the native architecture is alre
 ### Run for production
 
 -   with a production image, i.e. using the base image from this repo and adding in your own packages
--   use shared volume to persist data across restarts
+-   use shared volume, mounted at `/nso`, to persist data across restarts
     -   CDB (NSO database)
     -   SSH & SSL keys
     -   NETCONF notification replay
     -   rollbacks
     -   backups
-    -   optionally NSO logs
-        -   if remote (syslog) logging is used there is little need to persist logs
-        -   if local logging, then persisting logs is a good idea
+-   optionally mount a shared volume at `/log` to persist NSO logs
+    -   if remote (syslog) logging is used there is little need to persist logs
+    -   if local logging, then persisting logs is a good idea
 -   possibly use &#x2013;net=host to share IP address with host machine
     -   makes it easier to handle connectivity
 
@@ -289,7 +289,7 @@ The normal configuration mangling will NOT be applied to the mounted `/etc/ncs/n
 
 NOTE: the mangling will be directly applied to the mounted file and modify it. Many of the mangling operations are not idempotently implemented, so this will likely break things. If you want to supply a configuration file and mangle it on startup, you probably want to mount it to `/etc/ncs/ncs.conf.in`.
 
-It is entirely up to you to manage your `ncs.conf` and make sure that it is correct. See the section [6.3.4](#org43ad587).
+It is entirely up to you to manage your `ncs.conf` and make sure that it is correct. See the section [6.3.4](#org10d1bc1).
 
 
 ### Injecting ncs.conf through a persistent volume
@@ -419,8 +419,6 @@ Injecting a `ncs.conf` and enabling configuration mangling will also accept the 
 
 As we start with the `/etc/ncs/ncs.conf.in` as provided by the NSO version installed in our image, our starting point will look somewhat different. For example, if we build a container image based on NSO 5.2 we will get the default `ncs.conf` that comes with `5.2`. Any updates to the `ncs.conf` shipped with NSO will find its way into the container image. 
 
-
-<a id="org43ad587"></a>
 
 ### Writing your own ncs.conf
 
@@ -556,10 +554,9 @@ In NSO v5.3 and later, the python VM to use is probed by first looking for `pyth
 
 # Backup
 
-**NOTE**: SSH keys and SSL certificates are not included in backups produced by `ncs-backup`.
-Backup and restore largely behaves as it normally does with `ncs-backup` as run outside of Docker, with some exceptions.
+Backup and restore largely behaves as it normally does with `ncs-backup` as run outside of Docker.
 
-Normally, the ncs-backup script includes the NCS<sub>CONFIG</sub><sub>DIR</sub> (defaults to /etc/ncs). SSH keys and SSL certificates are normally placed in /etc/ncs/ssh and /etc/ncs/ssl respectively. This means that the SSH keys and SSL certificates are part of the produced backup file. This is NOT the case for when NSO is run in a container as SSH keys and SSL certificates are not in the default configuration path.
+Normally, the ncs-backup script includes the NCS<sub>CONFIG</sub><sub>DIR</sub> (defaults to /etc/ncs). SSH keys and SSL certificates are normally placed in /etc/ncs/ssh and /etc/ncs/ssl respectively. When NSO is run in a container the keys are normally provided using a persistent volume (`/nso`). These secrets are copied to the configuration dir at startup and will be included in the backup. This distinction becomes important when you restore a backup and want to store the secrets on the persistent volume.
 
 
 ## Taking a backup
@@ -569,11 +566,13 @@ To take a backup, simply run `ncs-backup`. The backup file will be written to `/
 
 ## Restoring from a backup
 
+Backups created with `ncs-backup` contain all files necessary to run NSO, not only limited to data and packages, but also startup configuration and secrets. The latter are restored to NCS<sub>CONFIG</sub><sub>DIR</sub> (defaults to /etc/ncs). In NSO in Docker these files are normally stored on a persistent volume (`/nso`). The restore procedure described below use mounts a subdirectory in the persistent shared volume to `/etc/ncs` in the container to ensure the configuration files are restored to the persistent volume.
+
 To restore a backup, NSO must not be running. As you likely only have access to the `ncs-backup` tool and the volume containing CDB and other run time state from inside of the NSO container, this poses a slight challenge. Additionally, shutting down NSO will terminate the NSO container.
 
 What you need to do is shut down the NSO container and start a new one with the same persistent shared volume mounted but with a different command. Instead of running the `/run-ncs.sh` which is the normal command of the NSO container, you should run something that keeps the container alive but doesn&rsquo;t start NSO, for example `read DUMMY` (it&rsquo;s a bash builtin command so still have to run bash). A full docker command could look like:
 
-    docker run -itd --name nso -v /data/nso:/nso -v /data/nso-logs:/log --net=host my-prod-image:12345 bash -lc 'read DUMMY'
+    docker run -itd --name nso -v /data/nso:/nso -v /data/nso/etc:/etc/ncs -v /data/nso-logs:/log --net=host my-prod-image:12345 bash -lc 'read DUMMY'
 
 You now have the NSO container running but without NSO itself. Get a shell in the container with
 
@@ -587,12 +586,16 @@ Or if you want to automate the whole process slightly you could do it all using 
 
     docker exec -it nso bash -lc 'ncs-backup restore /nso/run/backups/ncs-4.7.5@2019-10-07T14:41:02.backup.gz --non-interactively'
 
+The restore command also restored the startup configuration to `/data/etc/ncs.conf`. This means the next time you start NSO in Docker the configuration file will be used verbatim. If you would like to keep using config mangling, remove the file from the persistent shared volume:
+
+    rm /data/etc/ncs.conf
+
 Restoring a NSO backup should move the current run directory (`/nso/run` to `/nso/run.old`) and restore the run directory from the backup to the main run directory (`/nso/run`). After this is done, shut down your temporary container and start the normal NSO container again as usual.
 
 
 # SSH host key
 
-NSO looks for the SSH host key in the directory `/nso/ssh`. The filename differs based on the configured host key algorithm. NSO in Docker will use the RSA algorithm for host keys.
+NSO looks for the SSH host key in the directory `/nso/etc/ssh`. The filename differs based on the configured host key algorithm. NSO in Docker will use the RSA algorithm for host keys.
 
 If no SSH host key exists, one will be generated. As it is stored in `/nso` which is typically a persistent shared volume in production setups, it will remain the same across restarts or upgrades of NSO.
 
@@ -601,12 +604,12 @@ NSO version 5.3 and newer supports ed25519 and will in fact default to using ed2
 
 # HTTPS TLS certificate
 
-NSO expects to find a TLS certificate and key at `/nso/ssl/cert/host.cert` and `/nso/ssl/cert/host.key` respectively. Since the `/nso` path is usually on persistent shared volume for production setups, the certificate remains the same across restarts or upgrades.
+NSO expects to find a TLS certificate and key at `/nso/etc/ssl/cert/host.cert` and `/nso/etc/ssl/cert/host.key` respectively. Since the `/nso` path is usually on persistent shared volume for production setups, the certificate remains the same across restarts or upgrades.
 
 When no certificate is present, one will be generated. It is a self-signed certificate valid for 30 days making it possible to use both in development and staging environments. It is **not** meant for production. You **should** replace it with a proper signed certificate for production and it is encouraged to do so even for test and staging environments. Simply generate one and place at the provided path, for example using the following, which is the command used to generate the temporary self-signed certificate:
 
     openssl req -new -newkey rsa:4096 -x509 -sha256 -days 30 -nodes \
-            -out /nso/ssl/cert/host.cert -keyout /nso/ssl/cert/host.key \
+            -out /nso/etc/ssl/cert/host.cert -keyout /nso/etc/ssl/cert/host.key \
             -subj "/C=SE/ST=NA/L=/O=NSO/OU=WebUI/CN=Mr. Self-Signed"
 
 
@@ -925,8 +928,6 @@ The typical workflow for submitting code involves forking this git repository, c
 In order to run the tests, a maintainer will need to do a coarse review of the changes to verify there is no hostile code, after which your private branch can be copied to the `nso-developer/nso-docker` repository, which then allows it to be tested with the specialized CI runner. A shadow MR can then be setup to merge the commits to master. The commits still maintain the author, preserving credit for the changes.
 
 
-<a id="orgbfc1879"></a>
-
 # Mac OS X support
 
 NSO in Docker generally works well on Mac OS X on x86<sub>64</sub> Intel CPUs. It runs on the Apple M1 too, although it is still too early to tell just how well.
@@ -950,8 +951,6 @@ To build, make sure you have `realpath` installed, which comes with `coreutils` 
 
 If you notice any issues, please open an issue.
 
-
-<a id="orgfbc11bf"></a>
 
 # Windows support
 
@@ -980,6 +979,15 @@ If you notice any issues, please open an issue.
 
 
 # FAQ / Questions and answers
+
+
+## Q: NSO consumes all / a lot of RAM, why?
+
+Does `ulimit -n` report a limit of 1073741824 (~1 billion) open files? NSO uses that value to initialize some internal tables and 1 billion is too much. Lower the limit to something more reasonable, like a million open files. This seems to have popped up on some RedHat / Centos systems.
+
+Check if it helps with `docker run --ulimit nofile=1048576 ...`
+
+And set it permanently for your docker daemon through its configuration or how it is started on your system.
 
 
 ## Q: Why are these images not based on alpine or some other minimal container friendly image
