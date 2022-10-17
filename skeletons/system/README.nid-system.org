@@ -1,5 +1,5 @@
 * NSO in Docker: NSO system standard form skeleton
-  This is the README file for the NSO in Docker (NID) NSO system standard form skeleton. If you see this file (=README.nid-ned.org=) in a repository, it means the repository follows the standard form.
+  This is the README file for the NSO in Docker (NID) NSO system standard form skeleton. If you see this file (=README.nid-system.org=) in a repository, it means the repository follows the standard form.
 
   The NSO system standard form provides a standardized environment, called a =testenv=, for how to do development and testing of an NSO system. An NSO system consists of NSO together with NEDs and other packages. It is possible to compose a system by including packages built on other repositories that follow the NID standard form, for example the NED or package standard form. This NSO system skeleton ships with a CI configuration file for GitLab that enables the test environment to automatically run in CI. All repositories using these skeletons provide a consistent user interface.
 
@@ -154,6 +154,15 @@
   When run in CI, =PKG_PATH= is set to the Docker registry up and including the namespace of the current project. If our project is hosted at http://gitlab.com/example/my-project and the corresponding Docker registry path is =registry.gitlab.com/example/my-project/=, then =PKG_PATH= will be set to =registry.gitlab.com/example/=. =NSO_VERSION= naturally contains the value of the NSO version we are currently working with. Evaluating our manifest file, if we are running a CI build for NSO 5.3, we see that it will result in the inclusion of =registry.gitlab.com/example/bgworker/package:5.3=.
 
   It is recommended that =PKG_PATH= is always used and that you use continuous mirroring to mirror packages to your own Gitlab instance into the same namespace so that this relative inclusion works.
+
+** Reducing rebuilds when updating NSO patch version
+    When you use the =NSO_VERSION= variable in the includes manifests it means that dependencies have to be rebuilt for every NSO version change. This includes maintenance releases, like going from version 5.8 to 5.8.3 where rebuilding is not strictly necessary, as the *.fxs files are compatible inside a major.minor version train. To take advantage of compatibility guarantee and forego the step of rebuilding everything for maintenance and patch version changes you can use the =NSO_VERSION_MM= variable instead. The skeletons automatically tag the images built with the tip-of-train (highest maintenance / patch release) version with the =MM_$(NSO_VERSION_MM)= tag, which contains just the major, minor and extra tags from the full version. For example, =NSO_VERSION= set to 5.8.3 becomes =NSO_VERSION_MM= 5.8 and 5.8.3_nightly becomes 5.8_nightly. An example of an include file manifest using =NSO_VERSION_MM= looks like this:
+
+    #+BEGIN_SRC text
+        ${PKG_PATH}bgworker/package:MM_${NSO_VERSION_MM}
+    #+END_SRC
+
+    Note the =MM= prefix in the docker image tag. This is added intentionally to differentiate the synthetic =NSO_VERSION_MM= tag from an actual =NSO_VERSION= that does not contain a patch release number.
 
 * Include extra files
   It is possible to include more files in the Docker image by merely placing them in the directory =extra-files/=. The entire content of =extra-files/= is copied to the root of the resulting =nso= image, for example, create =extra-files/tmp/foobar= to have it placed at =/tmp/foobar= in the =nso= image.
