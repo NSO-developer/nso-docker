@@ -82,7 +82,7 @@ test:
 	$(MAKE) test-mounted-config
 	$(MAKE) test-no-ha
 	$(MAKE) test-ha-old
-	if [ $(NSO_VERSION_MAJOR) -ge 5 ] && [ $(NSO_VERSION_MINOR) -ge 4 ]; then $(MAKE) test-ha-new; fi
+	if [ $(NSO_VERSION_MAJOR) -gt 5 ] || ( [ $(NSO_VERSION_MAJOR) -eq 5 ] && [ $(NSO_VERSION_MINOR) -ge 4 ] ); then $(MAKE) test-ha-new; fi
 
 	$(MAKE) test-multiver
 
@@ -441,8 +441,24 @@ test-ha-old:
 
 # This HA test sets up two nodes to verify HA operation. The nodes are
 # configured with the tailf-ncs-high-availability.yang module and is only
-# supported in NSO >= 5.4.
+# supported in NSO >= 5.4. The models in NSO 6.0 have changed the master/slave
+# terms to primary/secondary, but the structure remains the same.
 test-ha-new:
+ifeq ($(shell test "$(NSO_VERSION_MAJOR)" -ge 6; echo $$?),0)
+	HA_PRIMARY=primary \
+	HA_SECONDARY=secondary \
+	HA_SECONDARIES=secondaries \
+	HA_STATE=tfnm2:ha \
+	$(MAKE) test-ha-new-wrapped
+else
+	HA_STATE=ha \
+	HA_PRIMARY=master \
+	HA_SECONDARY=slave \
+	HA_SECONDARIES=slaves \
+	$(MAKE) test-ha-new-wrapped
+endif
+
+test-ha-new-wrapped:
 	@echo "\n== Verify we can enable HA via environment variable"
 	mkdir -p tmp-$@
 	-docker rm -f $(CNT_PREFIX)-$@-1 >/dev/null 2>&1
@@ -461,23 +477,26 @@ test-ha-new:
 	cp high-availability.xml tmp-$@/
 	sed -i "s/N1_ADDRESS/$$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@-1)/" tmp-$@/high-availability.xml
 	sed -i "s/N2_ADDRESS/$$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(CNT_PREFIX)-$@-2)/" tmp-$@/high-availability.xml
+	sed -i "s/HA_PRIMARY/$(HA_PRIMARY)/" tmp-$@/high-availability.xml
+	sed -i "s/HA_SECONDARY/$(HA_SECONDARY)/" tmp-$@/high-availability.xml
+	sed -i "s/HA_SECONDARIES/$(HA_SECONDARIES)/g" tmp-$@/high-availability.xml
 	docker cp tmp-$@/high-availability.xml $(CNT_PREFIX)-$@-1:/
 	docker cp tmp-$@/high-availability.xml $(CNT_PREFIX)-$@-2:/
 	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'ncs --mergexmlfiles /high-availability.xml'
 	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'ncs --mergexmlfiles /high-availability.xml'
 	@echo "-- Node starts up in 'none' mode"
-	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'echo "show ncs-state ha mode" | ncs_cli -u admin' | grep "none"
-	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'echo "show ncs-state ha mode" | ncs_cli -u admin' | grep "none"
-	@echo "-- Enable HA (n1=master)"
+	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'echo "show ncs-state $(HA_STATE) mode" | ncs_cli -u admin' | grep "none"
+	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'echo "show ncs-state $(HA_STATE) mode" | ncs_cli -u admin' | grep "none"
+	@echo "-- Enable HA (n1=$(HA_PRIMARY))"
 	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'echo "request high-availability enable" | ncs_cli -u admin'
 	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'echo "request high-availability enable" | ncs_cli -u admin'
-	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'echo "show ncs-state ha mode" | ncs_cli -u admin' | grep "master"
-	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'echo "show ncs-state ha mode" | ncs_cli -u admin' | grep "slave"
-	@echo "-- Failover HA (n2=master)"
-	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'echo "request high-availability be-master" | ncs_cli -u admin'
-	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'echo "request high-availability be-slave-to node n2" | ncs_cli -u admin'
-	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'echo "show ncs-state ha mode" | ncs_cli -u admin' | grep "slave"
-	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'echo "show ncs-state ha mode" | ncs_cli -u admin' | grep "master"
+	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'echo "show ncs-state $(HA_STATE) mode" | ncs_cli -u admin' | grep "$(HA_PRIMARY)"
+	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'echo "show ncs-state $(HA_STATE) mode" | ncs_cli -u admin' | grep "$(HA_SECONDARY)"
+	@echo "-- Failover HA (n2=$(HA_PRIMARY))"
+	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'echo "request high-availability be-$(HA_PRIMARY)" | ncs_cli -u admin'
+	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'echo "request high-availability be-$(HA_SECONDARY)-to node n2" | ncs_cli -u admin'
+	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'echo "show ncs-state $(HA_STATE) mode" | ncs_cli -u admin' | grep "$(HA_SECONDARY)"
+	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'echo "show ncs-state $(HA_STATE) mode" | ncs_cli -u admin' | grep "$(HA_PRIMARY)"
 	rm -rf tmp-$@
 	-docker rm -f $(CNT_PREFIX)-$@-1 >/dev/null 2>&1
 	-docker rm -f $(CNT_PREFIX)-$@-2 >/dev/null 2>&1

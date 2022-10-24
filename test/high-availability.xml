@@ -3,15 +3,15 @@
 	<ha-node>
 		<id>n1</id>
 		<address>N1_ADDRESS</address>
-		<nominal-role>master</nominal-role>
+		<nominal-role>HA_PRIMARY</nominal-role>
 	</ha-node>
 	<ha-node>
 		<id>n2</id>
 		<address>N2_ADDRESS</address>
-		<nominal-role>slave</nominal-role>
+		<nominal-role>HA_SECONDARY</nominal-role>
 	</ha-node>
 	<settings>
-		<reconnect-slaves>true</reconnect-slaves>
+		<reconnect-HA_SECONDARIES>true</reconnect-HA_SECONDARIES>
 		<start-up>
 			<assume-nominal-role>true</assume-nominal-role>
 			<join-ha>true</join-ha>
