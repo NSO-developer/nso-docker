@@ -55,8 +55,19 @@ echo ${RELOAD_PATTERN}
 source /src/nid/create-or-update-venv.inc
 
 # Copy in new source using rsync. Exclude Emacs and vim temp files.
-# grep -v is for ignoring directory changes. We just care about changed files.
-rsync -aEim --exclude '.#*' --exclude '.*.sw[a-p]' /src/packages/. /src/test-packages/. /var/opt/ncs/packages/ | grep -v "^\.d\.\.t\.\.\.\.\.\. " > /tmp/rsync.log
+# Run the very first sync using checksums for comparison instead of mtimes
+# to ensure only files with actual differences (not just mtime update) are
+# synced. After completing the first sync the following steps are executed
+# the reload_packages function:
+# 1. sync the mtimes for all files,
+# 2. touch the *.fxs files to avoid make thinking it needs to rebuild them,
+# because of potential mtime changes in *.yang sources,
+# 3. create the marker file so the script knows if this is the first sync or not
+if [ -f /var/opt/ncs/packages/.done ]; then
+    rsync -aEim --no-owner --no-group --no-devices --no-specials --omit-dir-times --exclude '.#*' --exclude '.*.sw[a-p]' /src/packages/. /src/test-packages/. /var/opt/ncs/packages/ 2>/dev/null > /tmp/rsync.log
+else
+    rsync -clrEim --omit-dir-times --exclude '.#*' --exclude '.*.sw[a-p]' /src/packages/. /src/test-packages/. /var/opt/ncs/packages/ 2>/dev/null > /tmp/rsync.log
+fi
 for PKG_SRC in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth 1 -type d); do
     export PKG_NAME=$(basename ${PKG_SRC});
     export PKG_DIR=/var/opt/ncs/packages/${PKG_NAME}/
@@ -93,4 +104,10 @@ else
         fi
     done
     if [ $REDEPLOY_ERROR -eq 1 ]; then exit 1; fi
+fi
+
+if [ ! -f /var/opt/ncs/packages/.done ]; then
+    rsync -aEim --omit-dir-times --no-owner --no-group --no-devices --no-specials --exclude '.#*' --exclude '.*.sw[a-p]' /src/packages/. /src/test-packages/. /var/opt/ncs/packages/ >/dev/null 2>&1
+    find /var/opt/ncs/packages -type f -name *.fxs -exec touch {} \+
+    touch /var/opt/ncs/packages/.done
 fi
