@@ -2,5 +2,6 @@ test-4.7.11:
   extends: .test
   variables:
     NSO_VERSION: "4.7.11"
+    NSO_VERSION_IS_TOT: "true"
   needs:
     - build-4.7.11

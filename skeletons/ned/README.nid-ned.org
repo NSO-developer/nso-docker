@@ -185,6 +185,15 @@
 
   NEDs do not typically depend on other packages and so includes might not be useful for the NED package itself, however, the test-packages could very well depend on an external package for which the include manifest functionality can be used.
 
+** Reducing rebuilds when updating NSO patch version
+    When you use the =NSO_VERSION= variable in the includes manifests it means that dependencies have to be rebuilt for every NSO version change. This includes maintenance releases, like going from version 5.8 to 5.8.3 where rebuilding is not strictly necessary, as the *.fxs files are compatible inside a major.minor version train. To take advantage of compatibility guarantee and forego the step of rebuilding everything for maintenance and patch version changes you can use the =NSO_VERSION_MM= variable instead. The skeletons automatically tag the images built with the tip-of-train (highest maintenance / patch release) version with the =MM_$(NSO_VERSION_MM)= tag, which contains just the major, minor and extra tags from the full version. For example, =NSO_VERSION= set to 5.8.3 becomes =NSO_VERSION_MM= 5.8 and 5.8.3_nightly becomes 5.8_nightly. An example of an include file manifest using =NSO_VERSION_MM= looks like this:
+
+    #+BEGIN_SRC text
+        ${PKG_PATH}bgworker/package:MM_${NSO_VERSION_MM}
+    #+END_SRC
+
+    Note the =MM= prefix in the docker image tag. This is added intentionally to differentiate the synthetic =NSO_VERSION_MM= tag from an actual =NSO_VERSION= that does not contain a patch release number.
+
 * Include extra files
   It is possible to include more files in the Docker image by merely placing them in the directory =extra-files/=. The entire content of =extra-files/= is copied to the root of the resulting =testnso= image, for example, create =extra-files/tmp/foobar= to have it placed at =/tmp/foobar= in the =testnso= image.
 

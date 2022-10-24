@@ -2,48 +2,58 @@ deploy-4.7.11:
   extends: .deploy
   variables:
     NSO_VERSION: "4.7.11"
+    NSO_VERSION_IS_TOT: "true"
 
 deploy-5.1.6:
   extends: .deploy
   variables:
     NSO_VERSION: "5.1.6"
+    NSO_VERSION_IS_TOT: "true"
 
 deploy-5.2.11:
   extends: .deploy
   variables:
     NSO_VERSION: "5.2.11"
+    NSO_VERSION_IS_TOT: "true"
 
 deploy-5.3.7:
   extends: .deploy
   variables:
     NSO_VERSION: "5.3.7"
+    NSO_VERSION_IS_TOT: "true"
 
 deploy-5.4.8:
   extends: .deploy
   variables:
     NSO_VERSION: "5.4.8"
+    NSO_VERSION_IS_TOT: "true"
 
 deploy-5.5.7:
   extends: .deploy
   variables:
     NSO_VERSION: "5.5.7"
+    NSO_VERSION_IS_TOT: "true"
 
 deploy-5.6.8:
   extends: .deploy
   variables:
     NSO_VERSION: "5.6.8"
+    NSO_VERSION_IS_TOT: "true"
 
 deploy-5.7.6:
   extends: .deploy
   variables:
     NSO_VERSION: "5.7.6"
+    NSO_VERSION_IS_TOT: "true"
 
 deploy-5.8.4:
   extends: .deploy
   variables:
     NSO_VERSION: "5.8.4"
+    NSO_VERSION_IS_TOT: "true"
 
 deploy-6.0:
   extends: .deploy
   variables:
     NSO_VERSION: "6.0"
+    NSO_VERSION_IS_TOT: "true"
