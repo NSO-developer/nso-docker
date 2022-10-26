@@ -1,1 +1,7 @@
-netconf-console2
+# This is a local source package we use to test Python venvs:
+# 1. Ensure we can install packages into a pyvenv and then use them in NSO
+# 2. Ensure the cisco-nso-dev image includes tools to build a package from source (C)
+# Because the spam package source is included here this test can be run in
+# "airplane mode". The package source was downloaded from from
+# https://github.com/jalan/spam
+./src/spam-master.zip
