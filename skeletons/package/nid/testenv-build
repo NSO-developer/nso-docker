@@ -71,9 +71,9 @@ fi
 for PKG_SRC in $(find /src/packages /src/test-packages -mindepth 1 -maxdepth 1 -type d); do
     export PKG_NAME=$(basename ${PKG_SRC});
     export PKG_DIR=/var/opt/ncs/packages/${PKG_NAME}/
-    # Create or update pyvenv if requirements.txt is changed
-    egrep "${PKG_NAME}/src/requirements\.txt" /tmp/rsync.log > /dev/null && create_or_update_venv ${PKG_DIR} src/requirements.txt pyvenv "false"
-    # Create or update pyvenv-dev if requirements(-dev).txt is changed or it should exist
+    # Create or update pyvenv if requirements.txt is changed or it should exist
+    (egrep "${PKG_NAME}/src/requirements\.txt" /tmp/rsync.log > /dev/null || ([ -f "${PKG_DIR}/src/requirements.txt" ] && [ ! -f "${PKG_DIR}/pyvenv/bin/activate" ])) && create_or_update_venv ${PKG_DIR} src/requirements.txt pyvenv "false"
+    # Create or update pyvenv-dev if requirements(-dev)?.txt is changed or it should exist
     (egrep "${PKG_NAME}/src/(requirements\.txt|requirements-dev\.txt)" /tmp/rsync.log > /dev/null || ([ -f "${PKG_DIR}/src/requirements-dev.txt" ] && [ ! -f "${PKG_DIR}pyvenv-dev/bin/activate" ])) && create_or_update_venv ${PKG_DIR} src/requirements-dev.txt pyvenv-dev "false"
     if [ -f "${PKG_DIR}pyvenv-dev/bin/activate" ]; then echo "Activating ${PKG_DIR}pyvenv-dev"; . ${PKG_DIR}pyvenv-dev/bin/activate;
     elif [ -f "${PKG_DIR}pyvenv/bin/activate" ]; then echo "Activating ${PKG_DIR}pyvenv"; . ${PKG_DIR}pyvenv/bin/activate; fi;
