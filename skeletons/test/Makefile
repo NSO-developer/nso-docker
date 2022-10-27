@@ -88,7 +88,8 @@ props/python-package:
 	mkdir -p props
 	$(DEVRUN) 'cd /src/props && ncs-make-package --service-skeleton python-and-template python-package && chown -R 1000:1000 . && xmlstarlet edit --inplace -N x=http://tail-f.com/ns/ncs-packages --update "/x:ncs-package/x:ncs-min-version" --value 4.7 python-package/package-meta-data.xml'
 	cp props/requirements.txt $@/src/
-	sed -i -e '2iimport netconf_console' $@/python/python_package/main.py
+	cp props/spam-master.zip $@/src/
+	sed -i -e '2iimport spam' $@/python/python_package/main.py
 	rm -rf $@/test
 
 # This package just contains a template, which can be invoked from another
