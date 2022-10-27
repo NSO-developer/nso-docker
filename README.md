@@ -87,8 +87,8 @@ See the [NID skeletons](./skeletons/) for how to get started developing in the N
 NSO in Docker runs on:
 
 -   Linux
--   Mac OS X, see [Mac OS X support](#org94090a9) for more information
--   Windows, see [Windows Support](#org0b7d9d4) for more information
+-   Mac OS X, see [Mac OS X support](#org91ffb29) for more information
+-   Windows, see [Windows Support](#orgbcd49a9) for more information
 
 To build these images, you need:
 
@@ -289,7 +289,7 @@ The normal configuration mangling will NOT be applied to the mounted `/etc/ncs/n
 
 NOTE: the mangling will be directly applied to the mounted file and modify it. Many of the mangling operations are not idempotently implemented, so this will likely break things. If you want to supply a configuration file and mangle it on startup, you probably want to mount it to `/etc/ncs/ncs.conf.in`.
 
-It is entirely up to you to manage your `ncs.conf` and make sure that it is correct. See the section [6.3.4](#org10d1bc1).
+It is entirely up to you to manage your `ncs.conf` and make sure that it is correct. See the section [6.3.4](#org7c11b74).
 
 
 ### Injecting ncs.conf through a persistent volume
@@ -808,52 +808,57 @@ Note that exposing the Docker control socket has security implications. Containe
 
 # Version sets for inclusion in CI configuration
 
-The versions of NSO to build and test for will vary per environment. To handle this, the concept of &ldquo;version sets&rdquo; are used. A list of NSO versions is used to compute a number of CI configuration files that can be included from the main CI configuration (`.gitlab-ci.yml`) and different lists can be used for different environments.
+NSO in Docker encourages testing your repositories across multiple NSO versions, for example:
 
-For this repository in its online form at <https://gitlab.com/nso-developer/nso-docker/>, all currently supported versions of NSO are tested. This is useful to ensure that nso-docker itself is compatible with a wide range of NSO versions but also as other repositories in the NSO in Docker ecosystem can be checked against the same range of versions.
+-   5.4.1 - the current version you use in production
+-   5.4.5 - the latest maintenance release in the 5.4 train
+    -   this is a smaller step than going to a newer release train, like 5.5
+-   5.5.2 - the latest version of NSO, as the potential target to move to
 
-Ideally, a typical user will test against two versions of NSO;
+Testing all your packages and code against multiple NSO versions makes it easier to move across NSO versions and reduces the risk of upgrade failures.
 
--   the current version used in production
--   the latest version of NSO, as the potential target to move to
+To simplify the management of this list of NSO versions, NSO in Docker makes use of a concept simply called `version sets`. A number of CI configuration snippets are generated from the version set definition and these CI snippets can be included in projects to always get an up to date list of NSO versions to built for.
 
-In practice, it is common to have a few versions, for example:
+The upstream home of the NSO in Docker repository at <https://gitlab.com/nso-developer/nso-docker/> will run with all currently supported versions of NSO. This is useful to ensure that nso-docker itself is compatible with a wide range of NSO versions but also as other repositories in the NSO in Docker ecosystem can be checked against the same range of versions. Its version set is defined in `version-sets/nso-developer/versions.json`. `version-sets/version-gen` is a Python script that is run from `version-sets/nso-developer/Makefile` and which uses `version-sets/nso-developer/versions.json` as input and produces a number of YAML files in `version-sets/nso-developer/` that can be included in the CI config of other repositories.
 
--   5.1.2 (current version)
--   5.1.4 (latest maintenance release in 5.1 train)
-    -   this is a smaller step than going to a newer train, like 5.2 or 5.3
--   5.3.1 (latest NSO version)
-
-New NSO versions are released periodically and over time the list of NSO versions grows fairly long. For someone writing a NSO package, keeping the list of NSO versions to build and test for in CI up to date can be a time consuming task, in particular if there are many packages to be maintained. GitLab CI allows for inclusion of configuration files such that the project CI configuration can include another file that is external to the repo. By using this feature we can keep a central list of the NSO versions to test with across multiple repositories.
-
-`version-sets/supported-nso/versions.json` is the root definition of the currently supported versions. `version-sets/version-get` is a Python script that is run from `version-sets/supported-nso/Makefile` and which uses `version-sets/supported-nso/versions.json` as input and produces a number of YAML files in `version-sets/supported-nso/` that can be included in other repositories.
-
-For example, we have `build-all.yaml`, which uses the standard CI job definition called `build` and defines jobs for all currently supported versions of NSO.
-
-`build-all4.yaml` is similar but only includes NSO 4.x versions, whereas `build-all5.yaml` does the same for NSO 5.x. Since NSO 5 looks quite different with schema-mount, it could be reasonable for some packages to only target NSO 5.
-
-`build-tot.yaml` only includes the &ldquo;tip&rdquo; of each train, where a train is the combination of a major and minor version number. Patch releases are not considered for tip-of-train as they are not supposed to be used by the wide masses. For example, if we have 4.7, 4.7.1, 4.7.2 and 4.7.2.1 as well as 5.2.1, the tip-of-train would include 4.7.2 and 5.2.1. Similarly, there&rsquo;s also `build-tot4.yaml` and `build-tot5.yaml` for tip of train for NSO 4 or NSO 5 respectively.
-
-To include a file, use the `include` directive in your `.gitlab-ci.yml`, for example:
+The repository skeletons default to including a version set that is relative to their own location.
 
     include:
-      - project: 'nso-developer/nso-docker'
+      - project: '${CI_PROJECT_NAMESPACE}/nso-docker'
         ref: master
-        file: '/version-sets/supported-nso/build-tot5.yaml'
+        file: '/version-sets/${CI_PROJECT_NAMESPACE}/build-tot5.yaml'
 
-This will work for any repository hosted on the same GitLab instance as the `nso-developer/nso-docker` repo. Once you clone the `nso-docker` repository to your own environment, as you are encouraged to do, you are likely to place it in another namespace (not `nso-developer`) and so you must update the include statements for the dependent repositories accordingly. For example, if you place your clone of `nso-docker` in the `foobar` group on your `gitlab.example.com` instance, then the version-set referenced should be `foobar/nso-docker`. You can also reference a version-set on a remote Gitlab instance by specifying a complete URL instead, like `https://gitlab.com/nso-developer/nso-docker/-/raw/master/version-sets/supported-nso/build-tot.yaml`.
+For example, the repository `https://gitlab.com/nso-developer/bgworker` will have its `${CI_PROJECT_NAMESPACE}` variable expanded to `nso-developer`, thus it will use the version-set defined in the upstream NSO in Docker repository that includes all supported versions of NSO. If you mirror it to your Gitlab instance, it will use the project namespace of your mirrored repository. For example, if you mirror it to `gitlab.example.com/acme/bgworker`, it will look for the version-set defined in the repository `gitlab.com/acme/nso-docker` at the path `version-sets/acme/build-tot5.yaml`.
+
+You are expected to mirror this nso-docker repository to your own environment and create a version-set with the versions you are interested in.
 
 
 ## Create new version set
 
 Merely copy an existing version set, modify the `versions.json` file and regenerate the files. For example;
 
-    cp -av version-sets/supported-nso version-sets/my-versions
-    cd version-sets/my-versions
+    cp -av version-sets/nso-developer version-sets/acme
+    cd version-sets/acme
     vi versions.json # edit the file to list the NSO versions you want
     make generate
+    git add .
+    git commit . -m "Add version-set for acme namespace"
 
-Include it in your nso-docker build or build of other packages in the NSO in Docker ecosystem.
+Again, using the same name as your Gitlab project namespace means all skeleton repositories will automatically find the version-set.
+
+It is possible to use any name you please for the version set, but then you will also need to modify all repositories that include the CI config snippets to use the correct path.
+
+
+## Version set CI configuration snippets
+
+If you have a large number of NSO versions defined but you want to test some packages against a smaller set of versions, you can achieve that by including different CI config snippets.
+
+-   all the `build-*` files use a standard CI job definition called `build`
+-   `build-all.yaml` all versions in the version set
+-   `build-all4.yaml` only includes NSO 4.x versions
+-   `build-all5.yaml` only includes NSO 5.x versions. Since NSO 5 looks quite different with schema-mount, it could be reasonable for some packages to only target NSO 5.
+-   `build-tot.yaml` only includes the &ldquo;tip&rdquo; of each train, where a train is the combination of a major and minor version number. Patch releases are not considered for tip-of-train as they are not supposed to be used by the wide masses. For example, if we have 4.7, 4.7.1, 4.7.2 and 4.7.2.1 as well as 5.2.1, the tip-of-train would include 4.7.2 and 5.2.1.
+    -   Similarly, there&rsquo;s also `build-tot4.yaml` and `build-tot5.yaml` for tip of train for NSO 4 or NSO 5 respectively.
 
 
 # Continuous mirroring

@@ -152,9 +152,10 @@ mirror:
     - git diff --exit-code
 
 
-# Version set to include. These file contain the actual jobs that instantiate
-# the templates above for various version of NSO. The default is to build for
-# all supported NSO versions. It is normal to build your own version set for the
-# NSO versions you are interested in and include that here.
+# Version set to include. This file contains the actual jobs that instantiate
+# the job templates above for a list of NSO versions. It is assumed you have
+# created a version set with the same name as the Gitlab project namespace. That
+# is, if this repo lives in gitlab.example.com/acme/nso-docker/, the version-set
+# is assumed to be in /version-sets/acme/.
 include:
-  - 'version-sets/supported-nso/nso-docker.yaml'
+  - 'version-sets/${CI_PROJECT_NAMESPACE}/nso-docker.yaml'

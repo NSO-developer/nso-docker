@@ -1,0 +1,5 @@
+push-4.7.10:
+  extends: .push
+  variables:
+    NSO_VERSION: "4.7.10"
+    NSO_VERSION_IS_TOT: "true"

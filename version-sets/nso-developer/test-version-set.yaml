@@ -1,0 +1,5 @@
+
+test-version-set:
+  extends: .test-version-set
+  variables:
+    VERSION_SET: "nso-developer"
