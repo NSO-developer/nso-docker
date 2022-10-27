@@ -75,7 +75,7 @@ INIT=mkdir -p repos; rm -rf repos/$@; cp -av ../$* repos/$@
 # NSO images from this PNS. The skeletons also append their own PNS suffixes for
 # their images and container. A side effect of this is ending up with images
 # like package/package:5.5.1-123456-123456
-MKBUILDTEST=NSO_VERSION=$(DOCKER_TAG) make -C repos/$@ build test
+MK_BUILD_TEST=NSO_VERSION=$(DOCKER_TAG) make -C repos/$@ build test
 
 # Run a command in a dev container. Note how this doesn't work in CI as it uses
 # a bind mount.
@@ -117,18 +117,17 @@ props/ietf-ned-2.0:
 	@echo "-- Testing $@ on $* skeleton"
 	$(INIT)
 	cp -av props/ietf-ned* repos/$@/packages/
-	$(MKBUILDTEST)
+	$(MK_BUILD_TEST)
 
 %-build-test-python-package:
 	@echo "-- Testing $@ on $* skeleton"
 	$(INIT)
 	cp -av props/python-package repos/$@/packages/
-	$(MKBUILDTEST)
+	$(MK_BUILD_TEST)
 
 # Make sure that the skeletons support compiling packages that do not have a src directory
 %-no-src:
 	@echo "-- Testing $@ on $* skeleton"
 	$(INIT)
 	cp -av props/template-package repos/$@/packages/
-	$(MKBUILDTEST)
-
+	$(MK_BUILD_TEST)
