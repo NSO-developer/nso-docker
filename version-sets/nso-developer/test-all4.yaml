@@ -2,41 +2,17 @@ test-4.7.10:
   extends: .test
   variables:
     NSO_VERSION: "4.7.10"
-    NSO_VERSION_IS_TOT: "true"
+    NSO_VERSION_IS_TOT: "false"
   needs:
     - build-4.7.10
 
-test-4.7.5:
+test-4.7.11:
   extends: .test
   variables:
-    NSO_VERSION: "4.7.5"
-    NSO_VERSION_IS_TOT: "false"
+    NSO_VERSION: "4.7.11"
+    NSO_VERSION_IS_TOT: "true"
   needs:
-    - build-4.7.5
-
-test-4.7.6:
-  extends: .test
-  variables:
-    NSO_VERSION: "4.7.6"
-    NSO_VERSION_IS_TOT: "false"
-  needs:
-    - build-4.7.6
-
-test-4.7.7:
-  extends: .test
-  variables:
-    NSO_VERSION: "4.7.7"
-    NSO_VERSION_IS_TOT: "false"
-  needs:
-    - build-4.7.7
-
-test-4.7.8:
-  extends: .test
-  variables:
-    NSO_VERSION: "4.7.8"
-    NSO_VERSION_IS_TOT: "false"
-  needs:
-    - build-4.7.8
+    - build-4.7.11
 
 test-4.7.9:
   extends: .test
