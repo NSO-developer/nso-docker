@@ -54,29 +54,29 @@ CREATE_MM_TAG?=$(if $(CI),$(NSO_VERSION_IS_TOT),true)
 # caching of it through the DOCKER_BUILD_CACHE_ARG.
 build: export DOCKER_BUILDKIT=1
 build: ensure-fresh-nid-available Dockerfile
-	docker build --target build   -t $(IMAGE_PATH)$(PROJECT_NAME)/build:$(DOCKER_TAG)   $(DOCKER_BUILD_ARGS)  $(DOCKER_BUILD_CACHE_ARG) .
-	docker build --target testnso -t $(IMAGE_PATH)$(PROJECT_NAME)/testnso:$(DOCKER_TAG) $(DOCKER_BUILD_ARGS) .
-	docker build --target package -t $(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) $(DOCKER_BUILD_ARGS) .
+	docker build --target build   -t $(IMAGE_BASENAME)/build:$(DOCKER_TAG)   $(DOCKER_BUILD_ARGS)  $(DOCKER_BUILD_CACHE_ARG) .
+	docker build --target testnso -t $(IMAGE_BASENAME)/testnso:$(DOCKER_TAG) $(DOCKER_BUILD_ARGS) .
+	docker build --target package -t $(IMAGE_BASENAME)/package:$(DOCKER_TAG) $(DOCKER_BUILD_ARGS) .
 ifeq ($(CREATE_MM_TAG),true)
-	docker tag $(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME)/package:MM_$(DOCKER_TAG_MM)
+	docker tag $(IMAGE_BASENAME)/package:$(DOCKER_TAG) $(IMAGE_BASENAME)/package:MM_$(DOCKER_TAG_MM)
 endif
 
 push:
-	docker push $(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG)
+	docker push $(IMAGE_BASENAME)/package:$(DOCKER_TAG)
 ifeq ($(CREATE_MM_TAG),true)
-	docker push $(IMAGE_PATH)$(PROJECT_NAME)/package:MM_$(DOCKER_TAG_MM)
+	docker push $(IMAGE_BASENAME)/package:MM_$(DOCKER_TAG_MM)
 endif
 
 tag-release:
-	docker tag $(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG) $(IMAGE_PATH)$(PROJECT_NAME)/package:$(NSO_VERSION)
+	docker tag $(IMAGE_BASENAME)/package:$(DOCKER_TAG) $(IMAGE_BASENAME)/package:$(NSO_VERSION)
 ifeq ($(CREATE_MM_TAG),true)
-	docker tag $(IMAGE_PATH)$(PROJECT_NAME)/package:MM_$(DOCKER_TAG_MM) $(IMAGE_PATH)$(PROJECT_NAME)/package:MM_$(NSO_VERSION_MM)
+	docker tag $(IMAGE_BASENAME)/package:MM_$(DOCKER_TAG_MM) $(IMAGE_BASENAME)/package:MM_$(NSO_VERSION_MM)
 endif
 
 push-release:
-	docker push $(IMAGE_PATH)$(PROJECT_NAME)/package:$(NSO_VERSION)
+	docker push $(IMAGE_BASENAME)/package:$(NSO_VERSION)
 ifeq ($(CREATE_MM_TAG),true)
-	docker push $(IMAGE_PATH)$(PROJECT_NAME)/package:MM_$(NSO_VERSION_MM)
+	docker push $(IMAGE_BASENAME)/package:MM_$(NSO_VERSION_MM)
 endif
 
 dev-shell:

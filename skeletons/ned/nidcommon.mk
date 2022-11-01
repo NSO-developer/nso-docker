@@ -135,6 +135,7 @@ export NSO_IMAGE_PATH?=$(call lc,$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/nso-dock
 export IMAGE_PATH?=$(call lc,$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/)
 export PKG_PATH?=$(call lc,$(CI_REGISTRY)/$(CI_PROJECT_NAMESPACE)/)
 endif
+export IMAGE_BASENAME=$(call lc,$(IMAGE_PATH)$(PROJECT_NAME))
 
 # If we are not on x86_64, use --platform arg to Docker to enable emulation of
 # x86 for the container. NSO is only compiled for x86_64, so we can never run
@@ -149,7 +150,7 @@ DOCKER_BUILD_PROXY_ARGS ?= --build-arg http_proxy --build-arg https_proxy --buil
 DOCKER_BUILD_ARGS+= $(DOCKER_PLATFORM_ARG) $(DOCKER_BUILD_PROXY_ARGS)
 DOCKER_BUILD_ARGS+= --build-arg NSO_IMAGE_PATH=$(NSO_IMAGE_PATH)
 DOCKER_BUILD_ARGS+= --build-arg NSO_VERSION=$(NSO_VERSION)
-DOCKER_BUILD_ARGS+= --build-arg PKG_FILE=$(IMAGE_PATH)$(PROJECT_NAME)/package:$(DOCKER_TAG)
+DOCKER_BUILD_ARGS+= --build-arg PKG_FILE=$(IMAGE_BASENAME)/package:$(DOCKER_TAG)
 DOCKER_BUILD_ARGS+= --progress=plain
 
 # DOCKER_ARGS contains arguments to 'docker run' for any type of container in
