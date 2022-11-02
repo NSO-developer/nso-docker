@@ -51,7 +51,7 @@ debug-vscode:
 	HOST_PORT=$$($(MAKE) --no-print-directory dap-port); \
 	LAUNCH_NO_COMMENTS=$$(sed '/\s*\/\/.*/d' $${LAUNCH_FILE}); \
 	if ! echo $${LAUNCH_NO_COMMENTS} | jq --exit-status "(.configurations[] | select(.name == \"Python: NID Remote Attach\"))" >/dev/null 2>&1; then \
-		echo $${LAUNCH_NO_COMMENTS} | jq '.configurations += [{"name":"Python: NID Remote Attach","type":"python","request":"attach","port":'"$${HOST_PORT}"',"host":"localhost","pathMappings":[{"localRoot":"$${workspaceFolder}/packages","remoteRoot":"/nso/run/state/packages-in-use.cur/1"}]}]' > $${LAUNCH_FILE}; \
+		echo $${LAUNCH_NO_COMMENTS} | jq '.configurations += [{"name":"Python: NID Remote Attach","type":"python","request":"attach","port":'"$${HOST_PORT}"',"host":"localhost","pathMappings":[{"localRoot":"$${workspaceFolder}/packages","remoteRoot":"/nso/run/state/packages-in-use/1"}]}]' > $${LAUNCH_FILE}; \
 		echo "== Added \"Python: NID Remote Attach\" debug configuration"; \
 	else \
 		echo $${LAUNCH_NO_COMMENTS} | jq "(.configurations[] | select(.name == \"Python: NID Remote Attach\") | .port) = $${HOST_PORT}" > $${LAUNCH_FILE}; \
