@@ -17,7 +17,14 @@ if [ ${CRON_ENABLE} = "true" ]; then
     cron
 fi
 
-if [ ${LOGROTATE_ENABLE} = "false" ]; then
+if [ ${LOGROTATE_ENABLE} = "true" ]; then
+    # logrotate refuses to use the config if it is writable by the world.
+    # /etc/logrotate.d/ncs from NSO system install already comes with the
+    # correct permissions, but if the users have replaced it with their own via
+    # /extra-files then logrotate may silently fail for them.
+    echo "Ensuring -rw-r--r-- permissions on /etc/logrotate.d/ncs"
+    chmod 644 /etc/logrotate.d/ncs
+else
     echo "Removing /etc/logrotate.d/ncs"
     rm /etc/logrotate.d/ncs
 fi
