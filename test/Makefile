@@ -490,13 +490,13 @@ test-ha-new-wrapped:
 	@echo "-- Enable HA (n1=$(HA_PRIMARY))"
 	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'echo "request high-availability enable" | ncs_cli -u admin'
 	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'echo "request high-availability enable" | ncs_cli -u admin'
-	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'echo "show ncs-state $(HA_STATE) mode" | ncs_cli -u admin' | grep "$(HA_PRIMARY)"
-	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'echo "show ncs-state $(HA_STATE) mode" | ncs_cli -u admin' | grep "$(HA_SECONDARY)"
+	NSO_CNT=$(CNT_PREFIX)-$@-1 ./cmd.py "show ncs-state $(HA_STATE) mode" --success-pattern $(HA_PRIMARY) --retry --time-limit 60 --on-fail "show ncs-state $(HA_STATE)"
+	NSO_CNT=$(CNT_PREFIX)-$@-2 ./cmd.py "show ncs-state $(HA_STATE) mode" --success-pattern $(HA_SECONDARY) --retry --time-limit 60 --on-fail "show ncs-state $(HA_STATE)"
 	@echo "-- Failover HA (n2=$(HA_PRIMARY))"
 	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'echo "request high-availability be-$(HA_PRIMARY)" | ncs_cli -u admin'
 	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'echo "request high-availability be-$(HA_SECONDARY)-to node n2" | ncs_cli -u admin'
-	docker exec -t $(CNT_PREFIX)-$@-1 bash -lc 'echo "show ncs-state $(HA_STATE) mode" | ncs_cli -u admin' | grep "$(HA_SECONDARY)"
-	docker exec -t $(CNT_PREFIX)-$@-2 bash -lc 'echo "show ncs-state $(HA_STATE) mode" | ncs_cli -u admin' | grep "$(HA_PRIMARY)"
+	NSO_CNT=$(CNT_PREFIX)-$@-1 ./cmd.py "show ncs-state $(HA_STATE) mode" --success-pattern $(HA_SECONDARY) --retry --time-limit 60 --on-fail "show ncs-state $(HA_STATE)"
+	NSO_CNT=$(CNT_PREFIX)-$@-2 ./cmd.py "show ncs-state $(HA_STATE) mode" --success-pattern $(HA_PRIMARY) --retry --time-limit 60 --on-fail "show ncs-state $(HA_STATE)"
 	rm -rf tmp-$@
 	-docker rm -f $(CNT_PREFIX)-$@-1 >/dev/null 2>&1
 	-docker rm -f $(CNT_PREFIX)-$@-2 >/dev/null 2>&1
