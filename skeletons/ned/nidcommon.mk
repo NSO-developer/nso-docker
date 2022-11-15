@@ -118,7 +118,7 @@ endif
 # set the docker tag to use, if not already set
 DOCKER_TAG?=$(NSO_VERSION)-$(PNS)
 DOCKER_TAG_MM?=$(NSO_VERSION_MM)-$(PNS)
-CNT_PREFIX?=testenv-$(PROJECT_NAME)-$(TESTENV)-$(NSO_VERSION)-$(PNS)
+CNT_PREFIX?=$(call lc,testenv-$(PROJECT_NAME)-$(TESTENV)-$(NSO_VERSION)-$(PNS))
 
 # There are three important paths that we provide:
 # - NSO_IMAGE_PATH is the path to where we can find the standard nso-docker images
