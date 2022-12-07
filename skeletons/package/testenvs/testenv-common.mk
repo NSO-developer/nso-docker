@@ -199,7 +199,7 @@ check-logs:
 # and network namespace of the testenv NSO container. This allows running
 # python script and IPython that interface with NSO.
 dev-shell:
-	docker run -it --rm -v $(PROJECT_DIR):/src --volumes-from $(CNT_PREFIX)-nso$(NSO) --network container:$(CNT_PREFIX)-nso$(NSO) $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION)
+	docker run -it --rm -v $(PROJECT_DIR):/src --pid container:$(CNT_PREFIX)-nso$(NSO) --volumes-from $(CNT_PREFIX)-nso$(NSO) --network container:$(CNT_PREFIX)-nso$(NSO) $(NSO_IMAGE_PATH)cisco-nso-dev:$(NSO_VERSION)
 
 # Wait for all containers in the testenv (as found via the testenv label) to
 # become healthy! If a container has exited, we exit immediately.
