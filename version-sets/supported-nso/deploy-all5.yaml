@@ -34,12 +34,6 @@ deploy-5.2.9:
     NSO_VERSION: "5.2.9"
     NSO_VERSION_IS_TOT: "false"
 
-deploy-5.3.5:
-  extends: .deploy
-  variables:
-    NSO_VERSION: "5.3.5"
-    NSO_VERSION_IS_TOT: "false"
-
 deploy-5.3.6:
   extends: .deploy
   variables:
@@ -50,6 +44,12 @@ deploy-5.3.7:
   extends: .deploy
   variables:
     NSO_VERSION: "5.3.7"
+    NSO_VERSION_IS_TOT: "false"
+
+deploy-5.3.8:
+  extends: .deploy
+  variables:
+    NSO_VERSION: "5.3.8"
     NSO_VERSION_IS_TOT: "true"
 
 deploy-5.4.6:
@@ -70,74 +70,74 @@ deploy-5.4.8:
     NSO_VERSION: "5.4.8"
     NSO_VERSION_IS_TOT: "true"
 
-deploy-5.5.5:
-  extends: .deploy
-  variables:
-    NSO_VERSION: "5.5.5"
-    NSO_VERSION_IS_TOT: "false"
-
-deploy-5.5.6:
-  extends: .deploy
-  variables:
-    NSO_VERSION: "5.5.6"
-    NSO_VERSION_IS_TOT: "false"
-
 deploy-5.5.7:
   extends: .deploy
   variables:
     NSO_VERSION: "5.5.7"
+    NSO_VERSION_IS_TOT: "false"
+
+deploy-5.5.8:
+  extends: .deploy
+  variables:
+    NSO_VERSION: "5.5.8"
+    NSO_VERSION_IS_TOT: "false"
+
+deploy-5.5.9:
+  extends: .deploy
+  variables:
+    NSO_VERSION: "5.5.9"
     NSO_VERSION_IS_TOT: "true"
 
-deploy-5.6.6:
+deploy-5.6.10:
   extends: .deploy
   variables:
-    NSO_VERSION: "5.6.6"
+    NSO_VERSION: "5.6.10"
     NSO_VERSION_IS_TOT: "false"
 
-deploy-5.6.7:
+deploy-5.6.11:
   extends: .deploy
   variables:
-    NSO_VERSION: "5.6.7"
-    NSO_VERSION_IS_TOT: "false"
-
-deploy-5.6.8:
-  extends: .deploy
-  variables:
-    NSO_VERSION: "5.6.8"
+    NSO_VERSION: "5.6.11"
     NSO_VERSION_IS_TOT: "true"
 
-deploy-5.7.4:
+deploy-5.6.9:
   extends: .deploy
   variables:
-    NSO_VERSION: "5.7.4"
+    NSO_VERSION: "5.6.9"
     NSO_VERSION_IS_TOT: "false"
 
-deploy-5.7.5:
+deploy-5.7.7:
   extends: .deploy
   variables:
-    NSO_VERSION: "5.7.5"
+    NSO_VERSION: "5.7.7"
     NSO_VERSION_IS_TOT: "false"
 
-deploy-5.7.6:
+deploy-5.7.8:
   extends: .deploy
   variables:
-    NSO_VERSION: "5.7.6"
+    NSO_VERSION: "5.7.8"
+    NSO_VERSION_IS_TOT: "false"
+
+deploy-5.7.9:
+  extends: .deploy
+  variables:
+    NSO_VERSION: "5.7.9"
     NSO_VERSION_IS_TOT: "true"
 
-deploy-5.8.2:
+deploy-5.8.5:
   extends: .deploy
   variables:
-    NSO_VERSION: "5.8.2"
+    NSO_VERSION: "5.8.5"
     NSO_VERSION_IS_TOT: "false"
 
-deploy-5.8.3:
+deploy-5.8.6:
   extends: .deploy
   variables:
-    NSO_VERSION: "5.8.3"
+    NSO_VERSION: "5.8.6"
     NSO_VERSION_IS_TOT: "false"
 
-deploy-5.8.4:
+deploy-5.8.7:
   extends: .deploy
   variables:
-    NSO_VERSION: "5.8.4"
+    NSO_VERSION: "5.8.7"
     NSO_VERSION_IS_TOT: "true"
