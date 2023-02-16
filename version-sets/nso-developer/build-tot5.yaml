@@ -10,10 +10,10 @@ build-5.2.11:
     NSO_VERSION: "5.2.11"
     NSO_VERSION_IS_TOT: "true"
 
-build-5.3.7:
+build-5.3.8:
   extends: .build
   variables:
-    NSO_VERSION: "5.3.7"
+    NSO_VERSION: "5.3.8"
     NSO_VERSION_IS_TOT: "true"
 
 build-5.4.8:
@@ -22,26 +22,26 @@ build-5.4.8:
     NSO_VERSION: "5.4.8"
     NSO_VERSION_IS_TOT: "true"
 
-build-5.5.7:
+build-5.5.9:
   extends: .build
   variables:
-    NSO_VERSION: "5.5.7"
+    NSO_VERSION: "5.5.9"
     NSO_VERSION_IS_TOT: "true"
 
-build-5.6.8:
+build-5.6.11:
   extends: .build
   variables:
-    NSO_VERSION: "5.6.8"
+    NSO_VERSION: "5.6.11"
     NSO_VERSION_IS_TOT: "true"
 
-build-5.7.6:
+build-5.7.9:
   extends: .build
   variables:
-    NSO_VERSION: "5.7.6"
+    NSO_VERSION: "5.7.9"
     NSO_VERSION_IS_TOT: "true"
 
-build-5.8.4:
+build-5.8.7:
   extends: .build
   variables:
-    NSO_VERSION: "5.8.4"
+    NSO_VERSION: "5.8.7"
     NSO_VERSION_IS_TOT: "true"
