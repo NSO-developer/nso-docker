@@ -4,9 +4,9 @@
 
 ![img](./nso-in-docker-logo.png)
 
-NOTE: Official Cisco NSO container images are offered for download from https://software.cisco.com, which is entirely different from NSO in Docker.
-
-NSO in Docker is an open-source project that enables users to run NSO in Docker easily.
+> ***NOTE***: Official Cisco NSO container images are offered for download from https://software.cisco.com, which is entirely different from NSO in Docker.
+>
+>NSO in Docker is an open-source project that enables users to run NSO in Docker easily.
 
 ## Downloading NSO in Docker for internal Cisco users
 
