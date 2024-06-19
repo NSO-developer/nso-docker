@@ -125,7 +125,7 @@ The ideal scenario would be to ship prebuilt Docker images containing NSO but as
 -   Clone this repository to your local machine
     -   `git clone https://gitlab.com/nso-developer/nso-docker.git`
 -   Download Cisco NSO
-    -   go to <https://developer.cisco.com/docs/nso/#!getting-nso/getting-nso> and click the &ldquo;NSO 5.x Linux&rdquo; link to download NSO
+    -   go to <https://developer.cisco.com/docs/nso/getting-and-installing-nso/#download-your-nso-free-trial-installer-and-cisco-neds> and click the &ldquo;NSO 5.x Linux&rdquo; link to download NSO
 -   If the file ends with `.signed.bin`, it is a self-extracting archive that verifies a signature, execute it to produce the installer
     -   for example running `bash nso-5.3.linux.x86_64.signed.bin` will produce a number of files, among them the install `nso-5.3.linux.x86_64.installer.bin`
 -   Place the `nso-5.x.linux.x86_64.installer.bin` file in `nso-install-files/` in this repository
